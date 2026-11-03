@@ -4,6 +4,17 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.2.1] - 2026-11-04
+
+`read_volume()` 忘了从包顶层导出。
+
+1.2.0 里它能用，但要写 `from swforge.assembly import read_volume`；
+`add_section_view()` / `add_detail_view()` 都是从顶层导出的，
+它没有。这种不一致会让人以为功能不存在——查文档发现"有这个函数"，
+`import swforge; swforge.read_volume` 却报 AttributeError。
+
+现在统一了，`swforge.read_volume()` 可用。
+
 ## [1.2.0] - 2026-11-04
 
 四项待办：发版检查、BOM 表定位、剖视图/局部放大、多客户端并发实测。

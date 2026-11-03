@@ -4,6 +4,17 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.1] - 2026-11-04
+
+`read_volume()` was missing from the package's top-level exports.
+
+It worked in 1.2.0, but only as `from swforge.assembly import read_volume`.
+`add_section_view()` and `add_detail_view()` were both exported at top level
+and it was not. That inconsistency makes a working function look absent: the
+docs list it, and `swforge.read_volume` raises AttributeError.
+
+Now `swforge.read_volume()` works like the rest.
+
 ## [1.2.0] - 2026-11-04
 
 Four items from the backlog: release checking, BOM table placement, section

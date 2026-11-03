@@ -23,7 +23,7 @@ from .resources import (document_inventory, resource_status, sweep_documents,
 from .spec import builder_from_spec
 from .gb_materials import GB_MATERIALS, ensure_library, material_names
 from .views_extra import add_section_view, add_detail_view
-from .assembly import AssemblyBuilder, list_components, check_interference
+from .assembly import AssemblyBuilder, list_components, check_interference, read_volume
 from .interference import body_interference, check_all_pairs
 from .mates import MateBuilder, list_mates
 from .dims import add_overall_dimensions
@@ -36,9 +36,10 @@ from .cleanup import survey, delete_bodies, purge_giant, purge_small
 from .drawing import (have_mechdog, produce, export_pdf, normalize_layout,
                       make_atlas, delivery_check, add_dimensions, count_dimensions)
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 
 __all__ = [
+    "read_volume",
     "add_section_view",
     "add_detail_view",
     "collect_bom", "insert_bom_table", "bom_to_csv", "bom_to_markdown",
