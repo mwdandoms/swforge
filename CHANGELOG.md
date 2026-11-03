@@ -4,6 +4,29 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.9.1] - 2026-11-03
+
+首个发布到 PyPI 的版本。相比 v0.9.0 全是修复，没有新功能。
+
+### 新增
+- **PyPI 发布流程** `.github/workflows/publish.yml`：打标签即发布，
+  用 Trusted Publishing（OIDC），仓库里不存任何 token。
+  发布前做三项校验：wheel 数量、包版本与标签一致、sdist 含 docs/。
+- **MCP 服务器对外可用性**：补 17 行 `instructions`（Agent 读到的第一段话），
+  修正 `serverInfo.version` 报成 SDK 版本的问题，README 补多客户端配置。
+- `tests/test_mcp.py` 6 条契约测试，走真实 stdio 协议。
+
+### 修复
+- `swforge --help` 在非中文 Windows 上崩溃：stdout 编码为 cp1252 时
+  打印中文抛 `UnicodeEncodeError`。现在用 `errors='replace'` 兜底，
+  且 JSON 输出在单字节编码下自动转义成 `\uXXXX`，保证机器可读。
+- `produce()` 在全新出图时也白连一次 SolidWorks（v0.9.0 引入的回归），
+  导致纯逻辑单测被拖进真实连接。改成只有旧文件存在时才连。
+- CI：`package build` 因 PowerShell 不展开 `dist/*.whl` 通配符而失败；
+  改成 bash 并统一用 `python -m swforge.cli`。
+- CI：marker 检查从静态文本扫描改为 conftest 运行时守卫。
+  静态版误报了 4 个「只测参数校验」的合法用例。
+
 ## [0.9.0] - 2026-11-03
 
 ### 新增

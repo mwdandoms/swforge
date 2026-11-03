@@ -4,6 +4,35 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.9.1] - 2026-11-03
+
+First release published to PyPI. All fixes relative to v0.9.0, no new features.
+
+### Added
+- **PyPI publishing** `.github/workflows/publish.yml`: tag to publish, using
+  Trusted Publishing (OIDC) so no token is stored in the repository. Three
+  pre-publish checks: exactly one wheel, package version matches the tag, and
+  the sdist carries docs/.
+- **MCP server usability for external agents**: 17 lines of `instructions`
+  (the first thing an agent reads), a fix so `serverInfo.version` reports
+  swforge's version instead of the MCP SDK's, and multi-client setup in the
+  README.
+- `tests/test_mcp.py`, six contract tests driving a real stdio session.
+
+### Fixed
+- `swforge --help` crashed on a non-Chinese Windows: with a cp1252 stdout,
+  printing Chinese raised `UnicodeEncodeError`. Now `errors='replace'` keeps it
+  from crashing, and JSON output escapes to `\uXXXX` on a single-byte codec so
+  it stays machine-readable.
+- `produce()` connected to SolidWorks even for a fresh drawing (regression
+  introduced in v0.9.0), dragging pure-logic unit tests into a real connection.
+  It now connects only when the target file already exists.
+- CI: `package build` failed because PowerShell does not expand `dist/*.whl`;
+  switched to bash and to `python -m swforge.cli`.
+- CI: the marker check moved from a static text scan to a runtime guard in
+  conftest. The static version produced four false positives on tests that only
+  exercise parameter validation.
+
 ## [0.9.0] - 2026-11-03
 
 ### Added
