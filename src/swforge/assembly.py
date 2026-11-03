@@ -299,19 +299,47 @@ def check_interference(assembly_path: str | None = None,
         except Exception:                                # noqa: BLE001
             count = 0
         if count:
+            # GetInterferences 在后期绑定下是**属性**（tuple），不是方法。
+            # 之前直接写 mgr.GetInterferences() 会抛 TypeError，被下面的
+            # except 吞掉变成 None，结果就是「计数=1 但明细列表为空」。
+            # 用 _value 统一处理「属性还是方法」这个不确定性。
             try:
-                raw = mgr.GetInterferences()
+                raw = _value(mgr, "GetInterferences")
+                if callable(raw) and not isinstance(raw, (tuple, list)):
+                    raw = raw()
             except Exception:                            # noqa: BLE001
                 raw = None
             for x in (raw or []):
-                try:
-                    items.append({
-                        "volume_mm3": round(float(_value(x, "Volume")) * 1e9, 3),
-                        "components": [str(_value(c, "Name2")) for c in
-                                       (x.Components if hasattr(x, "Components") else [])],
-                    })
-                except Exception:                        # noqa: BLE001
-                    items.append({"raw": str(x)})
+                item = {}
+                # 体积：IInterference.Volume 单位是 m3
+                for key, name, scale in (("volume_mm3", "Volume", 1e9),
+                                         ("volume_mm3", "InterferenceVolume", 1e9)):
+                    if "volume_mm3" in item:
+                        break
+                    try:
+                        v = _value(x, name)
+                        v = v() if callable(v) else v
+                        item["volume_mm3"] = round(float(v) * scale, 3)
+                    except Exception:                    # noqa: BLE001
+                        continue
+                # 涉及哪些零件
+                comps = []
+                for name in ("Components", "GetComponents"):
+                    try:
+                        got = _value(x, name)
+                        got = got() if callable(got) and not isinstance(got, (tuple, list)) else got
+                        for c in (got or []):
+                            try:
+                                comps.append(str(_value(c, "Name2")))
+                            except Exception:            # noqa: BLE001
+                                comps.append(str(c))
+                        if comps:
+                            break
+                    except Exception:                    # noqa: BLE001
+                        continue
+                item["components"] = comps
+                items.append(item if item.get("volume_mm3") is not None or comps
+                             else {"raw": str(x)})
         try:
             mgr.Done()
         except Exception:                                # noqa: BLE001

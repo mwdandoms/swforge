@@ -65,6 +65,13 @@ def _main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="swforge", description="SolidWorks 自动化工具箱")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
+    p = sub.add_parser("selftest",
+                       help="实机自检：逐项验证回读、资源、干涉、尺寸等承诺是否真的成立")
+    p.add_argument("--only", default=None, help="只跑名称或标题含该词的检查")
+    p.add_argument("--keep", action="store_true", help="保留产物目录")
+    p.add_argument("--work-dir", default=None, help="指定产物目录")
+    p.add_argument("--json", action="store_true", help="输出 JSON")
+
     sub.add_parser("ping", help="连接探针")
     sub.add_parser("survey", help="量当前文档的包络与实体构成")
     p = sub.add_parser("capabilities", help="本机能力自检")
@@ -163,6 +170,8 @@ def _main(argv: list[str] | None = None) -> int:
                 out["sweep"] = sweep_documents(dry_run=True, keep=args.keep)
         return _result(out)
 
+    if args.cmd == "selftest":
+        return _cmd_selftest(args)
     if args.cmd == "ping":
         from .session import get_session
 
@@ -248,6 +257,50 @@ def _main(argv: list[str] | None = None) -> int:
 
     return 1
 
+
+
+def _cmd_selftest(args):
+    """实机自检。逐项跑，任何一项失败就以非 0 退出。"""
+    from .selftest import run_selftest
+
+    def show(one):
+        mark = "PASS" if one["ok"] else "FAIL"
+        print(f"  [{mark}] {one['title']:<26} {one['elapsed_s']:>5.2f}s  {one['detail']}")
+
+    if not args.json:
+        print()
+        print("  swforge 实机自检")
+        print("  每一项都在真实 SolidWorks 上跑，读出结果再判定")
+        print()
+
+    r = run_selftest(work_dir=args.work_dir, only=args.only,
+                     keep=args.keep,
+                     progress=None if args.json else show)
+
+    if args.json:
+        print(_json_ascii(r))
+        return 0 if r.get("ok") else 1
+
+    print()
+    if r.get("error"):
+        print(f"  错误：{r['error']}")
+        return 1
+    print(f"  结果：{r['passed']} 通过 / {r['failed']} 失败"
+          f"   耗时 {r['elapsed_s']:.1f}s")
+    print(f"  环境：swforge {r['swforge']}  SolidWorks {r['sw_version']}")
+    if r.get("work_dir"):
+        print(f"  产物：{r['work_dir']}")
+    if r.get("ok"):
+        print("  全部通过 —— 本机这些能力都是实测可用的")
+    else:
+        failed = [x for x in r["results"] if not x["ok"]]
+        print()
+        print("  失败项说明：")
+        for x in failed:
+            print(f"    - {x['title']}：{x['detail']}")
+            if x.get("why"):
+                print(f"      这一项对应的问题：{x['why']}")
+    return 0 if r.get("ok") else 1
 
 def _cmd_capabilities(args):
     """本机能力自检。--api 时额外探测 Interop 支持的 API 清单。"""
