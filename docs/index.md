@@ -91,6 +91,7 @@ print(r.ok, r.bodies, r.mass_kg, r.volume_mm3)
 
 - [快速开始](quickstart.md) —— 装、连、建第一个零件
 - [自检说明](selftest.md) —— 九项检查各验证什么
+- [BOM 明细表](bom.md) —— 从装配读清单，同零件合并计数 —— 九项检查各验证什么
 - [已知限制](limitations.md) —— **先说清楚做不到什么**
 - [踩过的坑](pitfalls.md) —— 实现层面的技术细节
 - [问题日志](issue-log.md) —— 开发中发现并修复的真实问题

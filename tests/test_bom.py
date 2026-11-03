@@ -152,3 +152,40 @@ def test_csv_roundtrip(tmp_path):
     assert got[0] == ["序号", "名称", "数量", "材料", "路径"]
     assert got[1][1] == "底板"
     assert got[1][3] == "Q235"
+
+# ---------------------------------------------------------------- 排除规则
+def test_include_suppressed_optin_works():
+    """include_suppressed=True 时必须把压缩件也算进来。
+
+    这个参数之前是死的（两个分支传的参数一模一样），
+    等于悄悄忽略了调用方的意图。测试守住它。
+    """
+    comps = [
+        comp("在用", r"C:\p\a.SLDPRT"),
+        comp("压缩", r"C:\p\b.SLDPRT", suppressed=True),
+    ]
+    only_visible = group_components(comps)
+    with_all = group_components(comps, include_suppressed=True)
+    assert len(only_visible) == 1
+    assert len(with_all) == 2, "include_suppressed=True 没生效"
+    assert {r["name"] for r in with_all} == {"在用", "压缩"}
+
+
+def test_exclude_from_bom_is_respected():
+    """SolidWorks 允许把组件标成「从明细表排除」，这是用户明确意图，必须尊重。"""
+    rows = group_components([
+        {**comp("正常", r"C:\p\a.SLDPRT"), "exclude_from_bom": False},
+        {**comp("排除", r"C:\p\b.SLDPRT"), "exclude_from_bom": True},
+    ])
+    assert len(rows) == 1
+    assert rows[0]["name"] == "正常"
+
+
+def test_exclude_wins_over_include_suppressed():
+    """即使要求包含压缩件，标了「从明细表排除」的也不能进来。"""
+    rows = group_components([
+        {**comp("排除", r"C:\p\b.SLDPRT", suppressed=True), "exclude_from_bom": True},
+        comp("正常", r"C:\p\a.SLDPRT"),
+    ], include_suppressed=True)
+    assert len(rows) == 1
+    assert rows[0]["name"] == "正常"

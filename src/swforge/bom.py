@@ -68,7 +68,7 @@ def _value(obj, name, default=None):
     return v
 
 
-def group_components(components) -> list:
+def group_components(components, include_suppressed: bool = False) -> list:
     """把组件列表按零件路径合并成明细行。
 
     纯函数，不碰 SolidWorks，可以离线测。
@@ -83,8 +83,13 @@ def group_components(components) -> list:
         path = str(c.get("path") or "")
         if not path:
             continue
-        # 压缩的组件不算进 BOM —— 图上看不到，列出来会误导
-        if c.get("suppressed"):
+        # 压缩的组件默认不算进 BOM —— 图上看不到，列出来会误导。
+        # 但调用方可以要求包含（比如做「全零件清单」而不是「图上清单」）。
+        if c.get("suppressed") and not include_suppressed:
+            continue
+        # SolidWorks 允许把某个组件标成「从明细表排除」，
+        # 这是用户的明确意图，必须尊重，否则 BOM 会多出他不想看到的件。
+        if c.get("exclude_from_bom"):
             continue
         key = os.path.normcase(os.path.abspath(path))
         if key not in by_path:
@@ -145,8 +150,12 @@ def collect_bom(assembly_path: str | None = None,
     # 逐个组件读材料与路径。不用逐个打开零件——
     # 组件对应的零件在装配打开时已加载，直接问组件即可。
     comps = []
-    raw = _v(md, "GetComponents", None)
-    raw = raw(False) if callable(raw) else raw
+    # IAssemblyDoc.GetComponents(Boolean ToplevelOnly) 需要 1 个参数，
+    # 不能当成无参方法用。_value 对 COM 方法只做 getattr 不调用，所以这里手动传参。
+    raw = _v(md, "GetComponents")
+    if callable(raw):
+        raw = raw(False)          # False = 包含子装配里的组件
+
     for c in (raw or []):
         try:
             name = str(_value(c, "Name2") or "")
@@ -159,15 +168,16 @@ def collect_bom(assembly_path: str | None = None,
             # SolidWorks 没赋材质时会返回空或者 "Default"
             if mat.lower() in ("", "default", "unspecified"):
                 mat = ""
-            suppressed = bool(_value(c, "IsSuppressed"))
-            comps.append({"name": name, "path": path,
-                          "material": mat, "suppressed": suppressed})
+            suppressed = bool(_value(c, "IsSuppressed", False))
+            # 从明细表排除：SolidWorks 的原生 BOM 会跳过这些组件，我们也要跳过
+            excl = _value(c, "ExcludeFromBOM", False)
+            comps.append({"name": name, "path": path, "material": mat,
+                          "suppressed": suppressed,
+                          "exclude_from_bom": bool(excl)})
         except Exception:                              # noqa: BLE001
             continue
 
-    rows = group_components(comps)
-    if include_suppressed:
-        rows = group_components([c for c in comps])     # 组内已过滤，保留参数语义
+    rows = group_components(comps, include_suppressed=include_suppressed)
 
     missing = [r["name"] for r in rows if r["material"] == "未指定"]
     return {
@@ -198,7 +208,6 @@ def insert_bom_table(drawing_path: str | None = None,
     template  表格模板路径，留空用 SolidWorks 默认
     """
     from .session import get_session, _value as _v
-    from .drawing import _drawing_document
 
     sw = get_session().sw()
     if drawing_path:
