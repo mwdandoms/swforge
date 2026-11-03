@@ -5,6 +5,7 @@
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![SolidWorks](https://img.shields.io/badge/SolidWorks-2025%20SP5%20tested-red)]()
+[![docs](https://img.shields.io/badge/docs-mwdandoms.github.io-blue)](https://mwdandoms.github.io/swforge/)
 [![PyPI](https://img.shields.io/pypi/v/swforge)](https://pypi.org/project/swforge/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swforge)](https://pypi.org/project/swforge/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
