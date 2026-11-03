@@ -294,8 +294,12 @@ def produce(model_path: str, out_path: str | None = None, paper: str = "A3",
     # 同一路径重复出图会撞车：实测连跑两次，第一次 err=0，第二次 err=1。
     # 原因是上一张图还开在 SolidWorks 里，文件被锁，SaveAs 写不进去。
     # 所以出图前先把「指向同一路径的已打开文档」关掉，再删旧文件。
-    _close_open_document(target)
+    #
+    # 注意：**只有旧文件存在时才连 SolidWorks**。
+    # 无条件连会带来两个副作用：一是全新出图白连一次（拖慢启动），
+    # 二是把纯逻辑的单元测试也拖进真实连接（CI 上没 SolidWorks 就会失败）。
     if os.path.isfile(target):
+        _close_open_document(target)
         try:
             os.remove(target)
         except OSError:

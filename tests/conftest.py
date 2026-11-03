@@ -60,3 +60,48 @@ def _sw_document_budget(request):
                 "peak_observed":len(after),"after_cleanup":len(remaining),
                 "closed":closed}, ensure_ascii=False) + "\n")
     assert len(remaining) < limit, f"SW 文档数量 {len(remaining)} 达到上限 {limit}，停止后续建模"
+
+@pytest.fixture(autouse=True)
+def _strict_sw_marker_guard(request, monkeypatch):
+    """CI 守卫：没标 sw marker 的用例不许真的连上 SolidWorks。
+
+    为什么用运行时守卫而不是静态扫描
+    --------------------------------
+    最初写了个文本扫描脚本，检查测试文件里有没有 `PartBuilder(` / `get_session(`
+    然后要求同时出现 `pytest.mark.sw`。结果**误报了 4 个文件** ——
+    它们只是用 `PartBuilder(...).cylinder(r=0)` 测**参数校验**，
+    在连接 SolidWorks 之前就抛异常了，属于合法的离线用例。
+
+    文本匹配分不清"构造对象测校验"和"真的去连"，所以改成运行时拦：
+    只有真的调用 `get_session()` 才拦，且在拦的那一刻检查 marker。
+
+    开关：环境变量 SWFORGE_STRICT_MARKERS=1 时启用（CI 里设）。
+    本地不设就没有额外行为，跑实机测试不受影响。
+    """
+    if os.environ.get("SWFORGE_STRICT_MARKERS") != "1":
+        yield
+        return
+    if request.node.get_closest_marker("sw"):
+        yield
+        return
+
+    import swforge.session as _sess
+
+    real = _sess.get_session
+    nodeid = request.node.nodeid
+
+    def _blocked(*a, **k):
+        pytest.fail(
+            f"{nodeid} 没有 sw marker，却试图连接 SolidWorks。\n"
+            f"要么给它加 @pytest.mark.sw，要么让它不依赖真实连接。",
+            pytrace=False)
+
+    monkeypatch.setattr(_sess, "get_session", _blocked)
+    # 顶层 re-export 也要一起换，否则 `from swforge import get_session` 绕过去了
+    try:
+        import swforge
+        monkeypatch.setattr(swforge, "get_session", _blocked)
+    except Exception:
+        pass
+    yield
+    monkeypatch.setattr(_sess, "get_session", real)
