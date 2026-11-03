@@ -9,8 +9,50 @@ import os
 import sys
 
 
+# ---------------------------------------------------------------- 编码兜底
+# Windows 上 Python 有时把 stdout 编码设成 cp1252 之类的单字节编码。
+# 这时打印中文会抛 UnicodeEncodeError —— 而 `swforge --help` 里的描述就是中文，
+# 所以陌生人第一次运行就可能直接崩在帮助信息上。（这条是 CI 抓到后修的。）
+_CJK_SAFE = ("utf-8", "utf8", "cp65001", "cp936", "gbk", "gb2312", "big5", "cp950")
+
+
+def _stream_encoding(stream) -> str:
+    try:
+        return (getattr(stream, "encoding", "") or "").lower()
+    except Exception:                                     # noqa: BLE001
+        return ""
+
+
+def _make_output_safe() -> None:
+    """让 CLI 输出永远不会因为编码崩掉。
+
+    两步：
+    1. 把 stdout/stderr 的 errors 设成 replace —— 编不出来的字符变 ? 而不是抛异常
+    2. JSON 输出时按流的真实编码决定 ensure_ascii
+       （单字节编码下必须转义，否则 JSON 会变成非法字符序列，机器读不了）
+    """
+    for name in ("stdout", "stderr"):
+        stream = getattr(sys, name, None)
+        if stream is None:
+            continue
+        try:
+            stream.reconfigure(errors="replace")
+        except Exception:                                 # noqa: BLE001
+            pass
+
+
+def _json_ascii() -> bool:
+    """当前 stdout 编码能否安全表示中文；不能就转义成 \\uXXXX。"""
+    enc = _stream_encoding(sys.stdout)
+    if not enc:
+        return False                                      # 未知编码，保守转义
+    if any(k in enc for k in _CJK_SAFE):
+        return False
+    return True
+
+
 def _p(obj) -> None:
-    print(json.dumps(obj, ensure_ascii=False, indent=2, default=str))
+    print(json.dumps(obj, ensure_ascii=_json_ascii(), indent=2, default=str))
 
 
 def _result(obj) -> int:
@@ -19,6 +61,7 @@ def _result(obj) -> int:
 
 
 def _main(argv: list[str] | None = None) -> int:
+    _make_output_safe()
     ap = argparse.ArgumentParser(prog="swforge", description="SolidWorks 自动化工具箱")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
@@ -306,6 +349,7 @@ def _cmd_batch(args):
 
 
 def main(argv: list[str] | None = None) -> int:
+    _make_output_safe()
     try:
         return _main(argv)
     except KeyboardInterrupt:

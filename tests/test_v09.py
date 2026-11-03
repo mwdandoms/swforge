@@ -215,3 +215,68 @@ def test_v09_exports_present():
     for name in ("batch_drawings", "collect_models", "write_report", "probe_api"):
         assert name in swforge.__all__, f"__all__ 缺少 {name}"
         assert hasattr(swforge, name), f"{name} 没导出"
+
+# ---------------------------------------------------------------- 编码兜底
+def test_cli_survives_non_cjk_stdout(monkeypatch):
+    """CP1252 这类单字节编码下，`--help` 不能崩。
+
+    这是 CI 抓到的真 bug：windows-latest 上 Python 的 stdout 是 cp1252，
+    而 `--help` 里的描述是中文，直接抛 UnicodeEncodeError。
+    陌生人第一次敲 `swforge --help` 就撞上。
+    """
+    import io as _io
+    import sys as _sys
+
+    from swforge import cli
+
+    buf = _io.BytesIO()
+    fake = _io.TextIOWrapper(buf, encoding="cp1252", errors="strict")
+    monkeypatch.setattr(_sys, "stdout", fake)
+
+    # argparse 的 --help 走 sys.exit(0)，接住它。
+    # 关键判据：不能抛 UnicodeEncodeError。
+    with pytest.raises(SystemExit) as exc:
+        cli.main(["--help"])
+    fake.flush()
+    assert exc.value.code == 0
+    assert buf.getvalue(), "帮助信息一个字都没输出"
+
+
+def test_json_output_stays_parseable_on_non_cjk_stdout(monkeypatch):
+    """单字节编码下 JSON 必须仍是合法 JSON，否则机器读不了。"""
+    import io as _io
+    import json as _json
+    import sys as _sys
+
+    from swforge import cli
+
+    buf = _io.BytesIO()
+    fake = _io.TextIOWrapper(buf, encoding="cp1252", errors="replace")
+    monkeypatch.setattr(_sys, "stdout", fake)
+
+    cli._make_output_safe()
+    cli._p({"名称": "支架", "ok": True, "mass": 3.28})
+    fake.flush()
+
+    text = buf.getvalue().decode("cp1252")
+    data = _json.loads(text)          # 解析不了就说明 JSON 坏了
+    assert data["ok"] is True
+    assert data["mass"] == 3.28
+    assert data["名称"] == "支架", "中文键没有正确往返"
+
+
+def test_cjk_encoding_keeps_chinese(monkeypatch):
+    """中文 Windows（utf-8 / gbk）下不应该把中文转义掉。"""
+    import io as _io
+    import sys as _sys
+
+    from swforge import cli
+
+    buf = _io.BytesIO()
+    fake = _io.TextIOWrapper(buf, encoding="utf-8", errors="replace")
+    monkeypatch.setattr(_sys, "stdout", fake)
+    assert cli._json_ascii() is False
+
+    cli._p({"名称": "支架"})
+    fake.flush()
+    assert "支架" in buf.getvalue().decode("utf-8")
