@@ -1,0 +1,135 @@
+name: publish to PyPI
+
+# 触发条件：打一个 v 开头的标签（例如 git tag -a v0.9.1 -m "..." && git push origin v0.9.1）
+#
+# 用 Trusted Publishing（OIDC），**不需要在仓库里存任何 token**。
+# 提前在 PyPI 上配置一次「信任这个仓库的这个 workflow」即可，见文末说明。
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:        # 也允许手动触发，便于演练
+
+jobs:
+  build:
+    name: build distributions
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build sdist and wheel
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build --sdist --wheel --outdir dist
+
+      - name: Sanity check before publishing
+        shell: bash
+        run: |
+          set -euo pipefail
+          # 1) 版本号必须和标签一致，否则 PyPI 上会出现对不上的版本
+          TAG="${GITHUB_REF_NAME#v}"
+          echo "tag version: $TAG"
+          python - <<PY
+          import glob, os, sys
+          import tarfile
+
+          tag = os.environ["TAG"]
+          wheels = glob.glob("dist/*.whl")
+          if len(wheels) != 1:
+              print(f"期望 1 个 wheel，实际 {len(wheels)} 个", file=sys.stderr)
+              sys.exit(1)
+          whl = os.path.basename(wheels[0])
+          # swforge-0.9.0-py3-none-any.whl
+          version = whl.split("-")[1]
+          print(f"package version: {version}")
+          if version != tag:
+              print(f"版本不一致：标签 {tag} vs 包 {version}", file=sys.stderr)
+              sys.exit(1)
+
+          # 2) sdist 必须带文档，否则 PyPI 页面和源码分发都不完整
+          names = tarfile.open(glob.glob("dist/*.tar.gz")[0]).getnames()
+          if not [n for n in names if "/docs/" in n]:
+              print("sdist 缺 docs/", file=sys.stderr)
+              sys.exit(1)
+          print("sanity check passed")
+          PY
+        env:
+          TAG: ${{ github.ref_name }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  # 先发到 TestPyPI 试水。装错了还能改，正式的不能删。
+  testpypi:
+    name: publish to TestPyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment: testpypi
+    permissions:
+      id-token: write        # OIDC，Trusted Publishing 必需
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+          # 演练阶段不阻塞正式发布：TestPyPI 挂了也继续
+          verbose: true
+
+  pypi:
+    name: publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          verbose: true
+
+# ============================================================================
+# 首次使用前的准备（只需做一次）
+#
+# ① 注册 PyPI 账号并开启 2FA（强制）
+#    https://pypi.org/account/register/
+#
+# ② 在 PyPI 上添加「待发布项目」的 Trusted Publisher
+#    https://pypi.org/manage/account/publishing/
+#    填写：
+#        PyPI Project Name : swforge
+#        Owner             : mwdandoms
+#        Repository name   : swforge
+#        Workflow name     : publish.yml
+#        Environment name  : pypi
+#
+# ③ 同样为 TestPyPI 加一次（可选但推荐）
+#    https://test.pypi.org/manage/account/publishing/
+#        Environment name  : testpypi
+#
+# ④ 在 GitHub 仓库里建两个 Environment（Settings → Environments）
+#        pypi      —— 建议加 Required reviewers，发版前人工确认
+#        testpypi  —— 不用审核
+#
+# 之后发版流程：
+#    git tag -a v0.9.1 -m "v0.9.1"
+#    git push origin v0.9.1
+#    然后 CI 自动打包 → 校验版本 → 发 TestPyPI → 发 PyPI
+#
+# 全程不需要在仓库里存任何 token。
+# ============================================================================
