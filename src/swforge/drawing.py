@@ -133,7 +133,8 @@ def count_dimensions(drawing_path: str | None = None) -> dict:
 def add_dimensions(drawing_path: str | None = None, all_views: bool = True,
                    holes: bool = True, center_marks: bool = False,
                    duplicate: bool = False, relayout: bool = True,
-                   overall: bool = False) -> dict:
+                   overall: bool = False, curated: bool = True,
+                   internal: int = 2) -> dict:
     """把模型里的驱动尺寸自动插进工程图（v0.6 新增）。
 
     这是「基础三视图只能看形状，不能制造」这个缺口的直接补法：
@@ -166,10 +167,39 @@ def add_dimensions(drawing_path: str | None = None, all_views: bool = True,
     # 单位统一成毫米：模板若继承英制，自动标注会显示成 inch（3.94 而不是 100）
     units = _ensure_mm_units(md)
     err = ""
-    try:
+
+    # ---- 受控标注（默认）：不铺量，只标该标的
+    #
+    # 为什么改默认：实测 InsertModelAnnotations4 在同一个零件上插 22 个尺寸，
+    # 而且全堆在视图同一边互相重叠，出来的是不可用的图。
+    # 受控模式只用 dims 模块建「总尺寸 + 少量内部特征尺寸」，
+    # 实测 6~9 个，位置由我们决定，天然不重叠。
+    if curated:
+        from .dims import add_overall_dimensions
         md.ClearSelection2(True)
-    except Exception:                                    # noqa: BLE001
-        pass
+        overall_result = add_overall_dimensions(drawing_path, internal=internal)
+        after = count_dimensions(drawing_path)
+        layout = None
+        if relayout:
+            try:
+                layout = normalize_layout(drawing_path)
+            except Exception as exc_c:                  # noqa: BLE001
+                layout = {"ok": False, "error": str(exc_c)}
+        return {
+            "ok": bool(overall_result.get("ok")),
+            "error": "" if overall_result.get("ok") else str(overall_result.get("error", "")),
+            "mode": "curated",
+            "before": before["total"],
+            "after": after["total"],
+            "added": after["total"] - before["total"],
+            "views": after["views"],
+            "units": units,
+            "overall": overall_result,
+            "layout": layout,
+            "note": "受控标注：只标总尺寸与最大的几个内部跨度，跨视图去重；"
+                    "公差与粗糙度需人工补。要旧的全量标注传 curated=False",
+        }
+
     try:
         # InsertModelAnnotations4(Option, Types, AllViews, DuplicateDims,
         #   HiddenFeatureDims, UsePlacementInSketch, InsertAllAnnotations,
@@ -200,6 +230,7 @@ def add_dimensions(drawing_path: str | None = None, all_views: bool = True,
             layout = {"ok": False, "error": str(exc)}
     return {
         "ok": not err,
+        "mode": "blanket",
         "error": err,
         "before": before["total"],
         "after": after["total"],
