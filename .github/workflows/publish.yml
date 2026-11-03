@@ -55,6 +55,37 @@ jobs:
           if not [n for n in names if "/docs/" in n]:
               print("sdist 缺 docs/", file=sys.stderr)
               sys.exit(1)
+
+          # 3) 所有 classifier 必须真的存在
+          # v0.9.1 第一次发布就是栽在这里：写了
+          #   "Topic :: Scientific/Engineering :: Computer Aided Design"
+          # 这个 classifier 根本不存在，PyPI 返回 400，但错误信息埋在
+          # 上传日志的 HTML 里，不逐条对照官方清单是看不出来的。
+          import email
+          import urllib.request
+          import zipfile
+          from email import policy
+
+          whl_path = wheels[0]
+          with zipfile.ZipFile(whl_path) as z:
+              meta_name = [n for n in z.namelist() if n.endswith("METADATA")][0]
+              msg = email.message_from_bytes(z.read(meta_name), policy=policy.default)
+          used = msg.get_all("Classifier") or []
+          print(f"classifiers in wheel: {len(used)}")
+
+          url = "https://pypi.org/pypi?%3Aaction=list_classifiers"
+          with urllib.request.urlopen(url, timeout=30) as resp:
+              official = {ln.strip() for ln in resp.read().decode().splitlines() if ln.strip()}
+          print(f"official classifiers: {len(official)}")
+
+          bad = [c for c in used if c not in official]
+          if bad:
+              print("以下 classifier 不被 PyPI 接受：", file=sys.stderr)
+              for c in bad:
+                  print(f"  - {c}", file=sys.stderr)
+              print("对照 https://pypi.org/pypi?%3Aaction=list_classifiers", file=sys.stderr)
+              sys.exit(1)
+          print("all classifiers are valid")
           print("sanity check passed")
           PY
         env:
