@@ -89,6 +89,7 @@ print(r.ok, r.bodies, r.mass_kg, r.volume_mm3)
 
 ## 文档
 
+- [功能清单](features.md) —— v1.1 全部能力一览（含实测数据）
 - [快速开始](quickstart.md) —— 装、连、建第一个零件
 - [自检说明](selftest.md) —— 九项检查各验证什么
 - [BOM 明细表](bom.md) —— 从装配读清单，同零件合并计数 —— 九项检查各验证什么
