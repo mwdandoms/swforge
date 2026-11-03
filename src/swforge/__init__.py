@@ -35,7 +35,7 @@ from .cleanup import survey, delete_bodies, purge_giant, purge_small
 from .drawing import (have_mechdog, produce, export_pdf, normalize_layout,
                       make_atlas, delivery_check, add_dimensions, count_dimensions)
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 __all__ = [
     "collect_bom", "insert_bom_table", "bom_to_csv", "bom_to_markdown",

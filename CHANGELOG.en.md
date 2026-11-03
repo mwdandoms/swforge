@@ -4,6 +4,30 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] - 2026-11-04
+
+Ships the two fixes that 1.1.0 missed. Source changed after the 1.1.0 tag was
+cut, but the package on PyPI did not follow.
+
+### Fixed
+
+- **Drawings were not zoomed to fit.** `produce()` never called
+  `ViewZoomtofit2()`, so an A3 sheet showed only part of its frame - the first
+  thing anyone sees of a drawing was half a border. Now called after view
+  creation and again after `add_dimensions()`, since dimensioning changes the
+  extent.
+
+- **The `--json` path crashed.** `swforge selftest --json` and
+  `swforge bom --json` both used `_json_ascii()`, which returns a bool, as if
+  it printed JSON: `TypeError: _json_ascii() takes 0 positional arguments but
+  1 was given`. That path had never been exercised; it surfaced while pulling
+  real data to build the demo animation.
+
+### Note
+
+Both are user-visible defects, not internal refactoring. 1.1.0 was tagged
+before these changes, so that release does not contain them.
+
 ## [1.1.0] - 2026-11-04
 
 The theme of this release: turning "I built it" into "you can verify it yourself".
