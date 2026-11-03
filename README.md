@@ -148,18 +148,48 @@ body_interference(part, "A", "B")
 # {'interfere': True, 'interference_volume_mm3': 500.0}
 ```
 
-### MCP
+### MCP —— 任意支持 MCP 的智能体都能接
+
+服务器走**标准 MCP stdio 协议**，已用官方客户端实测握手通过
+（协议 `2025-11-25`、22 个工具、schema 全部合规、`serverInfo.version` 报 0.9.0）。
+
+**Claude Desktop**（`%APPDATA%\Claude\claude_desktop_config.json`）
 
 ```json
 {
   "mcpServers": {
-    "swforge": { "command": "solidworks-swforge.exe" }
+    "swforge": {
+      "command": "C:\\Python313\\Scripts\\solidworks-swforge.exe",
+      "args": []
+    }
   }
 }
 ```
 
-22 个工具：`sw_build_part` `sw_apply_colors` `sw_produce_drawing` `sw_layout_views`
-`sw_export_pdf` `sw_overall_dimensions` `sw_body_interference` `sw_resource_status` …
+**Cursor / Cline / Codex / Windsurf / DSH**（`mcp.json` 或客户端的设置界面）
+
+```json
+{
+  "mcpServers": {
+    "swforge": {
+      "command": "python",
+      "args": ["-m", "swforge.server"]
+    }
+  }
+}
+```
+
+> `python -m swforge.server` 最稳 —— 不依赖脚本在不在 PATH 里。
+> 先 `pip install "swforge[mcp]"`。
+
+**服务器会主动告诉 Agent 怎么用**：MCP 握手时返回 17 行 `instructions`，写明
+SolidWorks 必须手动启动、长度单位 mm、文档上限 8 个、以及推荐流程
+（validate → build → color → read_colors → drawing → layout → pdf）。
+这是外部智能体能正确使用的前提，`tests/test_mcp.py` 会守住它。
+
+22 个工具：`sw_validate_part` `sw_build_part` `sw_apply_colors` `sw_read_colors`
+`sw_survey` `sw_produce_drawing` `sw_layout_views` `sw_export_pdf`
+`sw_list_materials` `sw_ensure_material_library` `sw_resource_status` …
 
 ---
 

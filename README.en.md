@@ -149,18 +149,49 @@ body_interference(part, "A", "B")
 # {'interfere': True, 'interference_volume_mm3': 500.0}
 ```
 
-### MCP
+### MCP — works with any MCP-capable agent
+
+Standard MCP over stdio. Verified with the official MCP client: protocol `2025-11-25`,
+22 tools with valid schemas, and `serverInfo.version` reporting 0.9.0.
+
+**Claude Desktop** (`%APPDATA%\Claude\claude_desktop_config.json`)
 
 ```json
 {
   "mcpServers": {
-    "swforge": { "command": "solidworks-swforge.exe" }
+    "swforge": {
+      "command": "C:\\Python313\\Scripts\\solidworks-swforge.exe",
+      "args": []
+    }
   }
 }
 ```
 
-22 tools: `sw_build_part`, `sw_apply_colors`, `sw_produce_drawing`, `sw_layout_views`,
-`sw_export_pdf`, `sw_overall_dimensions`, `sw_body_interference`, `sw_resource_status`, and more.
+**Cursor / Cline / Codex / Windsurf / DSH** (`mcp.json`, or the client's settings UI)
+
+```json
+{
+  "mcpServers": {
+    "swforge": {
+      "command": "python",
+      "args": ["-m", "swforge.server"]
+    }
+  }
+}
+```
+
+> `python -m swforge.server` is the most robust form: it does not depend on the script
+> being on PATH. Install with `pip install "swforge[mcp]"` first.
+
+**The server tells the agent how to use it.** The handshake returns 17 lines of
+`instructions`: SolidWorks must already be running, lengths are millimetres, the
+8-document cap, and the recommended flow
+(validate -> build -> color -> read_colors -> drawing -> layout -> pdf).
+`tests/test_mcp.py` keeps this honest.
+
+22 tools: `sw_validate_part`, `sw_build_part`, `sw_apply_colors`, `sw_read_colors`,
+`sw_survey`, `sw_produce_drawing`, `sw_layout_views`, `sw_export_pdf`,
+`sw_list_materials`, `sw_ensure_material_library`, `sw_resource_status`, and more.
 
 ---
 

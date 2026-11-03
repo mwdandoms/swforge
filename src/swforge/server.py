@@ -44,7 +44,32 @@ def build_mcp():
     """构造 FastMCP 实例。延迟 import，没装 mcp 也能 import 本模块。"""
     from mcp.server.fastmcp import FastMCP
 
-    mcp = FastMCP("swforge")
+    # instructions 是 MCP 客户端（Claude Desktop / Cursor / Codex …）读到的第一段话，
+    # 决定这个服务器 "别的智能体能不能用对"。空着等于让 Agent 自己猜。
+    mcp = FastMCP(
+        "swforge",
+        instructions=(
+            "swforge：驱动本机 SolidWorks 的机械设计工具箱（单位一律 mm）。\n"
+            "\n"
+            "使用前提：SolidWorks 必须已在用户桌面上运行并完成启动，否则工具会返回连接错误。\n"
+            "\n"
+            "推荐流程：\n"
+            "1. 不确定参数时先调 sw_validate_part —— 它只校验不建文件，能立刻指出哪一项非法。\n"
+            "2. sw_build_part 建模（spec 用 boxes/tubes/cylinders/revolves/fillets/chamfers）。\n"
+            "3. sw_apply_colors 上色后一定用 sw_read_colors 回读，确认颜色真的写进去了。\n"
+            "4. sw_produce_drawing 出工程图 → sw_layout_views 排版 → sw_export_pdf 导 PDF。\n"
+            "\n"
+            "重要约束：\n"
+            "- SolidWorks 默认只允许同时打开 8 个文档。批量操作前先调 sw_resource_status，"
+            "必要时 sw_sweep_documents 清场，否则会报文档数超限。\n"
+            "- 材质用国标牌号（Q235 / Q355 / 45 / 40Cr …），用 sw_list_materials 查看可用牌号。\n"
+            "- 所有工具返回 JSON，成功看 ok=true，失败看 error。\n"
+            "- 工程图不含公差与粗糙度，不要对外声称图纸可直接投产。\n"
+            "\n"
+            "This server drives a real SolidWorks instance. All lengths are millimetres. "
+            "Every tool returns JSON with an ok field."
+        ),
+    )
 
     def tool():
         def register(fn):
@@ -346,6 +371,17 @@ def build_mcp():
         """只读预览实体选边规则；长度单位 mm，带规则时仅匹配直边。"""
         from .modeling import preview_edges
         return preview_edges(part_path,tag,edges_rule)
+
+    # 让 serverInfo.version 报 swforge 自己的版本。
+    # FastMCP 构造参数里没有 version，底层 Server 的 version 默认是 None，
+    # 于是 MCP 客户端看到的是 SDK 版本（1.30.0）—— 排查问题时会被误导。
+    try:
+        from . import __version__ as _ver
+        inner = getattr(mcp, "_mcp_server", None)
+        if inner is not None:
+            inner.version = _ver
+    except Exception:                                     # noqa: BLE001
+        pass
 
     return mcp
 
