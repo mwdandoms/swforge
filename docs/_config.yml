@@ -1,0 +1,31 @@
+title: swforge
+description: 用 Python / 命令行 / MCP 驱动本机 SolidWorks，每一步都回读验证
+theme: jekyll-theme-cayman
+show_downloads: false
+
+# 为什么不自己生成 HTML
+# ---------------------
+# 试过 mkdocs + material，但装它需要拉一堆依赖，国内网络经常卡住。
+# GitHub Pages 原生支持 Jekyll，推送就能渲染，本地零依赖、零构建。
+# 文档就是 markdown，改完 push 即可，不需要任何本地工具链。
+
+# 不参与渲染的文件
+exclude:
+  - "*.py"
+  - "requirements*.txt"
+
+# 让中文标题正常显示
+lang: zh-CN
+
+# 站点信息
+url: https://mwdandoms.github.io
+baseurl: /swforge
+
+# 导航（cayman 主题不显示 nav，但留着自己看结构）
+nav:
+  - 总览: index.md
+  - 快速开始: quickstart.md
+  - 自检说明: selftest.md
+  - 已知限制: limitations.md
+  - 踩过的坑: pitfalls.md
+  - 问题日志: issue-log.md
