@@ -6,6 +6,8 @@
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![SolidWorks](https://img.shields.io/badge/SolidWorks-2025%20SP5%20tested-red)]()
+[![PyPI](https://img.shields.io/pypi/v/swforge)](https://pypi.org/project/swforge/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swforge)](https://pypi.org/project/swforge/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![tests](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml/badge.svg)](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml)
 
@@ -76,7 +78,7 @@ This section exists so you know the boundaries **before** installing, not after.
 ```powershell
 git clone https://github.com/mwdandoms/swforge.git
 cd swforge
-python -m pip install -e ".[mcp,pdf]"
+pip install "swforge[mcp,pdf]"
 ```
 
 **Requirements**: Windows + SolidWorks (verified on 2025 SP5.0) + Python 3.10+
