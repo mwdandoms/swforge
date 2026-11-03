@@ -1,0 +1,99 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  offline:
+    name: offline (${{ matrix.python }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        python: ["3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+          python -m pip install -e .
+
+      - name: Run offline tests
+        # 只跑不需要 SolidWorks 的用例。
+        # 实机用例（-m sw）在 CI 上必然失败 —— 那里没有 SolidWorks，
+        # 假装通过比不跑更糟，所以明确排除。
+        run: python -m pytest tests -q -m "not sw"
+
+  package:
+    name: package build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build sdist and wheel
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build --sdist --wheel --outdir dist
+
+      - name: Check the wheel imports and exposes the CLI
+        run: |
+          python -m pip install dist/*.whl
+          python -c "import swforge; print('version', swforge.__version__); print('exports', len(swforge.__all__))"
+          swforge --help
+
+      - name: Check the sdist carries the docs
+        run: |
+          python -c "import glob,tarfile,sys; t=tarfile.open(glob.glob('dist/*.tar.gz')[0]); n=t.getnames(); docs=[x for x in n if '/docs/' in x]; demo=[x for x in n if '/demo/' in x]; print('docs', len(docs), 'demo', len(demo)); sys.exit(0 if docs and demo else 1)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  honest:
+    name: no live-test claim without SolidWorks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fail if any test marked "sw" is missing the marker
+        shell: bash
+        run: |
+          # 这个 Job 守一件事：需要 SolidWorks 的用例必须打 sw marker，
+          # 否则 CI 会跑到它们然后因为「没有 SolidWorks」而「失败」，
+          # 久而久之大家就不看 CI 了 —— 那 CI 就白做了。
+          echo "检查 tests/ 里对 SolidWorks 的调用是否都标了 sw marker"
+          python3 - <<'PY'
+          import pathlib, re, sys
+          bad = []
+          for p in pathlib.Path("tests").rglob("test_*.py"):
+              text = p.read_text(encoding="utf-8", errors="replace")
+              # 有 @pytest.mark.sw 或 needs_sw 才允许直接连 SW
+              guarded = ("pytest.mark.sw" in text) or ("needs_sw" in text)
+              touches = re.search(r"\bget_session\(\)|PartBuilder\(|produce\(", text)
+              if touches and not guarded:
+                  bad.append(str(p))
+          if bad:
+              print("这些文件用了 SolidWorks 却没标 sw marker:")
+              for b in bad:
+                  print("  -", b)
+              sys.exit(1)
+          print("OK: 全部已标注")
+          PY

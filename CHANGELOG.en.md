@@ -4,6 +4,38 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.9.0] - 2026-11-03
+
+### Added
+- **Batch drawings** `swforge batch`: one folder of parts becomes a stack of GB-framed
+  drawings. Measured 5 parts in 15.7 s; one failure does not sink the batch; existing
+  drawings are skipped so an interrupted run resumes.
+- **API capability probe** `swforge capabilities --api`: reflects over the locally
+  installed Interop library and reports, for 28 risky APIs, whether each exists and its
+  highest overload. Measured 0.43 s with a clear verdict. A wrong declared type triggers
+  a global scan that reports the real location (`InsertModelAnnotations4` lives on
+  `IDrawingDoc`).
+- **Overall dimensions now work on revolved parts**: fall back from vertices to edge
+  endpoints, then to single-entity dimensions, so cylinders and rings get outer and
+  inner diameters (measured flange 120/60, bushing 40/24).
+- **CI**: `.github/workflows/tests.yml`, Python 3.10-3.13 matrix running the 106 offline
+  tests, plus package build, sdist content check and an `sw` marker guard.
+- Tests 124 -> **138** (106 offline + 32 live).
+
+### Fixed
+- `produce()` returned `err=1` when the target drawing already existed, because the
+  previous drawing was still open and locked the file. It now closes any document
+  pointing at the target path first.
+- `add_dimensions(overall=True)` referenced an undefined `overall_result` (NameError).
+- sdist did not carry `docs/` or `demo/`; `MANIFEST.in` added, 65 files now.
+- Batch failed from the 5th part on after hitting SolidWorks' 8-document cap; documents
+  are now released after each part.
+
+### Docs
+- README gained a "Not yet" section and a three-layer "Verification boundary" table
+  (L1 offline / L2 CI / L3 live).
+- Chinese and English READMEs kept in sync.
+
 ## [0.8.0] - 2026-11-03
 
 ### Added

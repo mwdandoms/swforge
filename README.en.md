@@ -7,10 +7,12 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![SolidWorks](https://img.shields.io/badge/SolidWorks-2025%20SP5%20tested-red)]()
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-124%20passed-brightgreen)]()
+[![tests](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml/badge.svg)](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml)
 
 > Tested end-to-end only on **SolidWorks 2025 SP5.0 + Windows + Python 3.14**.
 > Version compatibility (targeting 2019+) is the main goal of the next release.
+
+---
 
 ---
 
@@ -48,6 +50,24 @@ Concrete problems it addresses:
 | GB material grades | **20** (density / elastic modulus / Poisson's ratio / standard reference) |
 | Geometry | box / plate / tube(XYZ) / cylinder(XYZ) / revolve(XYZ) / fillet / chamfer |
 | Verified environment | SolidWorks 2025 SP5.0 (33.5.0) + Python 3.14.3 |
+
+---
+
+
+## Not yet (stated up front)
+
+This section exists so you know the boundaries **before** installing, not after.
+
+| Not done | Why |
+|---|---|
+| **Fully verified only on SolidWorks 2025 SP5.0** | 2019-2024 untested. Run `swforge capabilities --api` to check your own machine |
+| **Older file formats** | Files saved by 2025 cannot be opened by 2019; no version-downgrade save |
+| **Tolerances / surface finish are not generated** | Deliberate: no invented engineering requirements. Add them by hand for now |
+| **Section views / detail views** | Basic three views only |
+| **BOM / exploded views** | Not implemented |
+| **Gears / sheet metal / weldments** | Boxes, plates, tubes, cylinders, revolves, fillet and chamfer only |
+| **Drawing to model (reverse rebuild)** | Not implemented |
+| **Assembly-level interference API** | Returns 0 for a known overlap on this machine; part-level boolean intersection is used instead |
 
 ---
 
@@ -144,6 +164,29 @@ body_interference(part, "A", "B")
 
 ---
 
+### Batch drawings (one folder to a stack of sheets)
+
+```powershell
+swforge batch D:\parts --pdf --report report.json
+```
+
+* One bad part does not sink the batch; the reason is recorded per item
+* Existing drawings are skipped by default, so an interrupted run can resume
+* Documents are released after each part (SolidWorks caps at 8; without this the batch fails silently)
+
+### Version capability probe (first thing to run on a new machine)
+
+```powershell
+swforge capabilities --api
+```
+
+Reflects over the locally installed Interop library and reports, for every risky API,
+whether it exists and its highest overload. If the declared type is wrong it scans
+globally and reports the real location — `InsertModelAnnotations4` turned out to live on
+`IDrawingDoc`, not `IModelDocExtension`.
+
+---
+
 ## Demo
 
 You can see it work without installing — the demo runner executes step by step and
@@ -157,6 +200,24 @@ python demo/demo.py --step 4   # only step 4 (drawings)
 
 Six steps: environment check → modeling + coloring → GB materials → drawings →
 assembly + mates → interference. Output lands in `demo/out/`.
+
+---
+
+---
+
+## Verification boundary (three layers, results do not carry across)
+
+| Layer | Where it runs | Covers | **Does not cover** |
+|---|---|---|---|
+| **L1 offline** | Any machine | `pytest -m "not sw"`, **106 tests**: geometry math, spec validation, file collection, CLI, result shapes | Anything needing a SolidWorks process |
+| **L2 hosted CI** | GitHub `windows-latest` x Python 3.10-3.13 | All of L1 + package build + sdist content check + `sw` marker guard | Real CAD execution |
+| **L3 live acceptance** | **Maintainer's machine only** (Win11 + SolidWorks 2025 SP5.0) | All 124 tests, real modeling / drawings / assembly / mates / interference | Other machines, other SolidWorks versions |
+
+Three things that must be said:
+
+1. **There is no SolidWorks on CI and no remote CAD evidence.** Any claim that "remote CAD CI passed" is false.
+2. **Passing on my machine does not mean passing on yours.** Run `swforge capabilities --api` first.
+3. **`--api` probes whether an API exists, not whether its behaviour is correct.** A method present in 2019 does not guarantee identical behaviour to 2025.
 
 ---
 

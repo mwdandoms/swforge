@@ -26,12 +26,14 @@ from .assembly import AssemblyBuilder, list_components, check_interference
 from .interference import body_interference, check_all_pairs
 from .mates import MateBuilder, list_mates
 from .dims import add_overall_dimensions
+from .batch import batch_drawings, collect_models, write_report
+from .probe import probe_api
 from .colors import FaceRule, apply_rules, read_back
 from .cleanup import survey, delete_bodies, purge_giant, purge_small
 from .drawing import (have_mechdog, produce, export_pdf, normalize_layout,
                       make_atlas, delivery_check, add_dimensions, count_dimensions)
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 
 __all__ = [
     "__version__",
@@ -45,6 +47,8 @@ __all__ = [
     "AssemblyBuilder", "list_components", "check_interference", "body_interference", "check_all_pairs",
     # mates / dims
     "MateBuilder", "list_mates", "add_overall_dimensions",
+    # batch
+    "batch_drawings", "collect_models", "write_report", "probe_api",
     # colors
     "FaceRule", "apply_rules", "read_back",
     # cleanup

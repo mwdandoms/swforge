@@ -24,10 +24,27 @@ def _main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("ping", help="连接探针")
     sub.add_parser("survey", help="量当前文档的包络与实体构成")
-    sub.add_parser("capabilities", help="本机能力自检")
+    p = sub.add_parser("capabilities", help="本机能力自检")
+    p.add_argument("--api", action="store_true",
+                   help="额外用反射探测本机 Interop 支持哪些 API（判断版本兼容用）")
+    p.add_argument("--sw-dir", default=None, help="手动指定 SolidWorks 安装目录")
     p = sub.add_parser("materials", help="列出内置 GB 牌号并生成/校验 SW 材质库")
     p.add_argument("--ensure", action="store_true", help="生成材质库并返回路径")
     p.add_argument("--force", action="store_true", help="强制重新生成")
+
+    p = sub.add_parser("batch", help="批量出图：一个文件夹的零件 -> 一批工程图")
+    p.add_argument("folder", help="模型所在文件夹")
+    p.add_argument("--out", default=None, help="输出文件夹（默认与模型同目录）")
+    p.add_argument("--pattern", default="*.SLDPRT", help="文件名通配，默认 *.SLDPRT")
+    p.add_argument("--recursive", action="store_true", help="递归子目录")
+    p.add_argument("--paper", default="A3", choices=["A0", "A1", "A2", "A3", "A4"])
+    p.add_argument("--no-overall", action="store_true", help="不补总尺寸")
+    p.add_argument("--pdf", action="store_true", help="同时导出 PDF")
+    p.add_argument("--no-skip-existing", action="store_true", help="已存在也重出（默认跳过）")
+    p.add_argument("--limit", type=int, default=0, help="最多处理 N 个（0=不限）")
+    p.add_argument("--max-documents", type=int, default=8)
+    p.add_argument("--report", default=None, help="把结果写成 JSON 报告")
+    p.add_argument("--json", action="store_true", help="输出 JSON 而不是人读格式")
 
     p = sub.add_parser("resources", help="SW 文档数量与内存健康检查；可清扫遗留临时文档")
     p.add_argument("--limit", type=int, default=8, help="文档数上限，默认 8")
@@ -82,6 +99,12 @@ def _main(argv: list[str] | None = None) -> int:
         if args.ensure:
             out["library"] = ensure_library(force=args.force)
         return _result(out)
+
+    if args.cmd == "capabilities":
+        return _cmd_capabilities(args)
+
+    if args.cmd == "batch":
+        return _cmd_batch(args)
 
     if args.cmd == "resources":
         from .resources import resource_status, sweep_documents
@@ -181,6 +204,105 @@ def _main(argv: list[str] | None = None) -> int:
                       paper=spec.get("paper", "A3")))
 
     return 1
+
+
+def _cmd_capabilities(args):
+    """本机能力自检。--api 时额外探测 Interop 支持的 API 清单。"""
+    from .session import get_session
+
+    out = {"swforge": ""}
+    try:
+        from . import __version__ as _v
+        out["swforge"] = _v
+    except Exception:                                     # noqa: BLE001
+        pass
+    out["python"] = sys.version.split()[0]
+    out["platform"] = sys.platform
+
+    # 连接信息（连不上也给结论，不要整条命令失败）
+    try:
+        ping = get_session().ping()
+        out["sw"] = ping
+        out["connected"] = bool(ping.get("ok"))
+    except Exception as exc:                              # noqa: BLE001
+        out["sw"] = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+        out["connected"] = False
+
+    if args.api:
+        try:
+            from .probe import probe_api
+            probe = probe_api(sw_dir=args.sw_dir)
+            out["api"] = probe
+            # 顶层给个结论，方便一眼看出能不能用
+            if probe.get("ok"):
+                out["verdict"] = (
+                    "本机支持完整功能" if not probe.get("missing")
+                    else f"缺失 {len(probe['missing'])} 个 API，见 api.missing"
+                )
+            else:
+                out["verdict"] = f"探测失败：{probe.get('error')}"
+        except Exception as exc:                          # noqa: BLE001
+            out["api"] = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+            out["verdict"] = "探测异常"
+
+    out["ok"] = out.get("connected", False)
+    return _result(out)
+
+
+def _cmd_batch(args):
+    """批量出图：一个文件夹的零件 -> 一批带 GB 图框的工程图。"""
+    import os as _os
+    from .batch import batch_drawings, write_report
+
+    def show(idx, total, item):
+        bar = f"[{idx}/{total}]"
+        name = _os.path.basename(item.model)
+        if item.skipped:
+            print(f"{bar} 跳过  {name}（图已存在）", flush=True)
+        elif item.ok:
+            extra = f"  尺寸 {item.dims}"
+            if item.overall_done:
+                extra += f"（总尺寸 {item.overall_done}）"
+            if item.pdf_ok:
+                extra += "  +PDF"
+            print(f"{bar} ✓     {name}{extra}  {item.seconds:.1f}s", flush=True)
+        else:
+            print(f"{bar} ✗     {name}  {item.error[:80]}", flush=True)
+
+    res = batch_drawings(
+        args.folder,
+        out_dir=args.out,
+        pattern=args.pattern,
+        recursive=args.recursive,
+        paper=args.paper,
+        overall=not args.no_overall,
+        pdf=args.pdf,
+        skip_existing=not args.no_skip_existing,
+        limit=args.limit,
+        max_documents=args.max_documents,
+        progress=None if args.json else show,
+    )
+
+    if args.report:
+        write_report(res, args.report)
+        if not args.json:
+            print(f"\n报告: {args.report}")
+
+    if args.json:
+        print(json.dumps(res, ensure_ascii=False, indent=2))
+        return 0 if res["ok"] else 1
+
+    print()
+    print(f"  合计 {res['total']} 个模型")
+    print(f"  成功 {res['succeeded']}   失败 {res['failed']}   跳过 {res['skipped']}   PDF {res['pdf_ok']}")
+    print(f"  耗时 {res['seconds']:.1f} 秒")
+    if res["failed"]:
+        print()
+        print("  失败的：")
+        for it in res["items"]:
+            if not it["ok"]:
+                print(f"    {_os.path.basename(it['model'])}: {it['error']}")
+    return 0 if res["ok"] else 1
 
 
 def main(argv: list[str] | None = None) -> int:

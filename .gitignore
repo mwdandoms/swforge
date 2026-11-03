@@ -41,3 +41,5 @@ desktop.ini
 # 演示产物
 demo/out/
 
+demo/batch_parts/
+

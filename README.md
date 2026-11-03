@@ -6,10 +6,12 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![SolidWorks](https://img.shields.io/badge/SolidWorks-2025%20SP5%20tested-red)]()
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-124%20passed-brightgreen)]()
+[![tests](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml/badge.svg)](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml)
 
 > 本项目只在 **SolidWorks 2025 SP5.0 + Windows + Python 3.14** 上做过完整实测。
 > 版本兼容（目标下探到 2019）是下一版的主要目标，见路线图。
+
+---
 
 ---
 
@@ -47,6 +49,24 @@ SolidWorks 自动化有三类工具，各有各的坑：
 | GB 牌号 | **20 个**（密度 / 弹性模量 / 泊松比 / 国标出处） |
 | 几何能力 | box / plate / tube(XYZ) / cylinder(XYZ) / revolve(XYZ) / fillet / chamfer |
 | 实测环境 | SolidWorks 2025 SP5.0 (33.5.0) + Python 3.14.3 |
+
+---
+
+
+## 尚未做到（先说清楚）
+
+写在这里是为了让你**在安装之前**就知道边界，而不是装完才发现。
+
+| 没做 | 原因 |
+|---|---|
+| **只在 SolidWorks 2025 SP5.0 完整实测** | 2019~2024 未验证。用 `swforge capabilities --api` 可以自己查本机支持情况 |
+| **低版本文件格式** | 2025 存的 `.SLDPRT` 2019 打不开，未做版本降级保存 |
+| **公差 / 粗糙度不自动生成** | 设计决策：不编造工程要求。目前需要人工补 |
+| **剖视图 / 局部放大** | 只有基础三视图 |
+| **BOM / 明细表 / 爆炸视图** | 未实现 |
+| **齿轮 / 钣金 / 焊件** | 只支持盒体、管、圆柱、旋转体及其圆角倒角 |
+| **图纸 → 模型（反向重建）** | 未实现 |
+| **装配级干涉 API** | 在本机对确定重叠返回 0，不可用；已改用零件级布尔求交 |
 
 ---
 
@@ -143,6 +163,46 @@ body_interference(part, "A", "B")
 
 ---
 
+### 批量出图（一个文件夹 → 一批图）
+
+```powershell
+swforge batch D:\零件 --pdf --report report.json
+```
+
+```
+[1/5] ✓     垫块.SLDPRT  尺寸 6（总尺寸 4）  +PDF  3.0s
+[2/5] ✓     支架.SLDPRT  尺寸 24（总尺寸 6） +PDF  3.4s
+[3/5] ✓     法兰.SLDPRT  尺寸 6（总尺寸 6）  +PDF  3.1s
+[4/5] ✓     轴套.SLDPRT  尺寸 6（总尺寸 6）  +PDF  3.1s
+[5/5] ✓     连接板.SLDPRT 尺寸 6（总尺寸 4） +PDF  3.1s
+
+合计 5 个模型   成功 5   失败 0   跳过 0   PDF 5
+耗时 15.7 秒
+```
+
+* 一个坏件不会拖垮整批，失败原因单独记进报告
+* 默认跳过已存在的图 —— 断了能接着跑
+* 每件出完自动释放文档（SolidWorks 默认 8 个上限，不清场会静默失败）
+
+### 版本能力探测（换机器第一件事）
+
+```powershell
+swforge capabilities --api
+```
+
+```
+程序集   33.5.0.53
+可用率   28/28   耗时 0.43 秒
+探测了 28 个风险 API，可用 28 个
+全部可用 —— 本机 SolidWorks 支持 swforge 的完整功能
+```
+
+用反射查本机 Interop 库，逐个确认每个有风险的 API 存不存在、最高几参重载。
+**类型写错也没关系**，它会全局扫描并报出真实位置（`InsertModelAnnotations4` 实测在 `IDrawingDoc` 上，
+不在 `IModelDocExtension`）。
+
+---
+
 ## 功能演示
 
 不装也能先看效果 —— 演示脚本会分步执行，每步停下来告诉你「屏幕上该看到什么」：
@@ -158,6 +218,24 @@ python demo/demo.py --step 4   # 只跑第 4 步（出工程图）
 
 **演讲/录制用的配套材料**：
 - [`docs/bilibili-script.md`](docs/bilibili-script.md) —— B 站视频台本（分段、旁白、后期建议）
+
+---
+
+---
+
+## 验证边界（三层，结论不能跨层套用）
+
+| 层 | 在哪跑 | 覆盖什么 | **不覆盖什么** |
+|---|---|---|---|
+| **L1 离线** | 任意机器 | `pytest -m "not sw"`，**106 项**：几何计算、规格校验、文件收集、CLI、结果结构 | 一切需要 SolidWorks 进程的东西 |
+| **L2 托管 CI** | GitHub `windows-latest` × Python 3.10/3.11/3.12/3.13 | L1 全部 + 打包构建 + sdist 内容检查 + `sw` marker 守卫 | 真实 CAD 执行 |
+| **L3 实机验收** | **仅维护者本机**（Win11 + SolidWorks 2025 SP5.0） | 124 项全量、真实建模/出图/装配/配合/干涉 | 其它机器、其它 SolidWorks 版本 |
+
+必须说清的三点：
+
+1. **CI 上没有 SolidWorks，也没有真机 CAD 证据。** 任何"远程 CAD CI 已通过"的说法都是错的。
+2. **本机通过 ≠ 跨机器通过。** 换机器请先跑 `swforge capabilities --api`。
+3. **`--api` 探测的是 API 存不存在，不是功能行为是否正确。** 一个方法在 2019 上存在，不代表它的行为与 2025 一致。
 
 ---
 

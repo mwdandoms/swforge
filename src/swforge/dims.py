@@ -92,23 +92,106 @@ public class __CLASS__ {
                 double[] o = (double[])v.GetOutline();
                 if (o == null || o.Length < 4) { v = (IView)v.GetNextView(); continue; }
 
-                int n = v.GetVisibleEntityCount2(null, (int)swViewEntityType_e.swViewEntityType_Vertex);
-                if (n < 2) { L("SWFORGE_DIM view=" + vname + " skipped=no_vertex"); v = (IView)v.GetNextView(); continue; }
-                object[] raw = (object[])v.GetVisibleEntities2(null, (int)swViewEntityType_e.swViewEntityType_Vertex);
-                if (raw == null) { v = (IView)v.GetNextView(); continue; }
-
                 System.Collections.Generic.List<V> pts = new System.Collections.Generic.List<V>();
-                foreach (object eo in raw) {
-                    try {
-                        IEntity ent = (IEntity)eo;
-                        IVertex vt = (IVertex)ent;
-                        double[] p = (double[])vt.GetPoint();
-                        V item = new V();
-                        item.ent = ent; item.x = p[0]; item.y = p[1]; item.z = p[2];
-                        pts.Add(item);
-                    } catch { }
+                string via = "vertex";
+
+                // 只在最后什么都没标出来时才打实体统计，正常路径不刷日志
+
+                // ---- 路径一：可见顶点（方盒类零件走这里，最准）
+                int n = v.GetVisibleEntityCount2(null, (int)swViewEntityType_e.swViewEntityType_Vertex);
+                if (n >= 2) {
+                    object[] raw = (object[])v.GetVisibleEntities2(null, (int)swViewEntityType_e.swViewEntityType_Vertex);
+                    foreach (object eo in raw ?? new object[0]) {
+                        try {
+                            IEntity ent = (IEntity)eo;
+                            IVertex vt = (IVertex)ent;
+                            double[] p = (double[])vt.GetPoint();
+                            V item = new V();
+                            item.ent = ent; item.x = p[0]; item.y = p[1]; item.z = p[2];
+                            pts.Add(item);
+                        } catch { }
+                    }
                 }
-                if (pts.Count < 2) { L("SWFORGE_DIM view=" + vname + " skipped=no_point"); v = (IView)v.GetNextView(); continue; }
+
+                // ---- 路径二：没有顶点就退回边端点
+                // 圆柱/回转体的侧视只有侧影轮廓线，没有实体顶点，此时抓边再取端点。
+                // 注意选的是「边」而不是端点 —— 两条平行边之间的距离才是正确尺寸。
+                if (pts.Count < 2) {
+                    via = "edge";
+                    int ne = v.GetVisibleEntityCount2(null, (int)swViewEntityType_e.swViewEntityType_Edge);
+                    if (ne > 0) {
+                        object[] rawe = (object[])v.GetVisibleEntities2(null, (int)swViewEntityType_e.swViewEntityType_Edge);
+                        foreach (object eo in rawe ?? new object[0]) {
+                            try {
+                                IEntity ent = (IEntity)eo;
+                                IEdge ed = (IEdge)ent;
+                                IVertex sv = (IVertex)ed.GetStartVertex();
+                                IVertex ev = (IVertex)ed.GetEndVertex();
+                                if (sv != null) {
+                                    double[] ps = (double[])sv.GetPoint();
+                                    V a = new V(); a.ent = ent; a.x = ps[0]; a.y = ps[1]; a.z = ps[2];
+                                    pts.Add(a);
+                                }
+                                if (ev != null) {
+                                    double[] pe = (double[])ev.GetPoint();
+                                    V b2 = new V(); b2.ent = ent; b2.x = pe[0]; b2.y = pe[1]; b2.z = pe[2];
+                                    pts.Add(b2);
+                                }
+                            } catch { }
+                        }
+                    }
+                }
+
+                // ---- 路径三：两条极值点都拿不到（回转体常见），退回单实体标注
+                // 圆柱/圆环的可见边是闭合曲线，没有端点，选一条边直接 AddDimension2：
+                // 圆边给直径，直边给长度。虽然只能拿到一个尺寸，但比一张没有任何尺寸的图强。
+                if (pts.Count < 2) {
+                    int singles = 0;
+                    try {
+                        int ne2 = v.GetVisibleEntityCount2(null, (int)swViewEntityType_e.swViewEntityType_Edge);
+                        if (ne2 > 0) {
+                            object[] raws = (object[])v.GetVisibleEntities2(null, (int)swViewEntityType_e.swViewEntityType_Edge);
+                            int placed = 0;
+                            foreach (object eo in raws ?? new object[0]) {
+                                if (placed >= 2) break;
+                                tried++;
+                                try {
+                                    IEntity ent = (IEntity)eo;
+                                    md.ClearSelection2(true);
+                                    if (!ent.Select4(true, null)) continue;
+                                    // 沿视图轮廓左右各内缩一点，避免两个尺寸线重叠
+                                    double fcx = (o[0] + o[2]) / 2.0;
+                                    double fcy = (o[1] + o[3]) / 2.0;
+                                    double dx = (o[2] - o[0]) * (placed == 0 ? 0.25 : -0.25);
+                                    object d = md.AddDimension2(fcx + dx, fcy, 0);
+                                    if (d != null) {
+                                        placed++; done++; singles++;
+                                        // 回读尺寸数值
+                                        try {
+                                            DisplayDimension dispDim = (DisplayDimension)d;
+                                            Dimension dim = (Dimension)dispDim.GetDimension2(0);
+                                            L("SWFORGE_DIM view=" + vname + " via=single ok value=" +
+                                              dim.Value.ToString("F2") + " kind=" + dispDim.Type2.ToString());
+                                        } catch { L("SWFORGE_DIM view=" + vname + " via=single ok value=?"); }
+                                    }
+                                } catch (Exception ex) {
+                                    L("SWFORGE_DIM view=" + vname + " via=single exc " + ex.Message);
+                                }
+                            }
+                        }
+                    } catch { }
+                    md.ClearSelection2(true);
+                    if (singles == 0) {
+                        try {
+                            L("SWFORGE_DIM view=" + vname + " skipped=no_geometry vertex=" +
+                              v.GetVisibleEntityCount2(null, (int)swViewEntityType_e.swViewEntityType_Vertex) +
+                              " edge=" + v.GetVisibleEntityCount2(null, (int)swViewEntityType_e.swViewEntityType_Edge) +
+                              " sil=" + v.GetVisibleEntityCount2(null, (int)swViewEntityType_e.swViewEntityType_SilhouetteEdge));
+                        } catch { L("SWFORGE_DIM view=" + vname + " skipped=no_geometry"); }
+                    }
+                    v = (IView)v.GetNextView();
+                    continue;
+                }
 
                 V minX = pts[0], maxX = pts[0], minY = pts[0], maxY = pts[0];
                 foreach (V q in pts) {
@@ -130,7 +213,7 @@ public class __CLASS__ {
                     if (s1 && s2) {
                         try {
                             object d = md.AddHorizontalDimension2(cx, o[1] - gap, 0);
-                            if (d != null) { done++; L("SWFORGE_DIM view=" + vname + " horizontal=ok value=" +
+                            if (d != null) { done++; L("SWFORGE_DIM view=" + vname + " via=" + via + " horizontal=ok value=" +
                                 ((maxX.x - minX.x) * 1000).ToString("F2")); }
                             else L("SWFORGE_DIM view=" + vname + " horizontal=null");
                         } catch (Exception ex) { L("SWFORGE_DIM view=" + vname + " horizontal=exc " + ex.Message); }
@@ -147,7 +230,7 @@ public class __CLASS__ {
                     if (s1 && s2) {
                         try {
                             object d = md.AddVerticalDimension2(o[0] - gap, cy, 0);
-                            if (d != null) { done++; L("SWFORGE_DIM view=" + vname + " vertical=ok value=" +
+                            if (d != null) { done++; L("SWFORGE_DIM view=" + vname + " via=" + via + " vertical=ok value=" +
                                 ((maxY.y - minY.y) * 1000).ToString("F2")); }
                             else L("SWFORGE_DIM view=" + vname + " vertical=null");
                         } catch (Exception ex) { L("SWFORGE_DIM view=" + vname + " vertical=exc " + ex.Message); }
