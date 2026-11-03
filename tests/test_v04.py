@@ -4,7 +4,7 @@ from pathlib import Path
 from types import SimpleNamespace
 import pytest
 
-from dsh_sw_toolkit import drawing,modeling,resources
+from swforge import drawing,modeling,resources
 
 
 @pytest.mark.parametrize('rule',[{'axis':'q'},{'min_length_mm':0},{'max_length_mm':float('nan')},

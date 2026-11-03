@@ -10,9 +10,9 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from dsh_sw_toolkit import cli
-from dsh_sw_toolkit.session import STAWorker, SWError, SWSession, get_session
-from dsh_sw_toolkit.spec import builder_from_spec
+from swforge import cli
+from swforge.session import STAWorker, SWError, SWSession, get_session
+from swforge.spec import builder_from_spec
 
 
 def _box():
@@ -48,7 +48,7 @@ def test_invalid_spec_fails_without_creating_file(tmp_path, spec):
 
 
 def test_cli_validate_only_does_not_build(tmp_path, monkeypatch, capsys):
-    from dsh_sw_toolkit.modeling import PartBuilder
+    from swforge.modeling import PartBuilder
     def unexpected_build(*args, **kwargs):
         raise AssertionError("validation must never execute build")
     monkeypatch.setattr(PartBuilder, "build", unexpected_build)
@@ -60,7 +60,7 @@ def test_cli_validate_only_does_not_build(tmp_path, monkeypatch, capsys):
 
 
 def test_cli_reports_failure_exit_status(monkeypatch, capsys):
-    import dsh_sw_toolkit.cleanup as cleanup
+    import swforge.cleanup as cleanup
     monkeypatch.setattr(cleanup, "survey", lambda: {"ok": False, "error": "没有打开的文档"})
     assert cli.main(["survey"]) == 1
     assert json.loads(capsys.readouterr().out)["ok"] is False
@@ -153,8 +153,8 @@ def test_sta_worker_keeps_running_after_operation_failure(monkeypatch):
 
 def test_mcp_validation_does_not_connect_solidworks(tmp_path, monkeypatch):
     pytest.importorskip("mcp")
-    from dsh_sw_toolkit.server import mcp
-    from dsh_sw_toolkit.modeling import PartBuilder
+    from swforge.server import mcp
+    from swforge.modeling import PartBuilder
     monkeypatch.setattr(PartBuilder, "build", lambda **kwargs: pytest.fail("must not build"))
     # Direct pure-tool call avoids creating a Windows event loop in restricted CI.
     tool = mcp._tool_manager.get_tool("sw_validate_part")

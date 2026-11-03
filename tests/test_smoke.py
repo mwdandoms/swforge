@@ -15,19 +15,19 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 
 def test_import():
-    import dsh_sw_toolkit as t
+    import swforge as t
     assert t.__version__
     assert "PartBuilder" in t.__all__
 
 
 def test_colors_mapping():
-    from dsh_sw_toolkit.modeling import COLORS, Material
+    from swforge.modeling import COLORS, Material
     assert COLORS["yellow"] == Material.YELLOW
     assert len(Material.SILVER) == 3
 
 
 def test_builder_rejects_bad_box():
-    from dsh_sw_toolkit.modeling import PartBuilder
+    from swforge.modeling import PartBuilder
     b = PartBuilder(os.path.join(tempfile.gettempdir(), "x.SLDPRT"))
     try:
         b.box("坏", 10, 10, 0, 5, 0, 5)
@@ -38,7 +38,7 @@ def test_builder_rejects_bad_box():
 
 
 def test_builder_counts():
-    from dsh_sw_toolkit.modeling import PartBuilder
+    from swforge.modeling import PartBuilder
     b = PartBuilder(os.path.join(tempfile.gettempdir(), "y.SLDPRT"))
     b.box("底", 0, 100, 0, 10, 0, 100)
     b.tube_y("柱", 10, 500, 0, 0, 50, 50, wall=5)     # 4 块板
@@ -47,7 +47,7 @@ def test_builder_counts():
 
 
 def test_codegen_contains_calls():
-    from dsh_sw_toolkit.modeling import PartBuilder
+    from swforge.modeling import PartBuilder
     b = PartBuilder(r"C:\tmp\z.SLDPRT")
     b.box("底板", 0, 10, 0, 10, 0, 10, "steel")
     cs = b.render_cs()
@@ -57,7 +57,7 @@ def test_codegen_contains_calls():
 
 
 def test_rule_matching():
-    from dsh_sw_toolkit.colors import FaceRule
+    from swforge.colors import FaceRule
     box = {"x0": -10, "x1": 10, "y0": 0, "y1": 20, "z0": -10, "z1": 10}
     assert FaceRule("a", (0, 0, 0), ymax_lt=30).matches(box, 0.0)
     assert not FaceRule("b", (0, 0, 0), ymax_lt=10).matches(box, 0.0)
@@ -67,7 +67,7 @@ def test_rule_matching():
 
 
 def test_atlas_without_solidworks():
-    from dsh_sw_toolkit.drawing import make_atlas
+    from swforge.drawing import make_atlas
     out = os.path.join(tempfile.gettempdir(), "atlas_test.pdf")
     r = make_atlas(
         [

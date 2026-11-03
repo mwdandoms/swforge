@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-"""MCP 服务器 —— 把 dsh-sw-toolkit 的能力暴露成 18 个标准工具。
+"""MCP 服务器 —— 把 swforge 的能力暴露成 18 个标准工具。
 
 启动
 ----
-    python -m dsh_sw_toolkit.server          # stdio
+    python -m swforge.server          # stdio
     # 或在 DSH / Claude Desktop 的 MCP 配置里指向：
-    #   command: <python>/Scripts/solidworks-dsh-sw.exe
+    #   command: <python>/Scripts/solidworks-swforge.exe
 
 设计原则
 --------
@@ -44,7 +44,7 @@ def build_mcp():
     """构造 FastMCP 实例。延迟 import，没装 mcp 也能 import 本模块。"""
     from mcp.server.fastmcp import FastMCP
 
-    mcp = FastMCP("dsh-sw-toolkit")
+    mcp = FastMCP("swforge")
 
     def tool():
         def register(fn):
@@ -77,7 +77,7 @@ def build_mcp():
             from .session import get_session
 
             from . import __version__
-            info = {"ok": True, "dsh_sw_toolkit": __version__,
+            info = {"ok": True, "swforge": __version__,
                     "python": sys.version.split()[0], "mechdog": have_mechdog(),
                     "geometry": ["box", "tube_x", "tube_y", "tube_z",
                                  "cylinder", "revolve_y", "fillet", "chamfer"],
@@ -335,7 +335,7 @@ def build_mcp():
     def sw_sweep_documents(apply: bool = False, keep: list | None = None) -> dict:
         """关闭遗留的临时/测试文档（默认只列不关）。
 
-        只匹配 pytest 目录、dshsw_it 目录和系统临时目录下的文档；
+        只匹配 pytest 目录、swforge_it 目录和系统临时目录下的文档；
         用户打开的工作文档和有未保存修改的文档不会被关闭。
         """
         from .resources import sweep_documents
@@ -350,7 +350,7 @@ def build_mcp():
     return mcp
 
 
-try:                                          # 供 `from dsh_sw_toolkit.server import mcp`
+try:                                          # 供 `from swforge.server import mcp`
     mcp = build_mcp()
 except ModuleNotFoundError as exc:
     if exc.name != "mcp":
@@ -360,7 +360,7 @@ except ModuleNotFoundError as exc:
 
 def main() -> int:
     if mcp is None:
-        print("未安装 mcp 包，请先 pip install \"dsh-sw-toolkit[mcp]\"", file=sys.stderr)
+        print("未安装 mcp 包，请先 pip install \"swforge[mcp]\"", file=sys.stderr)
         return 1
     try:
         mcp.run()

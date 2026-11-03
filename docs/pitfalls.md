@@ -87,7 +87,7 @@ catch { sw = (ISldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWork
 | 位置 | 结果 |
 |---|---|
 | `E:\...\lang\chinese-simplified\sldmaterials\` | ✅ 生效 |
-| `%LOCALAPPDATA%\dsh-sw-toolkit\` | ❌ 静默失败，密度退回 1000 |
+| `%LOCALAPPDATA%\swforge\` | ❌ 静默失败，密度退回 1000 |
 | `C:\ProgramData\SOLIDWORKS\SOLIDWORKS <年>\自定义材料\` | ✅ 生效 |
 
 而且 SW 自带中文库**没有 GB 钢牌号**（没有 Q235 / 45 / 40Cr），

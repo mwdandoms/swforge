@@ -163,7 +163,7 @@ public class __CLASS__ {
             if (cos == null) throw new Exception("装配体没有组件");
             List<IComponent2> comps = new List<IComponent2>();
             foreach (object o in cos) comps.Add((IComponent2)o);
-            L("DSHSW_ASM title=" + md.GetTitle() + " components=" + comps.Count);
+            L("SWFORGE_ASM title=" + md.GetTitle() + " components=" + comps.Count);
 
             foreach (string spec in new string[] { __SPECS__ }) {
                 string[] p = spec.Split('|');
@@ -171,7 +171,7 @@ public class __CLASS__ {
                 int ia = int.Parse(p[1]);
                 int ib = int.Parse(p[2]);
                 if (ia >= comps.Count || ib >= comps.Count) {
-                    L("DSHSW_MATE op=" + op + " result=index_out_of_range");
+                    L("SWFORGE_MATE op=" + op + " result=index_out_of_range");
                     continue;
                 }
                 IComponent2 ca = comps[ia], cb = comps[ib];
@@ -210,12 +210,12 @@ public class __CLASS__ {
                     how = pa == null ? "no_parallel_plane"
                                      : ("d=" + best.ToString("F3") + "m");
                 } else {
-                    L("DSHSW_MATE op=" + op + " result=unsupported");
+                    L("SWFORGE_MATE op=" + op + " result=unsupported");
                     continue;
                 }
 
                 if (pa == null || pb == null) {
-                    L("DSHSW_MATE op=" + op + " result=" + how);
+                    L("SWFORGE_MATE op=" + op + " result=" + how);
                     continue;
                 }
 
@@ -231,11 +231,11 @@ public class __CLASS__ {
                     s2 = e2.Select2(true, 1);
                 } catch (Exception ex) { selErr = " cast/select失败: " + ex.Message; }
                 if (!s1 || !s2) {
-                    L("DSHSW_MATE op=" + op + " result=select_failed a=" + s1 + " b=" + s2 + selErr);
+                    L("SWFORGE_MATE op=" + op + " result=select_failed a=" + s1 + " b=" + s2 + selErr);
                     md.ClearSelection2(true);
                     continue;
                 }
-                L("DSHSW_SELECT op=" + op + " a=" + s1 + " b=" + s2 +
+                L("SWFORGE_SELECT op=" + op + " a=" + s1 + " b=" + s2 +
                   " faceA=" + pa.compName + " faceB=" + pb.compName);
 
                 int before = FeatureCount(md);
@@ -247,7 +247,7 @@ public class __CLASS__ {
                     mate = ad.AddMate5(mateType, 0, false,
                         0, 0, 0, 1, 1, 0, 0, 0, false, false, 0, out errStatus);
                 } catch (Exception ex) {
-                    L("DSHSW_MATE op=" + op + " result=exception msg=" + ex.Message);
+                    L("SWFORGE_MATE op=" + op + " result=exception msg=" + ex.Message);
                     md.ClearSelection2(true);
                     continue;
                 }
@@ -257,7 +257,7 @@ public class __CLASS__ {
                 // 判据 = Mate2 非空 且 errStatus==1；特征数只作参考（配合特征在
                 // MateGroup 之下，FirstFeature 链遍历不一定能数到）。
                 bool ok = (mate != null) && (errStatus == 1);
-                L("DSHSW_MATE op=" + op + " result=" + (ok ? "ok" : "fail") +
+                L("SWFORGE_MATE op=" + op + " result=" + (ok ? "ok" : "fail") +
                   " errStatus=" + errStatus + " features " + before + "->" + after +
                   " how=" + how);
             }
@@ -267,13 +267,13 @@ public class __CLASS__ {
                 try {
                     double[] box = (double[])c.GetBox(false, false);
                     if (box == null || box.Length < 6) continue;
-                    L("DSHSW_BOX comp=" + c.Name2 +
+                    L("SWFORGE_BOX comp=" + c.Name2 +
                       " x=" + ((box[0] + box[3]) / 2 * 1000).ToString("F3") +
                       " y=" + ((box[1] + box[4]) / 2 * 1000).ToString("F3") +
                       " z=" + ((box[2] + box[5]) / 2 * 1000).ToString("F3"));
-                } catch (Exception ex) { L("DSHSW_BOX comp=" + c.Name2 + " err=" + ex.Message); }
+                } catch (Exception ex) { L("SWFORGE_BOX comp=" + c.Name2 + " err=" + ex.Message); }
             }
-            L("DSHSW_RESULT mates=" + __SPECSCOUNT__);
+            L("SWFORGE_RESULT mates=" + __SPECSCOUNT__);
         } catch (Exception e) {
             L("ERROR " + e.ToString());
         }
@@ -336,7 +336,7 @@ class MateBuilder:
         if not sw_dir:
             return {"ok": False, "error": "找不到 SolidWorks 安装目录"}
 
-        work = tempfile.mkdtemp(prefix="dshsw_mate_")
+        work = tempfile.mkdtemp(prefix="swforge_mate_")
         cls = "Mat_" + uuid.uuid4().hex[:12]
         specs = ",".join(_cs_str(s) for s in self._specs)
         src = (_CS_TEMPLATE
@@ -366,10 +366,10 @@ class MateBuilder:
 
         mates = []
         for line in out.splitlines():
-            if line.startswith("DSHSW_MATE "):
-                mates.append(_kv(line[len("DSHSW_MATE "):]))
-        boxes = [_kv(l[len("DSHSW_BOX "):]) for l in out.splitlines()
-                 if l.startswith("DSHSW_BOX ")]
+            if line.startswith("SWFORGE_MATE "):
+                mates.append(_kv(line[len("SWFORGE_MATE "):]))
+        boxes = [_kv(l[len("SWFORGE_BOX "):]) for l in out.splitlines()
+                 if l.startswith("SWFORGE_BOX ")]
         try:
             os.remove(cs_path)
             os.remove(ps_path)

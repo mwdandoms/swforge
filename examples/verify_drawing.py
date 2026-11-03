@@ -24,7 +24,7 @@ def views(md):
 
 
 def main(model, builtin, existing=False):
-    from dsh_sw_toolkit import drawing, get_session
+    from swforge import drawing, get_session
     if builtin:
         drawing.have_mechdog = lambda: False
     out = model.with_name(model.stem + ("_builtin" if builtin else "") + "_三视图.SLDDRW")

@@ -21,7 +21,7 @@ async def verify(out):
     spec = json.loads((ROOT / "examples" / "v04_demo.json").read_text(encoding="utf-8"))
     env = dict(os.environ, PYTHONPATH=str(ROOT / "src"), PYTHONIOENCODING="utf-8")
     params = StdioServerParameters(command=sys.executable,
-        args=["-X", "utf8", "-m", "dsh_sw_toolkit.server"], cwd=str(ROOT), env=env)
+        args=["-X", "utf8", "-m", "swforge.server"], cwd=str(ROOT), env=env)
     report = {}
     async with stdio_client(params) as streams:
         async with ClientSession(*streams, read_timeout_seconds=timedelta(seconds=180)) as session:

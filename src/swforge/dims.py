@@ -93,7 +93,7 @@ public class __CLASS__ {
                 if (o == null || o.Length < 4) { v = (IView)v.GetNextView(); continue; }
 
                 int n = v.GetVisibleEntityCount2(null, (int)swViewEntityType_e.swViewEntityType_Vertex);
-                if (n < 2) { L("DSHSW_DIM view=" + vname + " skipped=no_vertex"); v = (IView)v.GetNextView(); continue; }
+                if (n < 2) { L("SWFORGE_DIM view=" + vname + " skipped=no_vertex"); v = (IView)v.GetNextView(); continue; }
                 object[] raw = (object[])v.GetVisibleEntities2(null, (int)swViewEntityType_e.swViewEntityType_Vertex);
                 if (raw == null) { v = (IView)v.GetNextView(); continue; }
 
@@ -108,7 +108,7 @@ public class __CLASS__ {
                         pts.Add(item);
                     } catch { }
                 }
-                if (pts.Count < 2) { L("DSHSW_DIM view=" + vname + " skipped=no_point"); v = (IView)v.GetNextView(); continue; }
+                if (pts.Count < 2) { L("SWFORGE_DIM view=" + vname + " skipped=no_point"); v = (IView)v.GetNextView(); continue; }
 
                 V minX = pts[0], maxX = pts[0], minY = pts[0], maxY = pts[0];
                 foreach (V q in pts) {
@@ -130,11 +130,11 @@ public class __CLASS__ {
                     if (s1 && s2) {
                         try {
                             object d = md.AddHorizontalDimension2(cx, o[1] - gap, 0);
-                            if (d != null) { done++; L("DSHSW_DIM view=" + vname + " horizontal=ok value=" +
+                            if (d != null) { done++; L("SWFORGE_DIM view=" + vname + " horizontal=ok value=" +
                                 ((maxX.x - minX.x) * 1000).ToString("F2")); }
-                            else L("DSHSW_DIM view=" + vname + " horizontal=null");
-                        } catch (Exception ex) { L("DSHSW_DIM view=" + vname + " horizontal=exc " + ex.Message); }
-                    } else L("DSHSW_DIM view=" + vname + " horizontal=select_fail " + s1 + "/" + s2);
+                            else L("SWFORGE_DIM view=" + vname + " horizontal=null");
+                        } catch (Exception ex) { L("SWFORGE_DIM view=" + vname + " horizontal=exc " + ex.Message); }
+                    } else L("SWFORGE_DIM view=" + vname + " horizontal=select_fail " + s1 + "/" + s2);
                     md.ClearSelection2(true);
                 }
 
@@ -147,18 +147,18 @@ public class __CLASS__ {
                     if (s1 && s2) {
                         try {
                             object d = md.AddVerticalDimension2(o[0] - gap, cy, 0);
-                            if (d != null) { done++; L("DSHSW_DIM view=" + vname + " vertical=ok value=" +
+                            if (d != null) { done++; L("SWFORGE_DIM view=" + vname + " vertical=ok value=" +
                                 ((maxY.y - minY.y) * 1000).ToString("F2")); }
-                            else L("DSHSW_DIM view=" + vname + " vertical=null");
-                        } catch (Exception ex) { L("DSHSW_DIM view=" + vname + " vertical=exc " + ex.Message); }
-                    } else L("DSHSW_DIM view=" + vname + " vertical=select_fail " + s1 + "/" + s2);
+                            else L("SWFORGE_DIM view=" + vname + " vertical=null");
+                        } catch (Exception ex) { L("SWFORGE_DIM view=" + vname + " vertical=exc " + ex.Message); }
+                    } else L("SWFORGE_DIM view=" + vname + " vertical=select_fail " + s1 + "/" + s2);
                     md.ClearSelection2(true);
                 }
 
                 v = (IView)v.GetNextView();
             }
             md.EditRebuild3();
-            L("DSHSW_DIMSUM done=" + done + " tried=" + tried);
+            L("SWFORGE_DIMSUM done=" + done + " tried=" + tried);
         } catch (Exception e) {
             L("ERROR " + e.ToString());
         }
@@ -198,7 +198,7 @@ def add_overall_dimensions(drawing_path: str | None = None,
     if not sw_dir:
         return {"ok": False, "error": "找不到 SolidWorks 安装目录"}
 
-    work = tempfile.mkdtemp(prefix="dshsw_dim_")
+    work = tempfile.mkdtemp(prefix="swforge_dim_")
     cls = "Dim_" + uuid.uuid4().hex[:12]
     src = _CS.replace("__CLASS__", cls).replace("__GAP__", str(float(gap_mm)))
     cs_path = os.path.join(work, "dims.cs")
@@ -226,15 +226,15 @@ def add_overall_dimensions(drawing_path: str | None = None,
     dims = []
     done = tried = 0
     for line in out.splitlines():
-        if line.startswith("DSHSW_DIM "):
+        if line.startswith("SWFORGE_DIM "):
             parts = {}
-            for tok in line[len("DSHSW_DIM "):].split():
+            for tok in line[len("SWFORGE_DIM "):].split():
                 if "=" in tok:
                     k, v = tok.split("=", 1)
                     parts[k] = v
             dims.append(parts)
-        elif line.startswith("DSHSW_DIMSUM "):
-            for tok in line[len("DSHSW_DIMSUM "):].split():
+        elif line.startswith("SWFORGE_DIMSUM "):
+            for tok in line[len("SWFORGE_DIMSUM "):].split():
                 if "=" in tok:
                     k, v = tok.split("=", 1)
                     if k == "done":

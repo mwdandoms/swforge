@@ -15,7 +15,7 @@
 ----
 把要检查的实体放进**同一个零件**（多实体），然后：
 
-    from dsh_sw_toolkit.interference import body_interference, check_all_pairs
+    from swforge.interference import body_interference, check_all_pairs
     body_interference(part_path, "A", "B")   # -> {"volume_mm3": 500.0, ...}
     check_all_pairs(part_path)               # -> 所有实体两两求交
 

@@ -139,11 +139,11 @@ def library_path() -> str:
     for folder in _sw_user_material_dirs():
         try:
             if os.access(folder, os.W_OK):
-                return os.path.join(folder, "dsh_gb_materials.sldmat")
+                return os.path.join(folder, "swforge_gb_materials.sldmat")
         except OSError:
             continue
     base = os.environ.get("LOCALAPPDATA") or tempfile.gettempdir()
-    return os.path.join(base, "dsh-sw-toolkit", "gb_materials.sldmat")
+    return os.path.join(base, "swforge", "gb_materials.sldmat")
 
 
 _STEEL_TEMPLATE_RE = re.compile(r'<material\b[^>]*name="([^"]*)"[^>]*>.*?</material>', re.S)
@@ -212,7 +212,7 @@ def _clone_from_template(template_path: str) -> str:
     tail_token = "</mstns:materials>"
     cut = raw.rindex(tail_token)
     return (raw[:cut]
-            + '<classification name="DSH GB 国标牌号">\n'
+            + '<classification name="SWFORGE GB 国标牌号">\n'
             + "".join(out)
             + "</classification>\n"
             + raw[cut:])

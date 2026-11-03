@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 def test_drawing_result_never_claims_manufacturable():
     """任何出图结果都不能声称 ready_for_manufacture=True。"""
-    from dsh_sw_toolkit import drawing
+    from swforge import drawing
 
     src = inspect.getsource(drawing)
     # 允许显式写 False，禁止写 True
@@ -27,7 +27,7 @@ def test_drawing_result_never_claims_manufacturable():
 
 def test_material_unknown_is_reported_not_silent():
     """材质库里没有的牌号，不能假装赋上了。"""
-    from dsh_sw_toolkit.gb_materials import lookup
+    from swforge.gb_materials import lookup
 
     assert lookup("Q235") is not None
     assert lookup("q235") is not None
@@ -37,7 +37,7 @@ def test_material_unknown_is_reported_not_silent():
 
 def test_gb_material_densities_are_sane():
     """GB 牌号密度必须是工程合理值，不能是 1000（水）这种默认值。"""
-    from dsh_sw_toolkit.gb_materials import GB_MATERIALS
+    from swforge.gb_materials import GB_MATERIALS
 
     assert len(GB_MATERIALS) >= 15
     for name, (density, elastic, poisson, note) in GB_MATERIALS.items():
@@ -49,7 +49,7 @@ def test_gb_material_densities_are_sane():
 
 def test_material_library_path_is_in_sw_scan_dir():
     """材质库必须落在 SW 会扫描的目录，否则赋值静默失败。"""
-    from dsh_sw_toolkit.gb_materials import _sw_user_material_dirs, library_path
+    from swforge.gb_materials import _sw_user_material_dirs, library_path
 
     dirs = _sw_user_material_dirs()
     path = library_path()
@@ -57,4 +57,4 @@ def test_material_library_path_is_in_sw_scan_dir():
         assert any(os.path.normcase(path).startswith(os.path.normcase(d))
                    for d in dirs), f"材质库 {path} 不在 SW 扫描目录 {dirs} 内"
     else:
-        assert "dsh-sw-toolkit" in path.lower()
+        assert "swforge" in path.lower()

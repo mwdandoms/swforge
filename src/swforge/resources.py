@@ -34,7 +34,7 @@ __all__ = [
 DEFAULT_LIMIT = 8
 DEFAULT_WARN_RATIO = 0.75        # 达到上限 75% 即 warn（默认 6/8）
 DEFAULT_MEM_WARN_MB = 2500.0     # 工作集超过 2.5 GB 视为 warn
-DEFAULT_SWEEP_MARKERS = ("pytest-of-", "dshsw_it", "dshsw_")
+DEFAULT_SWEEP_MARKERS = ("pytest-of-", "swforge_it", "swforge_")
 
 
 # ---------------------------------------------------------------------- 清点

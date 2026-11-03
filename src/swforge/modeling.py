@@ -371,7 +371,7 @@ class PartBuilder:
         log = ""
         code = -1
         try:
-            with tempfile.TemporaryDirectory(prefix="dshsw_") as work:
+            with tempfile.TemporaryDirectory(prefix="swforge_") as work:
                 run_log = os.path.join(work,"result.log")
                 cs = self.render_cs(paint=paint, _log_path=run_log,
                                     keep_open=keep_open, max_documents=max_documents)
@@ -400,8 +400,8 @@ class PartBuilder:
         # 本次运行日志单独生成，既有模型/日志从不作为本次成功证据。
         with open(self.log_path,"w",encoding="utf-8") as fh:
             fh.write(log or output)
-        m = re.search(r"DSHSW_RESULT ok=(\d+) failed=(\d+) bodies=(\d+) saved=(True|False) errors=(\d+)",log)
-        c = re.search(r"DSHSW_COLOR total=(\d+) requested=(\d+) verified=(\d+)",log)
+        m = re.search(r"SWFORGE_RESULT ok=(\d+) failed=(\d+) bodies=(\d+) saved=(True|False) errors=(\d+)",log)
+        c = re.search(r"SWFORGE_COLOR total=(\d+) requested=(\d+) verified=(\d+)",log)
         good,bad,bodies,saved,err = (int(m[1]),int(m[2]),int(m[3]),m[4] == "True",int(m[5])) if m else (0,0,0,False,0)
         ok = code == 0 and m is not None and good == self.feature_count and bad == 0 and bodies > 0 and saved and err == 0 and os.path.isfile(self.path)
         total,requested,verified = (int(c[1]),int(c[2]),int(c[3])) if c else (0,0,0)
@@ -413,13 +413,13 @@ class PartBuilder:
                            round(coverage,6),verified,
                            "" if verified == requested else f"配色回读仅通过 {verified}/{requested} 面")
         # ---- v0.5 物理材料与质量属性
-        mat = re.search(r"DSHSW_MATERIAL requested=(\S*) got=(\S*)",log)
-        mass = re.search(r"DSHSW_MASS mass_kg=([\d.eE+-]+) volume_mm3=([\d.eE+-]+)",log)
+        mat = re.search(r"SWFORGE_MATERIAL requested=(\S*) got=(\S*)",log)
+        mass = re.search(r"SWFORGE_MASS mass_kg=([\d.eE+-]+) volume_mm3=([\d.eE+-]+)",log)
         result.material_requested = self.material
         if mat:
             result.material_applied = "" if mat[2] in ("", "got=") else mat[2]
-        if "DSHSW_MATERIAL failed=" in log:
-            result.material_error = log.split("DSHSW_MATERIAL failed=",1)[1].splitlines()[0][:300]
+        if "SWFORGE_MATERIAL failed=" in log:
+            result.material_error = log.split("SWFORGE_MATERIAL failed=",1)[1].splitlines()[0][:300]
         elif result.material_requested and not result.material_applied:
             result.material_error = "材料赋值后回读为空"
         if mass:
@@ -428,9 +428,9 @@ class PartBuilder:
             except ValueError:
                 pass
         from datetime import datetime,timezone
-        before=re.search(r'DSHSW_DOCUMENTS before=(\d+)',log)
-        after=re.search(r'DSHSW_DOCUMENTS after=(\d+)',log)
-        memory=re.search(r'DSHSW_MEMORY working_set_bytes=(\d+)',log)
+        before=re.search(r'SWFORGE_DOCUMENTS before=(\d+)',log)
+        after=re.search(r'SWFORGE_DOCUMENTS after=(\d+)',log)
+        memory=re.search(r'SWFORGE_MEMORY working_set_bytes=(\d+)',log)
         with open(self.log_path+'.operations.jsonl','a',encoding='utf-8') as stream:
             stream.write(json.dumps({'time_utc':datetime.now(timezone.utc).isoformat(),
                 'operation':'build','path':self.path,'ok':result.ok,'elapsed_s':result.elapsed_s,
@@ -529,7 +529,7 @@ public class __CLASS__ {
 
     static void Register(string tag,IFeature f,double[] rgb) {
         if(f==null) throw new Exception(tag + " 特征返回空值");
-        f.Name="DSH_"+tag;
+        f.Name="SWFORGE_"+tag;
         sources[tag]=f;
         IBody2 body=BodyOf(f);
         body.Name=tag;
@@ -632,7 +632,7 @@ public class __CLASS__ {
         IFeature f = fillet ? (IFeature)md.FeatureManager.FeatureFillet3(2,size*MM,0,0,0,0,0,null,null,null,null,null,null,null)
                            : (IFeature)md.FeatureManager.InsertFeatureChamfer(4,1,size*MM,Math.PI/4,0,0,0,0);
         if(f==null) throw new Exception(tag+" "+(fillet?"圆角":"倒角")+"失败；尺寸可能过大或存在不适用的边");
-        f.Name="DSH_"+tag+(fillet?"_圆角":"_倒角");
+        f.Name="SWFORGE_"+tag+(fillet?"_圆角":"_倒角");
         BodyOf(f).Name=tag;
         sources[tag]=f;
         okN++;
@@ -663,7 +663,7 @@ public class __CLASS__ {
                 } catch(Exception e) { L("配色: "+e.Message); }
             }
         }
-        L("DSHSW_COLOR total="+total+" requested="+requested+" verified="+verified);
+        L("SWFORGE_COLOR total="+total+" requested="+requested+" verified="+verified);
     }
 
     // 连接 SolidWorks。
@@ -676,21 +676,21 @@ public class __CLASS__ {
         string rotErr="", createErr="";
         try {
             ISldWorks s=(ISldWorks)Marshal.GetActiveObject("SldWorks.Application");
-            if(IsUsable(s)) { L("DSHSW_CONNECT via=GetActiveObject"); return s; }
+            if(IsUsable(s)) { L("SWFORGE_CONNECT via=GetActiveObject"); return s; }
             rotErr="对象不可用（返回空壳）";
         } catch(Exception e) { rotErr=e.GetType().Name+":"+e.Message; }
-        L("DSHSW_CONNECT rot_failed="+rotErr);
+        L("SWFORGE_CONNECT rot_failed="+rotErr);
 
         try {
             Type t=Type.GetTypeFromProgID("SldWorks.Application");
             if(t==null) { createErr="ProgID 未注册（SolidWorks 未安装或未注册 COM）"; }
             else {
                 ISldWorks s=(ISldWorks)Activator.CreateInstance(t);
-                if(IsUsable(s)) { L("DSHSW_CONNECT via=CreateInstance"); return s; }
+                if(IsUsable(s)) { L("SWFORGE_CONNECT via=CreateInstance"); return s; }
                 createErr="对象不可用（返回空壳，常见于 SW 尚未完成启动）";
             }
         } catch(Exception e) { createErr=e.GetType().Name+":"+e.Message; }
-        L("DSHSW_CONNECT create_failed="+createErr);
+        L("SWFORGE_CONNECT create_failed="+createErr);
 
         throw new Exception(
             "无法连接 SolidWorks。\n"+
@@ -721,7 +721,7 @@ public class __CLASS__ {
         try {
             sw=Connect();
             int before=sw.GetDocumentCount();
-            L("DSHSW_DOCUMENTS before="+before+" limit="+__MAX_DOCUMENTS__);
+            L("SWFORGE_DOCUMENTS before="+before+" limit="+__MAX_DOCUMENTS__);
             if(before>=__MAX_DOCUMENTS__) throw new Exception("SW 文档数量达到上限，未创建新文档");
             math=(IMathUtility)sw.GetMathUtility();
             string tpl=sw.GetUserPreferenceStringValue((int)swUserPreferenceStringValue_e.swDefaultTemplatePart);
@@ -761,14 +761,14 @@ __BODY__
                 pd.SetMaterialPropertyName2("",__MATERIAL_DB__,__MATERIAL__);
                 string mdb="";
                 string got=pd.GetMaterialPropertyName2("",out mdb);
-                L("DSHSW_MATERIAL requested="+__MATERIAL__+" got="+got+" db="+mdb);
-                if(String.IsNullOrEmpty(got)) L("DSHSW_MATERIAL WARN 赋值后回读为空，材料可能未生效");
-            } catch(Exception e) { L("DSHSW_MATERIAL failed="+e.Message); }
+                L("SWFORGE_MATERIAL requested="+__MATERIAL__+" got="+got+" db="+mdb);
+                if(String.IsNullOrEmpty(got)) L("SWFORGE_MATERIAL WARN 赋值后回读为空，材料可能未生效");
+            } catch(Exception e) { L("SWFORGE_MATERIAL failed="+e.Message); }
             try {
                 MassProperty mp=(MassProperty)md.Extension.CreateMassProperty();
                 L(String.Format(System.Globalization.CultureInfo.InvariantCulture,
-                    "DSHSW_MASS mass_kg={0:F9} volume_mm3={1:F3}",mp.Mass,mp.Volume*1e9));
-            } catch(Exception e) { L("DSHSW_MASS failed="+e.Message); }
+                    "SWFORGE_MASS mass_kg={0:F9} volume_mm3={1:F3}",mp.Mass,mp.Volume*1e9));
+            } catch(Exception e) { L("SWFORGE_MASS failed="+e.Message); }
             md.ShowNamedView2("",(int)swStandardViews_e.swIsometricView);
             md.ViewZoomtofit2();
             md.GraphicsRedraw2();
@@ -778,15 +778,15 @@ __BODY__
         finally {
             if(md!=null) { try { md.SketchManager.AddToDB=false; } catch {} }
             if(md!=null && (!saved || !__KEEP_OPEN__)) {
-                try { sw.CloseDoc(md.GetTitle()); L("DSHSW_CLOSED owned_document=True"); }
+                try { sw.CloseDoc(md.GetTitle()); L("SWFORGE_CLOSED owned_document=True"); }
                 catch(Exception e) { L("关闭本轮文档失败: "+e.Message); }
             }
-            if(sw!=null) { try { L("DSHSW_DOCUMENTS after="+sw.GetDocumentCount()); } catch {} }
+            if(sw!=null) { try { L("SWFORGE_DOCUMENTS after="+sw.GetDocumentCount()); } catch {} }
             if(sw!=null) { try {
                 using(var process=System.Diagnostics.Process.GetProcessById(sw.GetProcessID()))
-                    L("DSHSW_MEMORY working_set_bytes="+process.WorkingSet64);
+                    L("SWFORGE_MEMORY working_set_bytes="+process.WorkingSet64);
             } catch {} }
-            L("DSHSW_RESULT ok="+okN+" failed="+badN+" bodies="+nb+" saved="+saved+" errors="+err);
+            L("SWFORGE_RESULT ok="+okN+" failed="+badN+" bodies="+nb+" saved="+saved+" errors="+err);
             System.IO.File.WriteAllText(__LOG__,log.ToString(),Encoding.UTF8);
         }
         return log.ToString();

@@ -1,6 +1,6 @@
 [中文](README.md) | **English**
 
-# dsh-sw-toolkit
+# swforge
 
 **Drive your local SolidWorks from Python, CLI, or MCP — modeling, GB material assignment, assembly mates, interference checks, and GB-standard drawings, with readback verification at every step.**
 
@@ -54,8 +54,8 @@ Concrete problems it addresses:
 ## Install
 
 ```powershell
-git clone https://github.com/<you>/dsh-sw-toolkit.git
-cd dsh-sw-toolkit
+git clone https://github.com/<you>/swforge.git
+cd swforge
 python -m pip install -e ".[mcp,pdf]"
 ```
 
@@ -76,7 +76,7 @@ Optional extras:
 ### One-command self check
 
 ```powershell
-dsh-sw capabilities
+swforge capabilities
 ```
 
 Prints the SolidWorks version, connection latency, and whether MechDog is available.
@@ -84,7 +84,7 @@ Prints the SolidWorks version, connection latency, and whether MechDog is availa
 ### Modeling with a GB material
 
 ```python
-from dsh_sw_toolkit import PartBuilder
+from swforge import PartBuilder
 
 b = PartBuilder(r"D:\out\bracket.SLDPRT", material="Q235")
 b.box("base plate", 0, 160, 0, 20, 0, 100, "steel")
@@ -99,7 +99,7 @@ print(r.ok, r.bodies, r.mass_kg, r.volume_mm3)
 ### Drawings (GB frame + auto dimensions + overall dimensions)
 
 ```python
-from dsh_sw_toolkit import produce, add_dimensions, normalize_layout, export_pdf
+from swforge import produce, add_dimensions, normalize_layout, export_pdf
 
 produce(model, drawing, paper="A3")          # picks gb_a3.drwdot automatically
 add_dimensions(drawing, overall=True)        # model dimensions + overall length/height
@@ -113,7 +113,7 @@ millimetre dimensions, overall dimensions, and three views aligned per drafting 
 ### Assembly, mates, interference
 
 ```python
-from dsh_sw_toolkit import AssemblyBuilder, MateBuilder, body_interference
+from swforge import AssemblyBuilder, MateBuilder, body_interference
 
 a = AssemblyBuilder(r"D:\out\assembly.SLDASM")
 a.add(r"D:\out\base.SLDPRT", 0, 0, 0, fixed=True)   # coordinates are in mm
@@ -134,7 +134,7 @@ body_interference(part, "A", "B")
 ```json
 {
   "mcpServers": {
-    "dsh-sw": { "command": "solidworks-dsh-sw.exe" }
+    "swforge": { "command": "solidworks-swforge.exe" }
   }
 }
 ```
@@ -187,7 +187,7 @@ See `docs/limitations.md` for details.
 ## Repository layout
 
 ```
-src/dsh_sw_toolkit/
+src/swforge/
 ├── session.py       unified session: liveness probe, classified retry, single-STA serialization
 ├── modeling.py      DSL → C# early-binding modeling + face-level coloring
 ├── colors.py        rule-based face coloring + readback
@@ -213,7 +213,7 @@ src/dsh_sw_toolkit/
 python -m pytest tests -q -m "not sw"
 
 # full suite (SolidWorks must be running)
-$env:DSH_SW_LIVE = "1"
+$env:SWFORGE_LIVE = "1"
 python -m pytest tests -q
 ```
 

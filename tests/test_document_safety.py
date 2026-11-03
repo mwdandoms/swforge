@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from dsh_sw_toolkit import cleanup, colors, drawing
+from swforge import cleanup, colors, drawing
 
 
 @pytest.mark.parametrize("module", [colors, drawing])
@@ -204,7 +204,7 @@ class Drawing:
 
 
 def drawing_session(monkeypatch, md):
-    from dsh_sw_toolkit import session
+    from swforge import session
     monkeypatch.setattr(session, "get_session", lambda: SimpleNamespace(sw=lambda: SimpleNamespace(ActiveDoc=md)))
     monkeypatch.setattr(drawing, "_vt_pt", lambda x, y: (x, y))
     monkeypatch.setattr(colors, "_save", lambda md: (True, 0, 0))
@@ -272,7 +272,7 @@ def test_failed_export_does_not_pass_using_old_output(monkeypatch, tmp_path):
 
 
 def test_export_activates_requested_drawing(monkeypatch, tmp_path):
-    from dsh_sw_toolkit import session
+    from swforge import session
     a, b = Drawing([], tmp_path / "a.SLDDRW"), Drawing([], tmp_path / "b.SLDDRW")
     b.ClearSelection2 = lambda *a: None
     sw = SimpleNamespace(ActiveDoc=a, OpenDoc=lambda *args: b)

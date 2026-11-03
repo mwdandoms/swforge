@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""dsh-sw-toolkit —— SolidWorks 自动化工具箱。
+"""swforge —— SolidWorks 自动化工具箱。
 
 把两类能力合到一起：
 
@@ -8,8 +8,8 @@
 
 快速开始
 --------
->>> from dsh_sw_toolkit import PartBuilder, FaceRule, apply_rules
->>> b = PartBuilder(r"D:\\out\\DSH_支架.SLDPRT")
+>>> from swforge import PartBuilder, FaceRule, apply_rules
+>>> b = PartBuilder(r"D:\\out\\SWFORGE_支架.SLDPRT")
 >>> b.box("底板", 0, 200, 0, 10, 0, 200, "steel")
 >>> b.tube_y("立柱", 0, 1000, 0, 0, 150, 150, wall=6.3, color="yellow")
 >>> r = b.build()

@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 # ---------------------------------------------------------------- 纯逻辑
 def test_body_operation_error_table():
     """错误码表必须包含 1=NonApiBody —— 这正是 v0.7 卡住的那个码。"""
-    from dsh_sw_toolkit.interference import BODY_OP_ERRORS
+    from swforge.interference import BODY_OP_ERRORS
 
     assert BODY_OP_ERRORS[0] == "swBodyOperationNoError"
     assert BODY_OP_ERRORS[1] == "swBodyOperationNonApiBody"
@@ -29,14 +29,14 @@ def test_body_operation_error_table():
 
 
 def test_interference_constants():
-    from dsh_sw_toolkit.interference import SWBODYINTERSECT
+    from swforge.interference import SWBODYINTERSECT
 
     assert SWBODYINTERSECT == 15901
 
 
 def test_mate_spec_format():
     """MateBuilder 拼出来的规格行必须能被 C# 侧按 | 拆开。"""
-    from dsh_sw_toolkit.mates import MateBuilder
+    from swforge.mates import MateBuilder
 
     m = MateBuilder()
     m.concentric(0, 1)
@@ -50,7 +50,7 @@ def test_mate_spec_format():
 
 def test_mate_align_constant_is_not_agnostic():
     """v0.7 用了不存在的 swAlignAGNOSTIC，必须确认模板里不再出现。"""
-    from dsh_sw_toolkit import mates
+    from swforge import mates
 
     assert "swAlignAGNOSTIC" not in mates._CS_TEMPLATE
     assert "swMateAlign_e" not in mates._CS_TEMPLATE
@@ -58,7 +58,7 @@ def test_mate_align_constant_is_not_agnostic():
 
 def test_mate_class_name_substitution():
     """类名占位符必须整体替换（v0.7 出现过 Mat_ 前缀不一致导致找不到类型）。"""
-    from dsh_sw_toolkit import mates
+    from swforge import mates
 
     assert "public class __CLASS__ {" in mates._CS_TEMPLATE
     assert "class Mat__CLASS__" not in mates._CS_TEMPLATE
@@ -66,7 +66,7 @@ def test_mate_class_name_substitution():
 
 def test_dims_template_uses_drawing_doc():
     """GetFirstView 在 IDrawingDoc 上，不在 IModelDoc2 上。"""
-    from dsh_sw_toolkit import dims
+    from swforge import dims
 
     assert "IDrawingDoc dd = (IDrawingDoc)md;" in dims._CS
     assert "md.GetFirstView()" not in dims._CS
@@ -74,7 +74,7 @@ def test_dims_template_uses_drawing_doc():
 
 def test_template_priority_is_chinese_gb():
     """v0.7 的坑：英文 GB.drwdot 排在最前 → 英制 + 无图框。"""
-    from dsh_sw_toolkit.drawing import _default_template, template_warnings
+    from swforge.drawing import _default_template, template_warnings
 
     for paper in ("A3", "A4", "A2"):
         tpl = _default_template("drawing", paper)
@@ -87,7 +87,7 @@ def test_template_priority_is_chinese_gb():
 
 def test_template_dirs_cover_multiple_years():
     """模板目录要按年份扫描，不能只认 2025。"""
-    from dsh_sw_toolkit.drawing import _template_dirs
+    from swforge.drawing import _template_dirs
 
     dirs = _template_dirs()
     assert isinstance(dirs, list)
@@ -97,14 +97,14 @@ def test_template_dirs_cover_multiple_years():
 
 def test_gb_materials_still_intact():
     """v0.8 不应破坏 v0.5 的 GB 材质表。"""
-    from dsh_sw_toolkit.gb_materials import GB_MATERIALS
+    from swforge.gb_materials import GB_MATERIALS
 
     assert len(GB_MATERIALS) >= 15
     assert GB_MATERIALS["Q235"][0] == 7850.0
 
 
 def test_resource_guard_defaults():
-    from dsh_sw_toolkit.resources import DEFAULT_LIMIT, DEFAULT_WARN_RATIO
+    from swforge.resources import DEFAULT_LIMIT, DEFAULT_WARN_RATIO
 
     assert DEFAULT_LIMIT == 8
     assert 0 < DEFAULT_WARN_RATIO < 1
@@ -113,7 +113,7 @@ def test_resource_guard_defaults():
 # ---------------------------------------------------------------- 需要 SW
 def _sw_alive():
     try:
-        from dsh_sw_toolkit import get_session
+        from swforge import get_session
 
         return bool(get_session().ping().get("ok"))
     except Exception:                                    # noqa: BLE001
@@ -130,11 +130,11 @@ def test_interference_three_benchmarks():
     import tempfile
     import uuid
 
-    from dsh_sw_toolkit import PartBuilder, sweep_documents
-    from dsh_sw_toolkit.interference import body_interference
+    from swforge import PartBuilder, sweep_documents
+    from swforge.interference import body_interference
 
     sweep_documents(dry_run=False)
-    tmp = os.path.join(tempfile.gettempdir(), "dshsw_it")
+    tmp = os.path.join(tempfile.gettempdir(), "swforge_it")
     os.makedirs(tmp, exist_ok=True)
     cases = [("ov", 5, 15, 500.0), ("ap", 20, 30, 0.0), ("tc", 10, 20, 0.0)]
     for tag, bx0, bx1, expect in cases:
@@ -157,12 +157,12 @@ def test_concentric_mate_moves_component():
     import tempfile
     import uuid
 
-    from dsh_sw_toolkit import PartBuilder, sweep_documents
-    from dsh_sw_toolkit.assembly import AssemblyBuilder
-    from dsh_sw_toolkit.mates import MateBuilder
+    from swforge import PartBuilder, sweep_documents
+    from swforge.assembly import AssemblyBuilder
+    from swforge.mates import MateBuilder
 
     sweep_documents(dry_run=False)
-    tmp = os.path.join(tempfile.gettempdir(), "dshsw_it")
+    tmp = os.path.join(tempfile.gettempdir(), "swforge_it")
     tag = uuid.uuid4().hex[:6]
     tube = os.path.join(tmp, "v8m_tube_%s.SLDPRT" % tag)
     pin = os.path.join(tmp, "v8m_pin_%s.SLDPRT" % tag)
@@ -197,11 +197,11 @@ def test_overall_dimensions_on_drawing():
     import tempfile
     import uuid
 
-    from dsh_sw_toolkit import PartBuilder, produce, sweep_documents
-    from dsh_sw_toolkit.dims import add_overall_dimensions
+    from swforge import PartBuilder, produce, sweep_documents
+    from swforge.dims import add_overall_dimensions
 
     sweep_documents(dry_run=False)
-    tmp = os.path.join(tempfile.gettempdir(), "dshsw_it")
+    tmp = os.path.join(tempfile.gettempdir(), "swforge_it")
     tag = uuid.uuid4().hex[:6]
     m = os.path.join(tmp, "v8d_%s.SLDPRT" % tag)
     d = os.path.join(tmp, "v8d_%s.SLDDRW" % tag)

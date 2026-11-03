@@ -31,7 +31,7 @@ if __name__ == "__main__":
     sw = wc.GetActiveObject("SldWorks.Application")
     before = snapshot(sw)
     roots = [args.evidence.resolve() / "models", args.evidence.resolve() / "final_models",
-             Path(tempfile.gettempdir()).resolve() / "dshsw_it"]
+             Path(tempfile.gettempdir()).resolve() / "swforge_it"]
     closed = []
     for doc in before if args.cleanup else []:
         if not doc["path"]:

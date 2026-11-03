@@ -224,7 +224,7 @@ class STAWorker:
             if self._closed:
                 raise SWError("SolidWorks worker 已关闭")
             if self._thread is None:
-                self._thread = threading.Thread(target=self._run, name="dsh-sw-sta", daemon=True)
+                self._thread = threading.Thread(target=self._run, name="swforge-sta", daemon=True)
                 self._thread.start()
             self._queue.put((future, fn, args, kwargs))
         return future

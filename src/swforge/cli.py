@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""命令行入口：`dsh-sw <子命令>`"""
+"""命令行入口：`swforge <子命令>`"""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ def _result(obj) -> int:
 
 
 def _main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(prog="dsh-sw", description="SolidWorks 自动化工具箱")
+    ap = argparse.ArgumentParser(prog="swforge", description="SolidWorks 自动化工具箱")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("ping", help="连接探针")
@@ -111,7 +111,7 @@ def _main(argv: list[str] | None = None) -> int:
         from .drawing import have_mechdog
 
         info = {
-            "dsh_sw_toolkit": __import__("dsh_sw_toolkit").__version__,
+            "swforge": __import__("swforge").__version__,
             "mechdog": have_mechdog(),
             "python": sys.version.split()[0],
             "platform": sys.platform,

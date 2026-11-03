@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dsh-sw-toolkit"
+name = "swforge"
 version = "0.8.0"
-description = "SolidWorks automation toolkit: early-binding geometry builder + rule-based recoloring + STEP cleanup + drawing pipeline + PDF atlas. Best of DSH-bridge and AssetMate/MechDog."
+description = "SolidWorks automation toolkit: early-binding geometry builder, GB material library, assembly mates, exact interference, and GB-standard drawings — with readback verification at every step."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -30,8 +30,8 @@ mcp = ["mcp>=1.2.0,<2"]
 pdf = ["pypdfium2>=4"]
 
 [project.scripts]
-dsh-sw = "dsh_sw_toolkit.cli:main"
-solidworks-dsh-sw = "dsh_sw_toolkit.server:main"
+swforge = "swforge.cli:main"
+solidworks-swforge = "swforge.server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

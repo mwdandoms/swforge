@@ -1,7 +1,7 @@
 """Opt-in real SW2025 verification, including independent geometric measurements.
 
-DSH_SW_LIVE=1 python -m pytest tests -m sw
-DSH_SW_EVIDENCE optionally retains models and measurement JSON outside pytest tmp.
+SWFORGE_LIVE=1 python -m pytest tests -m sw
+SWFORGE_EVIDENCE optionally retains models and measurement JSON outside pytest tmp.
 """
 import json
 import math
@@ -23,12 +23,12 @@ def value(obj, name):
 
 @pytest.fixture
 def live(tmp_path):
-    if os.environ.get("DSH_SW_LIVE") != "1":
-        pytest.skip("设置 DSH_SW_LIVE=1 后运行实机测试")
-    from dsh_sw_toolkit import get_session
+    if os.environ.get("SWFORGE_LIVE") != "1":
+        pytest.skip("设置 SWFORGE_LIVE=1 后运行实机测试")
+    from swforge import get_session
     session = get_session()
     assert session.ping()["ok"]
-    out = Path(os.environ.get("DSH_SW_EVIDENCE", tmp_path))
+    out = Path(os.environ.get("SWFORGE_EVIDENCE", tmp_path))
     out.mkdir(parents=True, exist_ok=True)
     return session.sw(), out
 
@@ -44,7 +44,7 @@ def measure(md):
 
 
 def build_measured(live, name, populate, expected_bodies=1):
-    from dsh_sw_toolkit import PartBuilder
+    from swforge import PartBuilder
     sw, out = live
     path = out / f"{name}_{uuid.uuid4().hex[:6]}.SLDPRT"
     builder = PartBuilder(str(path))
@@ -134,7 +134,7 @@ def test_merge_reports_actual_body_count(live):
 
 
 def test_cleanup_default_preview_and_actual_count(live):
-    from dsh_sw_toolkit import purge_giant
+    from swforge import purge_giant
     sw, _ = live
     def populate(b):
         b.box("giant", 0, 8000, 0, 10, 0, 10, "gray")
@@ -151,7 +151,7 @@ def test_cleanup_default_preview_and_actual_count(live):
 
 
 def test_colors_target_saved_path_and_persist(live):
-    from dsh_sw_toolkit import FaceRule, apply_rules, read_back
+    from swforge import FaceRule, apply_rules, read_back
     sw, _ = live
     _, first, _ = build_measured(live, "color_target", lambda b:
         b.box("target", 0, 10, 0, 10, 0, 10, "red"))

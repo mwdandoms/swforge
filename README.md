@@ -1,5 +1,5 @@
 **中文** | [English](README.en.md)
-# dsh-sw-toolkit
+# swforge
 
 **用 Python / 命令行 / MCP 驱动本机 SolidWorks —— 建模、配 GB 材质、装配配合、查干涉、出 GB 标准工程图，每一步都有回读验证。**
 
@@ -53,8 +53,8 @@ SolidWorks 自动化有三类工具，各有各的坑：
 ## 安装
 
 ```powershell
-git clone https://github.com/<you>/dsh-sw-toolkit.git
-cd dsh-sw-toolkit
+git clone https://github.com/<you>/swforge.git
+cd swforge
 python -m pip install -e ".[mcp,pdf]"
 ```
 
@@ -75,7 +75,7 @@ python -m pip install -e ".[mcp,pdf]"
 ### 一条命令自检
 
 ```powershell
-dsh-sw capabilities
+swforge capabilities
 ```
 
 输出当前 SW 版本、连接延迟、MechDog 是否可用。
@@ -83,7 +83,7 @@ dsh-sw capabilities
 ### 建模 + GB 材质
 
 ```python
-from dsh_sw_toolkit import PartBuilder
+from swforge import PartBuilder
 
 b = PartBuilder(r"D:\out\支架.SLDPRT", material="Q235")
 b.box("底板", 0, 160, 0, 20, 0, 100, "steel")
@@ -98,7 +98,7 @@ print(r.ok, r.bodies, r.mass_kg, r.volume_mm3)
 ### 出工程图（GB 图框 + 自动标注 + 总尺寸）
 
 ```python
-from dsh_sw_toolkit import produce, add_dimensions, normalize_layout, export_pdf
+from swforge import produce, add_dimensions, normalize_layout, export_pdf
 
 produce(model, drawing, paper="A3")          # 自动选 gb_a3.drwdot
 add_dimensions(drawing, overall=True)        # 模型尺寸 + 总长/总高
@@ -112,7 +112,7 @@ export_pdf(drawing, r"D:\out\图纸.pdf")
 ### 装配 + 配合 + 干涉
 
 ```python
-from dsh_sw_toolkit import AssemblyBuilder, MateBuilder, body_interference
+from swforge import AssemblyBuilder, MateBuilder, body_interference
 
 a = AssemblyBuilder(r"D:\out\总装.SLDASM")
 a.add(r"D:\out\底座.SLDPRT", 0, 0, 0, fixed=True)   # 坐标单位 mm
@@ -133,7 +133,7 @@ body_interference(part, "A", "B")
 ```json
 {
   "mcpServers": {
-    "dsh-sw": { "command": "solidworks-dsh-sw.exe" }
+    "swforge": { "command": "solidworks-swforge.exe" }
   }
 }
 ```
@@ -186,7 +186,7 @@ body_interference(part, "A", "B")
 ## 目录结构
 
 ```
-src/dsh_sw_toolkit/
+src/swforge/
 ├── session.py       统一会话：探针 + 分类重试 + 单 STA 串行化
 ├── modeling.py      DSL → C# 早期绑定建模 + 面级配色
 ├── colors.py        规则式面级分色 + 回读
@@ -212,7 +212,7 @@ src/dsh_sw_toolkit/
 python -m pytest tests -q -m "not sw"
 
 # 全量（需要 SolidWorks 在运行）
-$env:DSH_SW_LIVE = "1"
+$env:SWFORGE_LIVE = "1"
 python -m pytest tests -q
 ```
 

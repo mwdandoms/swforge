@@ -5,9 +5,9 @@ import uuid
 import pytest
 
 from test_v03_integration import live,build_measured
-from dsh_sw_toolkit import PartBuilder,drawing
-from dsh_sw_toolkit.modeling import preview_edges
-from dsh_sw_toolkit.resources import document_inventory
+from swforge import PartBuilder,drawing
+from swforge.modeling import preview_edges
+from swforge.resources import document_inventory
 
 pytestmark=pytest.mark.sw
 

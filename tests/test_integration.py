@@ -23,14 +23,14 @@ pytestmark = pytest.mark.sw
 
 
 def _tmp(name):
-    d = os.path.join(tempfile.gettempdir(), "dshsw_it")
+    d = os.path.join(tempfile.gettempdir(), "swforge_it")
     os.makedirs(d, exist_ok=True)
     return os.path.join(d, "%s_%s.SLDPRT" % (name, uuid.uuid4().hex[:8]))
 
 
 def _sw_alive():
     try:
-        from dsh_sw_toolkit import get_session
+        from swforge import get_session
         return bool(get_session().ping().get("ok"))
     except Exception:
         return False
@@ -39,8 +39,8 @@ def _sw_alive():
 @pytest.fixture(autouse=True)
 def _require_live_sw():
     # Collection must never start SW (including pytest -m 'not sw').
-    if os.environ.get("DSH_SW_LIVE") != "1":
-        pytest.skip("设置 DSH_SW_LIVE=1 后运行实机测试")
+    if os.environ.get("SWFORGE_LIVE") != "1":
+        pytest.skip("设置 SWFORGE_LIVE=1 后运行实机测试")
     if not _sw_alive():
         pytest.fail("已要求实机验证，但 SolidWorks 无法连接")
 
@@ -50,7 +50,7 @@ _needs_sw = pytest.mark.sw
 
 @_needs_sw
 def test_ping_roundtrip():
-    from dsh_sw_toolkit import get_session
+    from swforge import get_session
     r = get_session().ping()
     assert r["ok"] is True
     assert r["roundtrip_ms"] > 0
@@ -59,7 +59,7 @@ def test_ping_roundtrip():
 @_needs_sw
 def test_build_three_bodies():
     """建 3 个形体，校验实体数与文件落盘。"""
-    from dsh_sw_toolkit import PartBuilder
+    from swforge import PartBuilder
     out = _tmp("三体")
     b = PartBuilder(out)
     b.box("底", 0, 100, 0, 10, 0, 100, "steel")
@@ -75,7 +75,7 @@ def test_build_three_bodies():
 @_needs_sw
 def test_build_paint_coverage():
     """v0.2 关键指标：配色覆盖率必须 >= 99%。"""
-    from dsh_sw_toolkit import PartBuilder
+    from swforge import PartBuilder
     out = _tmp("配色")
     b = PartBuilder(out)
     b.box("底板", -150, 150, 0, 12, -100, 100, "steel")
@@ -90,7 +90,7 @@ def test_build_paint_coverage():
 
 @_needs_sw
 def test_survey_after_build():
-    from dsh_sw_toolkit import PartBuilder, survey
+    from swforge import PartBuilder, survey
     out = _tmp("体检")
     b = PartBuilder(out)
     b.box("体", 0, 50, 0, 50, 0, 50, "silver")
@@ -103,7 +103,7 @@ def test_survey_after_build():
 
 @_needs_sw
 def test_apply_colors_and_readback():
-    from dsh_sw_toolkit import FaceRule, PartBuilder, apply_rules, read_back
+    from swforge import FaceRule, PartBuilder, apply_rules, read_back
     out = _tmp("分色")
     b = PartBuilder(out)
     b.box("底", 0, 100, 0, 10, 0, 100, "steel")
@@ -127,8 +127,8 @@ def test_purge_dry_run_does_not_delete():
     这条用例在 v0.2 开发中抓出过 swAllBodies = -1（当时误写成 2）
     导致 purge_* 一直遍历 0 个实体的 bug。
     """
-    from dsh_sw_toolkit import PartBuilder, get_session, survey
-    from dsh_sw_toolkit.cleanup import purge_giant
+    from swforge import PartBuilder, get_session, survey
+    from swforge.cleanup import purge_giant
     out = _tmp("清理")
     b = PartBuilder(out)
     b.box("大", 0, 8000, 0, 100, 0, 100, "gray")

@@ -26,7 +26,7 @@ __all__ = ["have_mechdog", "produce", "export_pdf", "normalize_layout",
 
 _DEGRADED_NOTE = (
     "未安装 solidworks-assetmate-mechdog，只生成三视图、无尺寸/公差/粗糙度。"
-    "安装：pip install dsh-sw-toolkit[mechdog]"
+    "安装：pip install swforge[mechdog]"
 )
 
 
@@ -427,7 +427,7 @@ def export_pdf(drawing_path: str, pdf_path: str | None = None,
     if os.path.splitext(pdf_path)[1].lower() != "." + fmt:
         raise ValueError("导出文件扩展名与 fmt 不一致")
     os.makedirs(os.path.dirname(pdf_path), exist_ok=True)
-    fd, temporary = tempfile.mkstemp(prefix=".dsh_export_", suffix="." + fmt,
+    fd, temporary = tempfile.mkstemp(prefix=".swforge_export_", suffix="." + fmt,
                                      dir=os.path.dirname(pdf_path))
     os.close(fd)
     try:
