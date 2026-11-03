@@ -18,6 +18,18 @@
 
 ---
 
+## 30 秒看懂它是什么
+
+![swforge selftest](https://raw.githubusercontent.com/mwdandoms/swforge/main/demo/gif/selftest.gif)
+
+> 这是**真实输出渲染成的动图**，不是录屏。内容是 `swforge selftest` 在
+> SolidWorks 2025 SP5.0 上的实测结果，`demo/make_gif.py` 可复现。
+>
+> 十项检查每一项都在真机上跑，读回结果再判定。注意那四行小字——
+> 体积偏差 **0.000%**、密度 **7850 kg/m³**、干涉 **4000.0 mm³**、
+> 配合前后位置 **X=[60.0, 0.0] → [0.0, 0.0]**。
+> 这些数字是读回来的，不是「调用没报错」。
+
 ## 它解决什么问题
 
 SolidWorks 自动化有三类工具，各有各的坑：

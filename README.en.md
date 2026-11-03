@@ -19,6 +19,20 @@
 
 ---
 
+## Understand it in 30 seconds
+
+![swforge selftest](https://raw.githubusercontent.com/mwdandoms/swforge/main/demo/gif/selftest.gif)
+
+> This animation is **rendered from real output, not a screen recording**.
+> It shows `swforge selftest` on SolidWorks 2025 SP5.0; `demo/make_gif.py`
+> reproduces it.
+>
+> Each of the ten checks runs against the real SolidWorks and reads the result
+> back before judging. Note the four indented lines: volume off by **0.000%**,
+> density **7850 kg/m3**, interference **4000.0 mm3**, mate moving the parts
+> from **X=[60.0, 0.0] to [0.0, 0.0]**.
+> Those numbers were read back, not inferred from a call not raising.
+
 ## What problem does it solve
 
 SolidWorks automation falls into three camps, each with its own traps:

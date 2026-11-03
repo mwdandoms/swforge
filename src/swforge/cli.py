@@ -273,7 +273,7 @@ def _cmd_bom(args):
 
     r = collect_bom(args.assembly)
     if args.json:
-        print(_json_ascii(r))
+        _p(r)
         return 0 if r.get("ok") else 1
     if not r.get("ok"):
         print(f"  失败：{r.get('error')}")
@@ -312,7 +312,7 @@ def _cmd_selftest(args):
                      progress=None if args.json else show)
 
     if args.json:
-        print(_json_ascii(r))
+        _p(r)
         return 0 if r.get("ok") else 1
 
     print()
