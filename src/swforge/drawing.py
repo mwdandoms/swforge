@@ -179,6 +179,17 @@ def add_dimensions(drawing_path: str | None = None, all_views: bool = True,
     except Exception as exc:                             # noqa: BLE001
         err = f"{type(exc).__name__}: {exc}"
 
+    # 可选：补总长/总高。
+    # InsertModelAnnotations4 只插模型驱动尺寸且跨视图去重（上限约 18 个），
+    # 拿不到总尺寸，所以总尺寸必须由 dims 模块显式建。
+    overall_result = None
+    if overall:
+        try:
+            from .dims import add_overall_dimensions
+            overall_result = add_overall_dimensions(drawing_path)
+        except Exception as exc:                         # noqa: BLE001
+            overall_result = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+
     after = count_dimensions(drawing_path)
     # 标注带上尺寸线后会改变视图外廓，重排一次避免压几何/出界
     layout = None
@@ -199,6 +210,33 @@ def add_dimensions(drawing_path: str | None = None, all_views: bool = True,
         "layout": layout,
         "note": "自动标注只插入模型驱动尺寸；公差与粗糙度需人工补，不自动编造",
     }
+
+
+def _close_open_document(path: str) -> bool:
+    """关掉指向 path 的已打开文档，避免重复出图时被文件锁挡住。
+
+    返回是否真的关掉了。找不到对应文档、或关闭失败，都返回 False，
+    让后续 SaveAs 自己报错 —— 比静默吞掉更安全。
+    """
+    from .session import get_session, _value
+
+    wanted = os.path.normcase(os.path.abspath(path))
+    try:
+        sw = get_session().sw()
+        docs = _value(sw, "GetDocuments") or []
+    except Exception:                                     # noqa: BLE001
+        return False
+
+    closed = False
+    for doc in docs:
+        try:
+            title = str(_value(doc, "GetPathName") or "")
+            if title and os.path.normcase(os.path.abspath(title)) == wanted:
+                sw.CloseDoc(title)
+                closed = True
+        except Exception:                                 # noqa: BLE001
+            continue
+    return closed
 
 
 def _save_as(md, path):
@@ -253,6 +291,15 @@ def produce(model_path: str, out_path: str | None = None, paper: str = "A3",
     target=os.path.abspath(out_path or os.path.splitext(model_path)[0]+"_AI出图.SLDDRW")
     if not target.lower().endswith(".slddrw"):
         raise ValueError("工程图输出必须使用 .SLDDRW 扩展名")
+    # 同一路径重复出图会撞车：实测连跑两次，第一次 err=0，第二次 err=1。
+    # 原因是上一张图还开在 SolidWorks 里，文件被锁，SaveAs 写不进去。
+    # 所以出图前先把「指向同一路径的已打开文档」关掉，再删旧文件。
+    _close_open_document(target)
+    if os.path.isfile(target):
+        try:
+            os.remove(target)
+        except OSError:
+            pass
     if template is not None and (not os.path.isfile(template) or not str(template).lower().endswith(".drwdot")):
         raise ValueError("template 必须是存在的 .drwdot 文件")
     with document_scope(target,keep_open=keep_open,max_documents=max_documents,

@@ -143,6 +143,24 @@ body_interference(part, "A", "B")
 
 ---
 
+## 功能演示
+
+不装也能先看效果 —— 演示脚本会分步执行，每步停下来告诉你「屏幕上该看到什么」：
+
+```powershell
+python demo/demo.py            # 交互模式（录制/演示用）
+python demo/demo.py --auto     # 自动跑完
+python demo/demo.py --step 4   # 只跑第 4 步（出工程图）
+```
+
+六步：环境自检 → 建模+分色 → GB 材质 → 出工程图 → 装配+配合 → 干涉检测。
+产物都落在 `demo/out/`。
+
+**演讲/录制用的配套材料**：
+- [`docs/bilibili-script.md`](docs/bilibili-script.md) —— B 站视频台本（分段、旁白、后期建议）
+
+---
+
 ## 设计原则
 
 1. **不假成功** —— `ready_for_manufacture` 恒为 `False`，`review_required` 恒为 `True`，有测试守着
@@ -165,7 +183,9 @@ body_interference(part, "A", "B")
 | SW 由 COM 后台拉起时连不上 | 不在 ROT，`GetActiveObject` 失败，要 fallback 到 `CreateInstance` |
 | 装配零件被放到 60 米外 | `AddComponent5` 内部要**米**，项目约定是**毫米** |
 
-更多见 `docs/pitfalls.md`。
+更多见 [`docs/pitfalls.md`](docs/pitfalls.md)。
+
+深度长文：[**《为什么 SolidWorks 的 GetActiveObject 会失败》**](docs/why-getactiveobject-fails.md)
 
 ---
 

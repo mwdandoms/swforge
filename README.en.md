@@ -144,6 +144,22 @@ body_interference(part, "A", "B")
 
 ---
 
+## Demo
+
+You can see it work without installing — the demo runner executes step by step and
+stops to tell you what should be on screen:
+
+```powershell
+python demo/demo.py            # interactive, pauses after each step
+python demo/demo.py --auto     # run straight through
+python demo/demo.py --step 4   # only step 4 (drawings)
+```
+
+Six steps: environment check → modeling + coloring → GB materials → drawings →
+assembly + mates → interference. Output lands in `demo/out/`.
+
+---
+
 ## Design principles
 
 1. **Never fake success** — `ready_for_manufacture` is always `False`, `review_required` is always `True`, and tests enforce it.
@@ -166,7 +182,9 @@ body_interference(part, "A", "B")
 | Cannot connect when SolidWorks was started via COM | It is not in the ROT; fall back from `GetActiveObject` to `CreateInstance` |
 | Assembly parts land 60 metres away | `AddComponent5` expects **metres** while the project convention is **millimetres** |
 
-See `docs/pitfalls.md` for the full list.
+See [`docs/pitfalls.en.md`](docs/pitfalls.en.md) for the full list.
+
+Deep dive: [**Why SolidWorks GetActiveObject fails**](docs/why-getactiveobject-fails.md) (Chinese)
 
 ---
 
@@ -180,7 +198,7 @@ See `docs/pitfalls.md` for the full list.
 * The assembly-level interference API is unusable on this machine; interference goes through part-level booleans
 * Modeling costs about **2.65 s per shape**; 100 shapes take roughly 4.5 minutes
 
-See `docs/limitations.md` for details.
+See `docs/limitations.en.md` for details.
 
 ---
 
