@@ -1,3 +1,4 @@
+**中文** | [English](README.en.md)
 # dsh-sw-toolkit
 
 **用 Python / 命令行 / MCP 驱动本机 SolidWorks —— 建模、配 GB 材质、装配配合、查干涉、出 GB 标准工程图，每一步都有回读验证。**
