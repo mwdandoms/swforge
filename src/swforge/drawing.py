@@ -401,6 +401,14 @@ def _produce(model_path: str, out_path: str | None = None, paper: str = "A3",
         return {"ok": False, "engine": "builtin", "degraded": True,
                 "error": "未能创建完整三视图，未保存工程图"}
     _value(md, "EditRebuild3")
+
+    # 缩放到适合：不缩的话图纸会只显示一部分（尤其是 A3 以上幅面），
+    # 录屏/截图/给人看的时候第一眼就是半个图框。
+    try:
+        md.ViewZoomtofit2()
+    except Exception:                                  # noqa: BLE001
+        pass
+
     os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
     ok, err, warn = _save_as(md, out_path)
     return {
