@@ -430,6 +430,55 @@ def _chk_probe(work: str):
     return True, detail
 
 
+def _chk_concurrency(work: str):
+    """模拟「另一个客户端把活动文档切走」，验证守卫能发现并抢回来。
+
+    对应 hjbaard #10：几个 agent 同时连一个 SolidWorks 时，
+    任一方的 ActivateDoc 都会把对方的活动文档切走。
+    后果很隐蔽 —— 拉伸做在了错的零件上，而且没有报错。
+
+    真正的多进程并发难以在单测里稳定复现，所以这里模拟它的**效果**：
+    激活 A → 切到 B（相当于别人抢了）→ 检查守卫能不能发现 → 能不能抢回来。
+    """
+    from .modeling import PartBuilder
+    from .guard import activate_verified, verify_active, active_title
+
+    a = os.path.join(work, "st_cc_a.SLDPRT")
+    b = os.path.join(work, "st_cc_b.SLDPRT")
+    for p, w in ((a, 20), (b, 30)):
+        if os.path.isfile(p):
+            try:
+                os.remove(p)
+            except OSError:
+                pass
+        bd = PartBuilder(p, material="Q235")
+        bd.box("b", 0, w, 0, 10, 0, 10)
+        bd.build(paint=False, keep_open=True)
+
+    # 1) 正常激活 A
+    if not activate_verified(a):
+        return False, "无法激活第一个文档"
+
+    # 2) 模拟别的客户端抢走：切到 B
+    from .session import get_session
+    get_session().sw().ActivateDoc(b)
+    stolen = active_title()
+
+    # 3) 守卫必须发现 A 已经不是活动文档
+    detected = not verify_active(a)
+    if not detected:
+        return False, (f"被切到 {stolen!r} 之后，verify_active(A) 仍然返回 True —— "
+                       f"守卫失效，后续操作会静默作用到错的零件上")
+
+    # 4) 守卫必须能把 A 抢回来
+    restored = activate_verified(a, retries=3)
+    if not restored:
+        return False, "检测到被抢走了，但抢不回来"
+
+    return True, (f"被切到 {stolen!r} 后正确检测到，并成功抢回；"
+                  f"当前活动文档 {active_title()!r}")
+
+
 CHECKS = [
     Check("connect", "连接与版本", _chk_connect,
           "同类项目最常见的第一道坎（vespo92 #1）"),
@@ -447,6 +496,8 @@ CHECKS = [
           "errStatus 语义反直觉，容易误判"),
     Check("drawing", "出图与尺寸值正确", _chk_drawing,
           "尺寸选错轴会标出错误的值"),
+    Check("concurrency", "活动文档守卫（多客户端）", _chk_concurrency,
+          "对应 hjbaard #10：多个客户端抢同一个 SolidWorks"),
     Check("probe", "API 反射探测", _chk_probe,
           "对应 andrewbartels1 #195"),
 ]

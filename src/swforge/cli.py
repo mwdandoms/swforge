@@ -72,6 +72,11 @@ def _main(argv: list[str] | None = None) -> int:
     p.add_argument("--work-dir", default=None, help="指定产物目录")
     p.add_argument("--json", action="store_true", help="输出 JSON")
 
+    p = sub.add_parser("bom", help="从装配体读 BOM 明细（材料/数量），可导出 CSV")
+    p.add_argument("assembly", nargs="?", default=None, help="装配体路径，省略则用当前文档")
+    p.add_argument("--csv", default=None, help="导出 CSV 的路径")
+    p.add_argument("--json", action="store_true", help="输出 JSON")
+
     sub.add_parser("ping", help="连接探针")
     sub.add_parser("survey", help="量当前文档的包络与实体构成")
     p = sub.add_parser("capabilities", help="本机能力自检")
@@ -172,6 +177,8 @@ def _main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "selftest":
         return _cmd_selftest(args)
+    if args.cmd == "bom":
+        return _cmd_bom(args)
     if args.cmd == "ping":
         from .session import get_session
 
@@ -258,6 +265,33 @@ def _main(argv: list[str] | None = None) -> int:
     return 1
 
 
+
+
+def _cmd_bom(args):
+    """读装配体的 BOM 明细。"""
+    from .bom import collect_bom, bom_to_csv, bom_to_markdown
+
+    r = collect_bom(args.assembly)
+    if args.json:
+        print(_json_ascii(r))
+        return 0 if r.get("ok") else 1
+    if not r.get("ok"):
+        print(f"  失败：{r.get('error')}")
+        return 1
+
+    print()
+    print(f"  装配：{r['assembly']}")
+    print(f"  种类 {r['distinct_parts']} 项，共计 {r['total_items']} 件")
+    print()
+    print(bom_to_markdown(r["rows"]))
+    print()
+    if r.get("missing_material"):
+        print(f"  ⚠ 这些零件没有材料：{', '.join(r['missing_material'])}")
+        print(f"    {r.get('note', '')}")
+    if args.csv:
+        bom_to_csv(r["rows"], args.csv)
+        print(f"  已导出 CSV：{args.csv}")
+    return 0
 
 def _cmd_selftest(args):
     """实机自检。逐项跑，任何一项失败就以非 0 退出。"""

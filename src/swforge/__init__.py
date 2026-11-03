@@ -26,6 +26,8 @@ from .assembly import AssemblyBuilder, list_components, check_interference
 from .interference import body_interference, check_all_pairs
 from .mates import MateBuilder, list_mates
 from .dims import add_overall_dimensions
+from .bom import collect_bom, insert_bom_table, bom_to_csv, bom_to_markdown
+from .guard import document_guard, activate_verified, verify_active
 from .batch import batch_drawings, collect_models, write_report
 from .probe import probe_api
 from .colors import FaceRule, apply_rules, read_back
@@ -36,6 +38,8 @@ from .drawing import (have_mechdog, produce, export_pdf, normalize_layout,
 __version__ = "0.9.1"
 
 __all__ = [
+    "collect_bom", "insert_bom_table", "bom_to_csv", "bom_to_markdown",
+    "document_guard", "activate_verified", "verify_active",
     "__version__",
     # session
     "SWSession", "get_session", "SWError", "BridgeLost",
