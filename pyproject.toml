@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dsh-sw-toolkit"
+version = "0.8.0"
+description = "SolidWorks automation toolkit: early-binding geometry builder + rule-based recoloring + STEP cleanup + drawing pipeline + PDF atlas. Best of DSH-bridge and AssetMate/MechDog."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "MWD" }]
+keywords = ["solidworks", "cad", "automation", "mcp", "pywin32", "drawing"]
+classifiers = [
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Computer Aided Design",
+]
+dependencies = [
+    "pywin32>=306; platform_system == 'Windows'",
+    "Pillow>=10",
+]
+
+[project.optional-dependencies]
+# MechDog 增强：特征台账 / 工程图标注 / 原生 BOM / 交付自检
+mechdog = ["solidworks-assetmate-mechdog>=0.8.41,<0.9"]
+# MCP 服务
+mcp = ["mcp>=1.2.0,<2"]
+# PDF 输出
+pdf = ["pypdfium2>=4"]
+
+[project.scripts]
+dsh-sw = "dsh_sw_toolkit.cli:main"
+solidworks-dsh-sw = "dsh_sw_toolkit.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+
+[tool.pytest.ini_options]
+markers = [
+    "sw: 需要 SolidWorks 正在运行（CI 用 -m 'not sw' 跳过）",
+]
+testpaths = ["tests"]

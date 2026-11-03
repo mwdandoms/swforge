@@ -1,0 +1,374 @@
+# -*- coding: utf-8 -*-
+"""MCP 服务器 —— 把 dsh-sw-toolkit 的能力暴露成 18 个标准工具。
+
+启动
+----
+    python -m dsh_sw_toolkit.server          # stdio
+    # 或在 DSH / Claude Desktop 的 MCP 配置里指向：
+    #   command: <python>/Scripts/solidworks-dsh-sw.exe
+
+设计原则
+--------
+* **破坏性操作默认 dry-run**：`purge_*` 不传 `apply=true` 只列不删
+* **所有工具返回 dict**，含 `ok` 字段；异常也包成 `{"ok": false, "error": ...}`
+* **不重复 MechDog 的 29 个工程图工具** —— 它自己就是 MCP 服务器，
+  两个都注册即可；本服务只补它没有的（建模 / 清理 / 排版 / 图集）
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import sys
+import asyncio
+from functools import wraps
+from typing import Any
+
+__all__ = ["mcp", "main"]
+
+from .session import STAWorker
+
+_WORKER = STAWorker()
+
+
+def _err(exc: BaseException) -> dict:
+    return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+
+
+def _load_spec(path: str) -> dict:
+    with open(path, encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def build_mcp():
+    """构造 FastMCP 实例。延迟 import，没装 mcp 也能 import 本模块。"""
+    from mcp.server.fastmcp import FastMCP
+
+    mcp = FastMCP("dsh-sw-toolkit")
+
+    def tool():
+        def register(fn):
+            @wraps(fn)
+            async def run_on_sta(*args, **kwargs):
+                try:
+                    return await asyncio.wrap_future(_WORKER.submit(fn, *args, **kwargs))
+                except Exception as exc:
+                    return _err(exc)
+            mcp.tool()(run_on_sta)
+            return run_on_sta
+        return register
+
+    # ------------------------------------------------------------------ 会话
+    @tool()
+    def sw_ping() -> dict:
+        """连接探针：返回 SolidWorks 版本、往返延迟、重连与脏缓存统计。"""
+        try:
+            from .session import get_session
+
+            return {"ok": True, **get_session().ping()}
+        except Exception as exc:                         # noqa: BLE001
+            return _err(exc)
+
+    @tool()
+    def sw_capabilities() -> dict:
+        """本机能力自检：SW 是否可用、MechDog 是否可用、Python 版本。"""
+        try:
+            from .drawing import have_mechdog
+            from .session import get_session
+
+            from . import __version__
+            info = {"ok": True, "dsh_sw_toolkit": __version__,
+                    "python": sys.version.split()[0], "mechdog": have_mechdog(),
+                    "geometry": ["box", "tube_x", "tube_y", "tube_z",
+                                 "cylinder", "revolve_y", "fillet", "chamfer"],
+                    "execution": "serialized STA worker",
+                    "default_max_documents":8,"default_keep_open":False,
+                    "default_drawing_annotations":False,"pdf_validation":"pdfium"}
+            try:
+                info["sw"] = get_session().ping()
+            except Exception as exc:                     # noqa: BLE001
+                info["sw"] = {"ok": False, "error": str(exc)}
+            return info
+        except Exception as exc:                         # noqa: BLE001
+            return _err(exc)
+
+    @tool()
+    def sw_close_all(discard_unsaved: bool = False) -> dict:
+        """关闭已保存且未修改的文档。discard_unsaved=True 才会丢弃未保存更改。"""
+        try:
+            from .session import get_session
+
+            return {"ok": True, "closed": get_session().close_all(discard_unsaved=discard_unsaved),
+                    "discard_unsaved": discard_unsaved}
+        except Exception as exc:                         # noqa: BLE001
+            return _err(exc)
+
+    # ------------------------------------------------------------------ 建模
+    @mcp.tool()
+    def sw_validate_part(out_path: str, spec: dict) -> dict:
+        """只校验建模描述，不连接 SW、不创建文件。支持圆柱/绕 Y 旋转/按 tag 圆角倒角。"""
+        try:
+            from .spec import builder_from_spec
+            builder = builder_from_spec(out_path, spec)
+            return {"ok": True, "validated": True, "path": builder.path,
+                    "source_bytes": len(builder.render_cs().encode("utf-8"))}
+        except Exception as exc:
+            return _err(exc)
+
+    @tool()
+    def sw_build_part(out_path: str, spec: dict, paint: bool = True,
+                      keep_open: bool = False, max_documents: int = 8) -> dict:
+        """按 spec 建零件。
+
+        spec 格式::
+
+            {"material": "Q235",
+             "boxes": [{"tag":"底板","x0":-150,"x1":150,"y0":0,"y1":12,
+                        "z0":-100,"z1":100,"color":"steel"}],
+             "tubes": [{"tag":"立柱","axis":"y","y0":12,"y1":812,
+                        "cx":0,"cz":0,"sx":40,"sz":40,"wall":4,"color":"yellow"}]}
+
+        v0.3 另支持 cylinders [{tag,axis,x,y,z,r,h,color}]、
+        revolves [{tag,profile_pts:[[radius,axial],...],axis:"y",angle:360,x,y,z,color}]、
+        fillets [{tag,r}]、chamfers [{tag,d}]。所有长度为 mm。
+        """
+        try:
+            from .spec import builder_from_spec
+
+            b = builder_from_spec(out_path, spec)
+            r = b.build(paint=paint,keep_open=keep_open,max_documents=max_documents)
+            d = dict(r.__dict__)
+            d["ok"] = r.ok
+            return d
+        except Exception as exc:                         # noqa: BLE001
+            return _err(exc)
+
+    @tool()
+    def sw_list_colors() -> dict:
+        """可用的预置配色名称。"""
+        from .modeling import COLORS
+
+        return {"ok": True, "colors": {k: list(v) for k, v in COLORS.items()}}
+
+    # ------------------------------------------------------------------ 分色
+    @tool()
+    def sw_apply_colors(part_path: str, rules: list, dry_run: bool = False) -> dict:
+        """按规则给零件上色（面级写入 + 回读验证）。
+
+        rules 每项::
+
+            {"name": "轮子", "color": [0.10,0.10,0.11], "cond": {"ymax_lt": -560}}
+        """
+        try:
+            from .colors import FaceRule, apply_rules
+
+            rs = [FaceRule(r["name"], tuple(r["color"]), **r.get("cond", {}))
+                  for r in rules]
+            return apply_rules(part_path, rs, dry_run=dry_run)
+        except Exception as exc:                         # noqa: BLE001
+            return _err(exc)
+
+    @tool()
+    def sw_read_colors(sample: int = 12) -> dict:
+        """回读当前文档若干面的颜色，用于验证上色是否真的生效。"""
+        try:
+            from .colors import read_back
+
+            return {"ok": True, "faces": read_back(sample=sample)}
+        except Exception as exc:                         # noqa: BLE001
+            return _err(exc)
+
+    # ------------------------------------------------------------------ 体检
+    @tool()
+    def sw_survey(include_boxes: bool = False, top_n: int = 20) -> dict:
+        """当前文档的包络与实体构成（实体数 / 曲面数 / 最大体清单）。"""
+        try:
+            from .cleanup import survey
+
+            return survey(include_boxes=include_boxes, top_n=top_n)
+        except Exception as exc:                         # noqa: BLE001
+            return _err(exc)
+
+    @tool()
+    def sw_purge_giant(threshold_mm: float = 5000.0, apply: bool = False) -> dict:
+        """删掉最大边长超阈值的垃圾体（默认只列不删）。
+
+        典型场景：STEP 里混进 6 km 级方块，导致「缩放到适合」后模型变成一点。
+        """
+        try:
+            from .cleanup import purge_giant
+            from .session import get_session
+
+            md = get_session().sw().ActiveDoc
+            if md is None:
+                return {"ok": False, "error": "没有打开的文档"}
+            return purge_giant(md, threshold_mm, dry_run=not apply)
+        except Exception as exc:                         # noqa: BLE001
+            return _err(exc)
+
+    @tool()
+    def sw_purge_small(max_dim_mm: float = 120.0, min_y_mm: float | None = None,
+                       apply: bool = False) -> dict:
+        """删掉零碎小体（导入碎片）。默认只列不删。"""
+        try:
+            from .cleanup import purge_small
+            from .session import get_session
+
+            md = get_session().sw().ActiveDoc
+            if md is None:
+                return {"ok": False, "error": "没有打开的文档"}
+            return purge_small(md, max_dim_mm, min_y_mm, dry_run=not apply)
+        except Exception as exc:                         # noqa: BLE001
+            return _err(exc)
+
+    # ------------------------------------------------------------------ 出图
+    @tool()
+    def sw_produce_drawing(model_path: str, out_path: str | None = None,
+                           paper: str = "A3", annotations: bool = False,
+                           keep_open: bool = False, max_documents: int = 8,
+                           template: str | None = None) -> dict:
+        """一条命令出工程图（委托 MechDog；未安装时降级为三视图）。"""
+        try:
+            from .drawing import produce
+
+            return produce(model_path, out_path, paper,annotations=annotations,
+                           keep_open=keep_open,max_documents=max_documents,template=template)
+        except Exception as exc:                         # noqa: BLE001
+            return _err(exc)
+
+    @tool()
+    def sw_layout_views(drawing_path: str | None = None, gap_mm: float = 35.0,
+                        auto_scale: bool = True, dry_run: bool = False) -> dict:
+        """按 GB 惯例重排视图：长对正 / 高平齐 / 间距 ≥ 35 mm。"""
+        try:
+            from .drawing import normalize_layout
+
+            return normalize_layout(drawing_path, gap_mm=gap_mm,
+                                    auto_scale=auto_scale, dry_run=dry_run)
+        except Exception as exc:                         # noqa: BLE001
+            return _err(exc)
+
+    @tool()
+    def sw_export_pdf(drawing_path: str, pdf_path: str | None = None) -> dict:
+        """把工程图导出为 PDF。"""
+        try:
+            from .drawing import export_pdf
+
+            return export_pdf(drawing_path, pdf_path, "pdf")
+        except Exception as exc:                         # noqa: BLE001
+            return _err(exc)
+
+    @tool()
+    def sw_make_atlas(pages: list, out_pdf: str, title: str = "技术图集",
+                      subtitle: str = "", paper: str = "A3") -> dict:
+        """把「文字页 + 图片页」拼成多页 PDF 图集。
+
+        pages 每项::
+
+            {"type": "cover/text/image",
+             "title": "一、说明", "lines": ["■ 标题", "正文"],
+             "image": "D:/xxx.png"}
+        """
+        try:
+            from .drawing import make_atlas
+
+            return make_atlas(pages, out_pdf, title=title,
+                              subtitle=subtitle, paper=paper)
+        except Exception as exc:                         # noqa: BLE001
+            return _err(exc)
+
+    @tool()
+    def sw_delivery_check(drawing_path: str, model_path: str | None = None,
+                          strict_attachments: bool = True) -> dict:
+        """这张图能不能交（需 MechDog）。"""
+        try:
+            from .drawing import delivery_check
+
+            return delivery_check(drawing_path,model_path,strict_attachments)
+        except Exception as exc:                         # noqa: BLE001
+            return _err(exc)
+
+    @tool()
+    def sw_resources() -> dict:
+        """只读列出 SW 文档、保存状态、进程与工作集内存。"""
+        from .resources import document_inventory
+        return document_inventory()
+
+    @tool()
+    def sw_list_materials() -> dict:
+        """列出内置 GB 牌号（密度/弹性模量/泊松比）与材质库路径。"""
+        from .gb_materials import GB_MATERIALS, library_path
+        return {"ok": True,
+                "count": len(GB_MATERIALS),
+                "grades": [{"grade": n, "density_kg_m3": v[0], "elastic_pa": v[1],
+                            "poisson": v[2], "note": v[3]}
+                           for n, v in sorted(GB_MATERIALS.items())],
+                "library": library_path()}
+
+    @tool()
+    def sw_ensure_material_library(force: bool = False) -> dict:
+        """生成 GB 材质库到 SW 扫描目录，返回路径。
+
+        SW 自带中文库没有 GB 钢牌号；不生成时 material='Q235' 会静默失败，
+        零件退回默认密度 1000 kg/m3（水），质量算错约 7.85 倍。
+        """
+        from .gb_materials import ensure_library, library_path, material_names
+        path = ensure_library(force=force)
+        import os
+        return {"ok": True, "library": path, "bytes": os.path.getsize(path),
+                "grades": material_names(), "default_path": library_path()}
+
+    @tool()
+    def sw_resource_status(limit: int = 8, warn_ratio: float = 0.75,
+                           mem_warn_mb: float = 2500.0) -> dict:
+        """SW 文档数量/内存健康检查。
+
+        返回 level = ok / warn / critical：
+        ok 正常；warn 已到告警线（默认 6/8）或内存超阈值；
+        critical 已达上限，再建文档会被拒绝。只读，不关闭任何文档。
+        """
+        from .resources import resource_status
+        return resource_status(limit=limit, warn_ratio=warn_ratio,
+                               mem_warn_mb=mem_warn_mb)
+
+    @tool()
+    def sw_sweep_documents(apply: bool = False, keep: list | None = None) -> dict:
+        """关闭遗留的临时/测试文档（默认只列不关）。
+
+        只匹配 pytest 目录、dshsw_it 目录和系统临时目录下的文档；
+        用户打开的工作文档和有未保存修改的文档不会被关闭。
+        """
+        from .resources import sweep_documents
+        return sweep_documents(dry_run=not apply, keep=keep or ())
+
+    @tool()
+    def sw_preview_edges(part_path: str, tag: str, edges_rule: dict | None = None) -> dict:
+        """只读预览实体选边规则；长度单位 mm，带规则时仅匹配直边。"""
+        from .modeling import preview_edges
+        return preview_edges(part_path,tag,edges_rule)
+
+    return mcp
+
+
+try:                                          # 供 `from dsh_sw_toolkit.server import mcp`
+    mcp = build_mcp()
+except ModuleNotFoundError as exc:
+    if exc.name != "mcp":
+        raise
+    mcp = None
+
+
+def main() -> int:
+    if mcp is None:
+        print("未安装 mcp 包，请先 pip install \"dsh-sw-toolkit[mcp]\"", file=sys.stderr)
+        return 1
+    try:
+        mcp.run()
+    finally:
+        _WORKER.close()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
