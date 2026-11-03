@@ -32,6 +32,7 @@ import re
 
 __all__ = [
     "collect_bom",
+    "material_of",
     "insert_bom_table",
     "bom_to_markdown",
     "bom_to_csv",
@@ -51,21 +52,73 @@ _BOM_TOP_LEVEL = 1
 
 
 def _value(obj, name, default=None):
-    """取属性或方法，两种情况都试。
+    """取属性或方法。
 
-    SolidWorks 的 COM 接口在后期绑定下，无参方法会以属性形式暴露。
-    直接按方法调用会抛 TypeError（这个坑在干涉检查里已经踩过一次）。
+    这里有一个**很容易踩的坑**：COM 对象本身也是 callable 的。
+    如果 getattr 拿到的已经是一个文档对象（比如 GetModelDoc2 在后期绑定下
+    直接返回 CDispatch），再对它调 v() 会尝试把整个对象当函数执行，
+    结果是 None —— 而且不会报错。
+
+    所以判断顺序是：
+        1. 带 _oleobj_ 的（已经是个 COM 对象）     -> 原样返回
+        2. 其他 callable（真的方法）               -> 调用
+        3. 都不是                                  -> 原样返回
     """
     try:
         v = getattr(obj, name)
     except Exception:                                  # noqa: BLE001
         return default
+    if hasattr(v, "_oleobj_"):
+        return v
     if callable(v):
         try:
             return v()
         except Exception:                              # noqa: BLE001
             return default
     return v
+
+
+
+def material_of(model_doc) -> str:
+    """从零件/装配文档读材料名。
+
+    实测结论（SolidWorks 2025 SP5.0）：
+        IComponent2.GetMaterialUserName()      -> 空字符串（读不到）
+        IComponent2.GetMaterialIdName()        -> 空字符串（读不到）
+        ModelDoc2.MaterialIdName               -> "swforge_gb_materials|Q235|9015"
+        ModelDoc2.GetMaterialPropertyName2()   -> "Q235"   ← 这个才对
+
+    注意 GetMaterialPropertyName2 的第二个参数是**字符串出参**，
+    必须传 VARIANT(VT_BSTR | VT_BYREF)，直接传普通字符串会报「类型不匹配」。
+    """
+    if model_doc is None:
+        return ""
+
+    # 首选：GetMaterialPropertyName2 + VARIANT 出参
+    try:
+        import pythoncom
+        import win32com.client
+        db = win32com.client.VARIANT(pythoncom.VT_BSTR | pythoncom.VT_BYREF, "")
+        name = model_doc.GetMaterialPropertyName2("", db)
+        if name:
+            text = str(name).strip()
+            if text.lower() not in ("", "default", "unspecified"):
+                return text
+    except Exception:                                  # noqa: BLE001
+        pass
+
+    # 退回：MaterialIdName 是 "数据库|牌号|内部ID" 的复合字符串
+    try:
+        mid = getattr(model_doc, "MaterialIdName", "")
+        mid = mid() if callable(mid) else mid
+        if mid:
+            parts = str(mid).split("|")
+            if len(parts) >= 2 and parts[1].strip():
+                return parts[1].strip()
+    except Exception:                                  # noqa: BLE001
+        pass
+
+    return ""
 
 
 def group_components(components, include_suppressed: bool = False) -> list:
@@ -150,24 +203,25 @@ def collect_bom(assembly_path: str | None = None,
     # 逐个组件读材料与路径。不用逐个打开零件——
     # 组件对应的零件在装配打开时已加载，直接问组件即可。
     comps = []
-    # IAssemblyDoc.GetComponents(Boolean ToplevelOnly) 需要 1 个参数，
-    # 不能当成无参方法用。_value 对 COM 方法只做 getattr 不调用，所以这里手动传参。
-    raw = _v(md, "GetComponents")
-    if callable(raw):
-        raw = raw(False)          # False = 包含子装配里的组件
+    # IAssemblyDoc.GetComponents(Boolean ToplevelOnly) 需要 1 个参数。
+    # 不能走 _value 那套「属性还是方法」的猜测——它会在无参情况下直接调用，
+    # 抛 COM 的「非选择性的参数」（DISP_E_PARAMNOTOPTIONAL）。
+    # 这里有明确的签名，直接传参最可靠。
+    try:
+        raw = md.GetComponents(False)      # False = 包含子装配里的组件
+    except Exception as exc:               # noqa: BLE001
+        return {"ok": False,
+                "error": f"读组件清单失败：{type(exc).__name__}: {exc}"}
 
     for c in (raw or []):
         try:
             name = str(_value(c, "Name2") or "")
             path = str(_value(c, "GetPathName") or "")
-            # 材料：优先用户可见名（如 Q235），退回内部 ID
-            mat = _value(c, "GetMaterialUserName")
-            if not mat:
-                mat = _value(c, "GetMaterialIdName")
-            mat = str(mat or "").strip()
-            # SolidWorks 没赋材质时会返回空或者 "Default"
-            if mat.lower() in ("", "default", "unspecified"):
-                mat = ""
+            # 材料：从组件关联的零件文档读。
+            # 实测 IComponent2 自己的 GetMaterialUserName / GetMaterialIdName
+            # 都返回空字符串，只有走 ModelDoc2.GetMaterialPropertyName2 才读得到。
+            pdoc = _value(c, "GetModelDoc2", None)
+            mat = material_of(pdoc)
             suppressed = bool(_value(c, "IsSuppressed", False))
             # 从明细表排除：SolidWorks 的原生 BOM 会跳过这些组件，我们也要跳过
             excl = _value(c, "ExcludeFromBOM", False)
@@ -197,6 +251,7 @@ def insert_bom_table(drawing_path: str | None = None,
                      x: float = 0.0, y: float = 0.0,
                      anchor: str = "bottom-left",
                      template: str = "",
+                     use_anchor: bool = True,
                      timeout_s: int = 300) -> dict:
     """在工程图里插入原生 BOM 表。
 
@@ -204,8 +259,15 @@ def insert_bom_table(drawing_path: str | None = None,
 
     参数
     ----
-    anchor    'bottom-left' / 'top-left' / 'top-right' / 'bottom-right'
-    template  表格模板路径，留空用 SolidWorks 默认
+    anchor      'bottom-left' / 'top-left' / 'top-right' / 'bottom-right'
+    template    表格模板路径，留空用 SolidWorks 默认
+    use_anchor  True 时用图纸模板里定义的 BOM 锚点定位（推荐）。
+                实测 UseAnchorPoint=False 时给的 x,y 会让表格落在图框外，
+                而且 TableAnnotation 在后期绑定下读不到也改不了位置，
+                所以锚点模式是唯一可靠的做法。
+
+    注意：锚点模式要求工程图模板里定义过 BOM 锚点。
+    没定义时 SolidWorks 会退回用 x,y。
     """
     from .session import get_session, _value as _v
 
@@ -240,7 +302,7 @@ def insert_bom_table(drawing_path: str | None = None,
 
     try:
         table = view.InsertBomTable6(
-            False,             # UseAnchorPoint=False 时用 x,y
+            bool(use_anchor),  # True = 用模板里定义的 BOM 锚点
             float(x), float(y),
             anchor_type,
             _BOM_TOP_LEVEL,

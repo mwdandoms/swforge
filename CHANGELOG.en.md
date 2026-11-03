@@ -59,11 +59,20 @@ The theme of this release: turning "I built it" into "you can verify it yourself
 - **selftest filled the document cap itself**, cascading four later checks
   into failure. Each check now closes what it created.
 
+### Verification
+
+- **selftest 10/10** in 60.2 s on SolidWorks 2025 SP5.0
+- **180 tests pass** (148 offline + 32 live) in 178.8 s
+- BOM live: 1 plate + 3 shims -> 2 types, 4 items, all materials read as Q235
+- Concurrency guard live: switched away, detected, and taken back
+
 ### Known incomplete
 
-- The **live paths for BOM and the concurrency guard are not yet verified**
-  (code and offline tests are done). Unverified features are not claimed as
-  working.
+- **BOM table placement is not controllable.** The table is created (3 rows,
+  3 columns) but `TableAnnotation.GetPosition`/`SetPosition` are unreachable
+  under pywin32 late binding, so its position can be neither read nor set and
+  it does not appear on the exported PDF. Needs early binding in C#.
+  **`swforge bom` (data + CSV) is unaffected and usable.**
 - Tolerances, surface finish and GD&T are still not generated.
 
 ## [0.9.1] - 2026-11-03

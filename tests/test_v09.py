@@ -205,9 +205,30 @@ def test_cli_has_v09_commands():
     assert "capabilities" in out, "CLI 缺少 capabilities 子命令"
 
 
-def test_version_is_v09():
+def test_version_matches_pyproject():
+    """版本号必须和 pyproject.toml 一致。
+
+    以前这条测试写死了 "0.9"，每次发版都要改测试——那是测试在拖版本的后腿。
+    改成和 pyproject 比对：既保住「版本号没被随手改坏」的检查，
+    又不用每次发版都来改它。
+    """
+    import os
+    import re
+
     import swforge
-    assert swforge.__version__.startswith("0.9"), swforge.__version__
+
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    pyproject = os.path.join(root, "pyproject.toml")
+    if not os.path.isfile(pyproject):
+        pytest.skip("没有 pyproject.toml（源码树外的运行环境）")
+
+    with open(pyproject, encoding="utf-8") as fh:
+        text = fh.read()
+    m = re.search(r'^version\s*=\s*"([^"]+)"', text, re.M)
+    assert m, "pyproject.toml 里找不到 version"
+    assert swforge.__version__ == m.group(1), (
+        f"包版本 {swforge.__version__} 与 pyproject 的 {m.group(1)} 不一致")
+
 
 
 def test_v09_exports_present():

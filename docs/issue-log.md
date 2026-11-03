@@ -146,7 +146,94 @@ runner 在每项之间再扫一遍。
 
 ---
 
+
+### 2026-11-04 · BOM 实机验证发现的三个问题
+
+**问题 1：`GetComponents` 被当成无参方法调用**
+
+`session._value()` 的判断是「有 `_oleobj_` 就不调用」，但通过 `getattr` 拿到的
+绑定方法**没有** `_oleobj_`，于是它被无参调用，COM 抛
+`-2147352561 非选择性的参数`（`DISP_E_PARAMNOTOPTIONAL`）。
+
+`IAssemblyDoc.GetComponents(Boolean ToplevelOnly)` 必须显式传参。
+修复后 BOM 能正确读到 4 个组件。
+
+**问题 2：`_value` 把 COM 对象当函数调用**
+
+比问题 1 更隐蔽：`IComponent2.GetModelDoc2` 在后期绑定下**直接返回文档对象**
+（`CDispatch`），而 COM 对象本身是 callable 的。
+我的 `_value` 看到 callable 就 `v()`，等于把整个文档当函数执行，
+返回 `None` —— **不报错，静默失败**。
+
+结果就是材料永远读不到（显示「未指定」），但流程看起来一切正常。
+
+修复：判断顺序改成「带 `_oleobj_` 的当成对象原样返回，其余 callable 才调用」。
+
+**问题 3：组件自身的材料方法读不到材料**
+
+实测在 SolidWorks 2025 SP5.0 上：
+
+```
+IComponent2.GetMaterialUserName()        -> ''（空）
+IComponent2.GetMaterialIdName()          -> ''（空）
+ModelDoc2.GetMaterialPropertyName2()     -> 'Q235'   ← 只有这个能读到
+ModelDoc2.MaterialIdName                 -> 'swforge_gb_materials|Q235|9015'
+```
+
+而且 `GetMaterialPropertyName2` 的第二个参数是**字符串出参**，
+必须传 `VARIANT(VT_BSTR | VT_BYREF)`，直接传普通字符串报「类型不匹配」。
+
+修复后 BOM 材料列正确显示 Q235，`missing_material` 为空。
+
+**验证结果**
+
+```
+装配：底板 ×1 + 垫片 ×3
+种类 2 项，共计 4 件
+1. 垫片  x3  [Q235]
+2. 底板  x1  [Q235]
+缺材料：[]
+```
+
+---
+
 ## 未修复 / 已记录
+
+### BOM 表插入成功但位置不可控
+
+**现象**
+`insert_bom_table()` 返回 `{'ok': True, 'rows': 3, 'columns': 3}`，
+图纸上确实有 1 个表格注解（`GetTableAnnotationCount` = 1），
+但**导出 PDF 后表格不在页面上**。
+
+`use_anchor=False` 时给 `(0.02, 0.02)`，表格落在图框外；
+改成 `use_anchor=True`（用模板定义的 BOM 锚点）后，仍然不可见。
+
+**排查到的限制**
+`TableAnnotation` 在 pywin32 后期绑定下：
+```
+GetPosition    -> AttributeError（取不到）
+SetPosition    -> 无效果
+TextHeight     -> AttributeError
+```
+
+**也就是说位置既读不到也改不了**，无法靠代码调整。
+
+**当前状态**
+- BOM **数据提取**（材料、数量、合并）已实机验证通过 ✅
+- BOM **表格插入**返回成功、行列数正确，但**位置需要进一步排查** ⚠️
+
+**下一步**
+- 用 C# 早期绑定读 `ITableAnnotation.GetPosition`（pywin32 拿不到的，
+  和 `DisplayDimension.GetAnnotation` 是同一类限制）
+- 或者在工程图模板里预置 BOM 锚点，验证锚点模式
+
+**影响**
+`swforge bom` 命令（读明细 + 导出 CSV）**不受影响，可以正常使用**。
+只有「自动插表到工程图」这一项还没达到可用状态。
+
+
+## 其他未修复项
 
 ### Dispatch 会启动第二个 SolidWorks 实例
 
