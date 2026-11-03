@@ -98,10 +98,15 @@ jobs:
 
   # 先发到 TestPyPI 试水。装错了还能改，正式的不能删。
   testpypi:
-    name: publish to TestPyPI
+    name: publish to TestPyPI (optional)
     needs: build
     runs-on: ubuntu-latest
     environment: testpypi
+    # 这一项是可选的预演发布。
+    # 没在 test.pypi.org 上配置 Trusted Publisher 时它一定会失败，
+    # 但那不影响正式发布——把它标成 continue-on-error，
+    # 否则正式 PyPI 明明成功了，整个 run 却显示"失败"，看着像出了问题。
+    continue-on-error: true
     permissions:
       id-token: write        # OIDC，Trusted Publishing 必需
     steps:
