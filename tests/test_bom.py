@@ -39,6 +39,8 @@ def test_same_part_merges_and_counts():
     assert len(rows) == 1
     assert rows[0]["qty"] == 3
     assert rows[0]["material"] == "Q235"
+    # 名字用零件名（文件名），不是组件实例名
+    assert rows[0]["name"] == "垫片", rows[0]["name"]
 
 
 def test_different_parts_stay_separate():
@@ -68,7 +70,7 @@ def test_suppressed_components_are_excluded():
         comp("压缩", r"C:\p\b.SLDPRT", suppressed=True),
     ])
     assert len(rows) == 1
-    assert rows[0]["name"] == "在用"
+    assert rows[0]["name"] == "a"   # 用零件名，不是组件名
 
 
 def test_missing_material_marked_not_blank():
@@ -88,9 +90,9 @@ def test_empty_input_is_safe():
 
 def test_component_without_path_is_skipped():
     """路径为空的组件没法判重，直接跳过比瞎猜好。"""
-    rows = group_components([comp("幽灵", ""), comp("正常", r"C:\p\a.SLDPRT")])
+    rows = group_components([comp("幽灵", ""), comp("正常", r"C:\p\真实零件.SLDPRT")])
     assert len(rows) == 1
-    assert rows[0]["name"] == "正常"
+    assert rows[0]["name"] == "真实零件"
 
 
 def test_sequence_numbers_are_dense():
@@ -138,7 +140,7 @@ def test_csv_has_utf8_bom_for_excel(tmp_path):
     assert raw.startswith(b"\xef\xbb\xbf"), "CSV 没有 UTF-8 BOM，Excel 会乱码"
 
     text = raw.decode("utf-8-sig")
-    assert "中文零件" in text
+    assert "中文" in text
     assert "序号" in text
 
 
@@ -168,7 +170,7 @@ def test_include_suppressed_optin_works():
     with_all = group_components(comps, include_suppressed=True)
     assert len(only_visible) == 1
     assert len(with_all) == 2, "include_suppressed=True 没生效"
-    assert {r["name"] for r in with_all} == {"在用", "压缩"}
+    assert {r["name"] for r in with_all} == {"a", "b"}
 
 
 def test_exclude_from_bom_is_respected():
@@ -178,7 +180,7 @@ def test_exclude_from_bom_is_respected():
         {**comp("排除", r"C:\p\b.SLDPRT"), "exclude_from_bom": True},
     ])
     assert len(rows) == 1
-    assert rows[0]["name"] == "正常"
+    assert rows[0]["name"] == "a"
 
 
 def test_exclude_wins_over_include_suppressed():
@@ -188,4 +190,22 @@ def test_exclude_wins_over_include_suppressed():
         comp("正常", r"C:\p\a.SLDPRT"),
     ], include_suppressed=True)
     assert len(rows) == 1
-    assert rows[0]["name"] == "正常"
+    assert rows[0]["name"] == "a"
+
+def test_uses_part_name_not_component_instance_name():
+    """BOM 里必须写零件名，不能写组件实例名。
+
+    组件名带实例序号（垫片-1 / 垫片-2 / 垫片-3）。
+    合并成一行后写成「垫片-3 ×3」是错的——车间要的是「垫片 ×3」。
+    这个 bug 是实机跑 BOM 时发现的：真机上组件名是 `垫片-3`，
+    而期望显示的是零件文件名 `垫片`。
+    """
+    rows = group_components([
+        comp("垫片-1", r"C:\proj\垫片.SLDPRT", "Q235"),
+        comp("垫片-2", r"C:\proj\垫片.SLDPRT", "Q235"),
+        comp("垫片-3", r"C:\proj\垫片.SLDPRT", "Q235"),
+    ])
+    assert len(rows) == 1
+    assert rows[0]["qty"] == 3
+    assert rows[0]["name"] == "垫片", \
+        f"用了组件实例名 {rows[0]['name']!r}，应该是零件名 '垫片'"

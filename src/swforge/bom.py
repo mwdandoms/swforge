@@ -146,8 +146,12 @@ def group_components(components, include_suppressed: bool = False) -> list:
             continue
         key = os.path.normcase(os.path.abspath(path))
         if key not in by_path:
+            # 用**零件名**（文件名去掉扩展名），不是组件实例名。
+            # 组件名带实例序号（垫片-1 / 垫片-2 / 垫片-3），
+            # 合并成一行后写成"垫片-3 ×3"是错的——车间要的是"垫片 ×3"。
+            stem = os.path.splitext(os.path.basename(path))[0]
             by_path[key] = {
-                "name": str(c.get("name") or os.path.basename(path)),
+                "name": stem or str(c.get("name") or path),
                 "material": str(c.get("material") or ""),
                 "path": path,
                 "qty": 0,
@@ -266,8 +270,19 @@ def insert_bom_table(drawing_path: str | None = None,
                 而且 TableAnnotation 在后期绑定下读不到也改不了位置，
                 所以锚点模式是唯一可靠的做法。
 
-    注意：锚点模式要求工程图模板里定义过 BOM 锚点。
-    没定义时 SolidWorks 会退回用 x,y。
+    **实测结论（v1.2）**：锚点模式工作正常，表会插在标题栏上方
+    （GB 明细表的标准位置）。之前看起来"表不存在"有两个原因：
+
+      1. 工程图模板不对。装配图模板 `gb_assembly.drwdot` 不存在时
+         会回退到 `gb_a0.drwdot`，A0 图纸太大，表在缩放后小到看不见。
+         → 用 `produce()` 或明确指定 A3 模板。
+      2. 插入后没重新缩放，视图还停在模型上，表在视野之外。
+         → 现在插入后会自动调用 `ViewZoomtofit2()`。
+
+    `ITableAnnotation` 上**没有** `GetPosition` / `SetPosition`，
+    位置由 `Anchored` + `AnchorType` 控制；`AnchorType` 在 pywin32 下
+    可读但赋值不生效（读了还是 2）。所以想控制位置，
+    只能靠锚点 + 正确幅面的模板，不能靠坐标。
     """
     from .session import get_session, _value as _v
 
@@ -320,6 +335,15 @@ def insert_bom_table(drawing_path: str | None = None,
     if table is None:
         return {"ok": False,
                 "error": "InsertBomTable6 返回 None —— 表格没建出来"}
+
+    # 插完表必须重新缩放。
+    # 实测：表是插在标题栏上方的（GB 明细表的标准位置），
+    # 但插入时视图还停在模型上，表在视野之外——
+    # 看起来像"表没建出来"，其实是没缩放过去。
+    try:
+        md.ViewZoomtofit2()
+    except Exception:                                  # noqa: BLE001
+        pass
 
     # 回读：行数必须 > 0，否则表是空的
     rows = 0

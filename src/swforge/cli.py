@@ -77,6 +77,24 @@ def _main(argv: list[str] | None = None) -> int:
     p.add_argument("--csv", default=None, help="导出 CSV 的路径")
     p.add_argument("--json", action="store_true", help="输出 JSON")
 
+    p = sub.add_parser("section-view", help="加剖视图")
+    p.add_argument("drawing", nargs="?", default=None)
+    p.add_argument("--label", default="A")
+    p.add_argument("--dir", default="vertical", choices=["vertical", "horizontal"])
+    p.add_argument("--offset", type=float, default=0.20)
+    p.add_argument("--offset-y", type=float, default=-0.10)
+
+    p = sub.add_parser("detail-view", help="加局部放大视图")
+    p.add_argument("drawing", nargs="?", default=None)
+    p.add_argument("--label", default="I")
+    p.add_argument("--scale", type=float, default=2.0)
+    p.add_argument("--radius", type=float, default=0.012)
+
+    p = sub.add_parser("release-check",
+                       help="发版一致性检查：本地/标签/PyPI 三方是否对得上")
+    p.add_argument("--offline", action="store_true", help="不查 PyPI")
+    p.add_argument("--json", action="store_true", help="输出 JSON")
+
     sub.add_parser("ping", help="连接探针")
     sub.add_parser("survey", help="量当前文档的包络与实体构成")
     p = sub.add_parser("capabilities", help="本机能力自检")
@@ -179,6 +197,19 @@ def _main(argv: list[str] | None = None) -> int:
         return _cmd_selftest(args)
     if args.cmd == "bom":
         return _cmd_bom(args)
+    if args.cmd == "section-view":
+        from .views_extra import add_section_view
+        _p(add_section_view(args.drawing, label=args.label,
+                            direction=args.dir, offset=args.offset,
+                            offset_y=args.offset_y))
+        return 0
+    if args.cmd == "detail-view":
+        from .views_extra import add_detail_view
+        _p(add_detail_view(args.drawing, label=args.label,
+                           scale=args.scale, radius=args.radius))
+        return 0
+    if args.cmd == "release-check":
+        return _cmd_release_check(args)
     if args.cmd == "ping":
         from .session import get_session
 
@@ -292,6 +323,18 @@ def _cmd_bom(args):
         bom_to_csv(r["rows"], args.csv)
         print(f"  已导出 CSV：{args.csv}")
     return 0
+
+
+def _cmd_release_check(args):
+    """发版一致性检查。发现问题以非 0 退出。"""
+    from .release_check import check_release, format_report
+
+    r = check_release(online=not args.offline)
+    if args.json:
+        _p(r)
+        return 0 if r.get("ok") else 1
+    print(format_report(r))
+    return 0 if r.get("ok") else 1
 
 def _cmd_selftest(args):
     """实机自检。逐项跑，任何一项失败就以非 0 退出。"""

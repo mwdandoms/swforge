@@ -348,3 +348,42 @@ def check_interference(assembly_path: str | None = None,
                 "note": "count=0 表示无干涉；重合面是否算干涉由参数控制"}
     except Exception as exc:                             # noqa: BLE001
         return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+
+def read_volume(model=None) -> float:
+    """读当前文档的几何体积，单位 mm³。读不到返回 0.0。
+
+    为什么单独抽出来：验证「读到的是不是自己的文档」时，
+    体积比标题可靠——两个进程的文档可能都叫「零件1」，
+    但几何不同，体积能区分。
+
+    实现注意：`Extension.CreateMassProperty()` 在 pywin32 后期绑定下
+    报「找不到成员」，那条路只有 C# 早期绑定能走（modeling.py 用的是 C#）。
+    Python 这边必须走 `IBody2.GetMassProperties(1.0)` —— 传密度 1.0，
+    返回数组第 4 项（下标 3）就是体积，单位 m³。
+    """
+    from .session import get_session, _value
+
+    md = model
+    if md is None:
+        try:
+            md = get_session().sw().ActiveDoc
+        except Exception:                              # noqa: BLE001
+            return 0.0
+    if md is None:
+        return 0.0
+
+    total = 0.0
+    # 零件/装配都可能有多个实体，累加
+    try:
+        bodies = md.GetBodies2(0, True)                # 0 = 全部实体类型
+    except Exception:                                  # noqa: BLE001
+        bodies = None
+
+    for b in (bodies or []):
+        try:
+            mp = b.GetMassProperties(1.0)
+            if mp is not None and len(mp) >= 4:
+                total += float(mp[3]) * 1e9            # m³ -> mm³
+        except Exception:                              # noqa: BLE001
+            continue
+    return total

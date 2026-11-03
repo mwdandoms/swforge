@@ -301,6 +301,125 @@ concentric(0,1, tol=0.5)         ok=True   位置 [0.0, 0.0]    落错位置
 `Start-Process "E:\SW2025\SLDWORKS.exe"` 路径是错的，正确路径是
 `E:\SW2025\SOLIDWORKS\SLDWORKS.exe`（中间有子目录）。
 
+
+### 2026-11-04 · BOM 表「插了看不见」—— 两个原因都不是库的 bug
+
+**现象**
+`insert_bom_table()` 返回 `{ok: True, rows: 3, columns: 3}`，
+但导出的 PDF 上看不到表。
+
+**排查**
+表其实一直插对了，在标题栏正上方（GB 明细表的标准位置）。看不见的原因是：
+
+1. **插入后没重新缩放**。视图还停在模型上，表在视野之外。
+2. **模板回退**。装配图模板 `gb_assembly.drwdot` 不存在时，
+   代码回退到目录里第一个 `.drwdot`，实际是 `gb_a0.drwdot`。
+   A0 是 841×1189mm，表缩到 2 倍比例后小得看不见。
+
+**修复**
+- `insert_bom_table()` 插完自动 `ViewZoomtofit2()`
+- 文档写明：装配图要用 A3 模板，别让它回退
+
+**顺带修的问题**
+BOM 里显示的是组件实例名（`垫片-3`），合并计数后变成「垫片-3 ×3」。
+改用零件文件名，显示「垫片 ×3」。
+
+**结论**
+`ITableAnnotation` 上**没有** `GetPosition` / `SetPosition`；
+位置由 `Anchored` + `AnchorType` 控制，而 `AnchorType` 在 pywin32 下
+赋值不生效（读了还是原值）。所以想控制位置只能靠锚点 + 正确幅面的模板，
+不能靠坐标。这一点已写进 `insert_bom_table` 的 docstring。
+
+---
+
+### 2026-11-04 · 剖视图 / 局部放大：两次静默失败
+
+**现象一：新视图位置和源视图重叠时返回 None**
+```python
+sec = md.CreateSectionViewAt4(cx + 0.20, cy, 0, "A", 0, None)   # None
+sec = md.CreateSectionViewAt4(cx + 0.20, cy - 0.10, 0, "A", 0, None)  # 成功
+```
+不给 Y 偏移时，新视图和源视图位置重叠，SolidWorks 直接返回 `None`，
+**不抛异常、不报错**。
+
+**现象二：清掉选择后返回 None**
+画完剖切线后如果调 `ClearSelection2(True)`，再生成剖视图也是 `None`。
+辅助几何（剖切线、放大圆圈）必须保持选中状态。
+
+**修复**
+- `add_section_view()` / `add_detail_view()` 默认带 Y 偏移
+- 退出草图后不清选择
+- 两处都写了注释说明原因
+
+**实测**
+3 个视图 → 6 个，生成 `剖面视图 A-A`、`剖面视图 B-B`、`局部视图 I`。
+
+---
+
+### 2026-11-04 · CreateMassProperty 在 Python 里不可用
+
+**现象**
+```python
+ext = md.Extension
+mp = ext.CreateMassProperty()
+# com_error: (-2147352573, '找不到成员。')
+```
+
+**原因**
+`IModelDocExtension.CreateMassProperty` 在 pywin32 后期绑定下取不到。
+`modeling.py` 之所以能用，是因为它走的是**编译后的 C#**（早期绑定）。
+
+**解决**
+Python 侧改走 `IBody2.GetMassProperties(1.0)` —— 传密度 1.0，
+返回数组第 4 项（下标 3）是体积，单位 m³：
+
+```python
+for b in md.GetBodies2(0, True):
+    mp = b.GetMassProperties(1.0)
+    total += float(mp[3]) * 1e9        # m³ -> mm³
+```
+
+已封装为 `read_volume()`。
+
+---
+
+### 2026-11-04 · 多客户端并发：实测通过
+
+**测试方式**
+两个独立 Python 进程，同时操作同一个 SolidWorks 实例。
+
+**结果**
+```
+进程 A: connect / build / open_own / reclaim / readback   全通过
+进程 B: connect / build / open_own / reclaim / readback   全通过
+A 被切到 并发_B -> 抢回 并发_A
+B 被切到 并发_A -> 抢回 并发_B
+```
+
+关键证据是 `readback`：抢回后读到的体积是 24000.0 mm³，
+与各自建的零件一致 —— 证明读到的是**自己的**文档，不是对方的。
+
+**之前的状态**
+`guard.py` 的并发逻辑只做过同进程内模拟（selftest 第 10 项）。
+现在补上了真正的双进程验证。
+
+---
+
+### 2026-11-04 · 发版检查脚本：第一步就抓到自己
+
+写 `release_check.py` 的测试时，`test_source_change_with_version_bump_passes`
+**失败**了。原因是我的实现把「源码改了 + 版本号已升」也判成「漏发」。
+
+这个状态其实很正常：改了代码、升了版本号、还没打新标签。
+判错会让每次开发中途都报红。
+
+改成：
+- 源码改了 + 版本号没动 → **错误**（真的漏发）
+- 源码改了 + 版本号已升 → **提醒**（正常准备发版）
+
+**测试写完就抓到了自己的逻辑错误**，这正是写测试的理由。
+
+
 ## 其他未修复项
 
 ### Dispatch 会启动第二个 SolidWorks 实例

@@ -4,6 +4,60 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-11-04
+
+Four items from the backlog: release checking, BOM table placement, section
+and detail views, and a real multi-process concurrency test.
+
+### Added
+
+- **`swforge release-check`** - answers "do the repository, the latest tag and
+  PyPI agree". The point is catching source that changed without a release:
+  v1.1.0 shipped with two user-visible fixes missing from the package because
+  the tag predated them, and nothing pointed that out.
+
+  It distinguishes two cases that look alike: source changed and the version
+  was not bumped is an **error**; source changed and the version was bumped is
+  a **reminder**, because that is what preparing a release looks like. Failing
+  on the second would make the check red during ordinary work, and then
+  nobody reads it.
+
+- **`add_section_view()` / `swforge section-view`** - section views.
+- **`add_detail_view()` / `swforge detail-view`** - detail (enlarged) views.
+- **`read_volume()`** - geometric volume of the active document in mm3.
+
+### Fixed
+
+- **BOM tables were invisible after insertion.** Neither cause was a library
+  bug, but both make the feature look broken: the view was never re-zoomed
+  after insertion, and an assembly drawing that fell back to `gb_a0.drwdot`
+  made the table too small to see. `insert_bom_table()` now re-zooms, and the
+  template requirement is documented.
+
+- **BOM rows used component instance names** - "shim-3 x3" instead of
+  "shim x3". Now uses the part file name.
+
+### Measured
+
+- **Concurrency**: two independent processes against one SolidWorks. A opens
+  its own document, B switches the active document away, A's
+  `activate_verified()` detects it and takes it back; the volume it reads back
+  is 24000.0 mm3, which proves it is its own document and not B's. Both
+  processes passed all five checks.
+
+- **Section and detail views**: 3 views to 6, producing "Section A-A",
+  "Section B-B" and "Detail I".
+
+### Pitfalls (written into the code comments)
+
+- `CreateSectionViewAt4/5` returns `None` silently when the new view would
+  overlap the source view. A Y offset is required.
+- After drawing the section line or the detail circle, do **not** call
+  `ClearSelection2()`. The helper geometry has to stay selected; clearing it
+  makes the call return `None` with no error at all.
+- `Extension.CreateMassProperty()` raises "member not found" under pywin32
+  late binding. Use `IBody2.GetMassProperties(1.0)` from Python.
+
 ## [1.1.1] - 2026-11-04
 
 Ships the two fixes that 1.1.0 missed. Source changed after the 1.1.0 tag was
