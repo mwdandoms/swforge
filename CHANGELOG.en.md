@@ -4,6 +4,68 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-11-04
+
+The theme of this release: turning "I built it" into "you can verify it yourself".
+
+### Added
+
+- **`swforge selftest`** - ten checks, each run against the real SolidWorks,
+  reading the result back before judging. A failure names which link broke and
+  which competitor issue it corresponds to. Exit code works in CI.
+  `--only` for one check, `--json` for machine-readable output.
+
+- **BOM** `swforge bom`. Reads the assembly component list, merges repeated
+  parts with a counted quantity, and asks `IComponent2` for the material
+  rather than opening each part - SolidWorks caps open documents at 8 and
+  opening every part would burn that budget. CSV export writes a UTF-8 BOM so
+  Excel does not render the Chinese headers as garbage.
+
+- **Document guard** `swforge.guard` for several clients sharing one
+  SolidWorks. No cross-process lock - locks around COM are unreliable and a
+  crashed holder deadlocks everyone. Each operation verifies the active
+  document before and after and re-activates when it was taken. About 1 ms.
+
+- **Generated-source snapshot tests** (11) instead of a full mock. A mock
+  simulates SolidWorks as working, while every serious bug in this project was
+  found by running against the real thing. These guard the generated C#
+  instead: unit conversions, API names, required calls. About a fifth of the
+  cost.
+
+- **Documentation site** https://mwdandoms.github.io/swforge/
+- **Issue log** `docs/issue-log.md` - a public record with fixed and open items.
+- **Roadmap** `docs/roadmap.md` - next steps and exit criteria.
+
+### Fixed
+
+- **The interference detail list was always empty.**
+  `GetInterferences` is a property under late binding, not a method; the
+  `TypeError` from calling it was swallowed into `None`, so callers got a count
+  with nothing behind it. Now returns
+  `{"volume_mm3": 4000.0, "components": ["a-1", "b-1"]}`, 0.00% off the
+  theoretical 10x20x20.
+
+- **Over-annotation, and wrong values on non-front views.**
+  Blanket annotation inserted 22 overlapping dimensions (every type flag
+  combination gave 22, so the flags were never the issue); curated mode brings
+  it to 9. Separately, extremes were selected by model X/Y, which only holds
+  for the front view - a right view's screen horizontal is model Z, so it
+  reported 114 for an actual 120. The axis pair now comes from
+  `GetOrientationName()`.
+
+- **`swforge --help` crashed on a non-Chinese Windows** (a real user-facing
+  bug CI caught).
+
+- **selftest filled the document cap itself**, cascading four later checks
+  into failure. Each check now closes what it created.
+
+### Known incomplete
+
+- The **live paths for BOM and the concurrency guard are not yet verified**
+  (code and offline tests are done). Unverified features are not claimed as
+  working.
+- Tolerances, surface finish and GD&T are still not generated.
+
 ## [0.9.1] - 2026-11-03
 
 First release published to PyPI. All fixes relative to v0.9.0, no new features.
