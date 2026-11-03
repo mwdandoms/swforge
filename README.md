@@ -53,7 +53,7 @@ SolidWorks 自动化有三类工具，各有各的坑：
 ## 安装
 
 ```powershell
-git clone https://github.com/<you>/swforge.git
+git clone https://github.com/mwdandoms/swforge.git
 cd swforge
 python -m pip install -e ".[mcp,pdf]"
 ```

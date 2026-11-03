@@ -54,7 +54,7 @@ Concrete problems it addresses:
 ## Install
 
 ```powershell
-git clone https://github.com/<you>/swforge.git
+git clone https://github.com/mwdandoms/swforge.git
 cd swforge
 python -m pip install -e ".[mcp,pdf]"
 ```
