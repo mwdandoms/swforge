@@ -4,6 +4,25 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] - 2026-11-04
+
+### Added
+
+- **`swforge status`** - one command that answers "is anything waiting on me".
+
+  It exists because of a real incident: a v0.9.1 publish run sat in
+  "waiting for approval" from the afternoon until the next morning. The repo
+  looked fine, the version was on PyPI, and nothing anywhere said something
+  was waiting.
+
+  Output has three fixed sections: code state, pipeline state, and
+  **what you need to do**. The last lists each item with both what it is and
+  how to clear it, and says "none" explicitly when there is nothing.
+  Vagueness is what makes people wait without knowing.
+
+  The "source changed without a release" check (the v1.1.0 mistake) is folded
+  in. Without a GitHub token it degrades to local plus PyPI instead of failing.
+
 ## [1.2.1] - 2026-11-04
 
 `read_volume()` was missing from the package's top-level exports.

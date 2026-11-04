@@ -90,6 +90,10 @@ def _main(argv: list[str] | None = None) -> int:
     p.add_argument("--scale", type=float, default=2.0)
     p.add_argument("--radius", type=float, default=0.012)
 
+    p = sub.add_parser("status", help="一条命令查：代码/CI/待批准/需要你做什么")
+    p.add_argument("--offline", action="store_true", help="不查 GitHub 和 PyPI")
+    p.add_argument("--json", action="store_true", help="输出 JSON")
+
     p = sub.add_parser("release-check",
                        help="发版一致性检查：本地/标签/PyPI 三方是否对得上")
     p.add_argument("--offline", action="store_true", help="不查 PyPI")
@@ -208,6 +212,8 @@ def _main(argv: list[str] | None = None) -> int:
         _p(add_detail_view(args.drawing, label=args.label,
                            scale=args.scale, radius=args.radius))
         return 0
+    if args.cmd == "status":
+        return _cmd_status(args)
     if args.cmd == "release-check":
         return _cmd_release_check(args)
     if args.cmd == "ping":
@@ -324,6 +330,18 @@ def _cmd_bom(args):
         print(f"  已导出 CSV：{args.csv}")
     return 0
 
+
+
+def _cmd_status(args):
+    """一条命令查全部状态。有事项待处理时以非 0 退出。"""
+    from .status import check_status, format_status
+
+    s = check_status(online=not args.offline)
+    if args.json:
+        _p(s)
+        return 0 if s.get("ok") else 1
+    print(format_status(s))
+    return 0 if s.get("ok") else 1
 
 def _cmd_release_check(args):
     """发版一致性检查。发现问题以非 0 退出。"""
