@@ -89,7 +89,6 @@ print(r.ok, r.bodies, r.mass_kg, r.volume_mm3)
 
 ## 文档
 
-- [v1.4 交接文档](handover-v1.4.md) —— 给接手的开发者（粗糙度/公差）
 - [粗糙度与公差标注](annotations.md) —— v1.4，含实机验收入口
 - [显式配合选面](face-mates.md) —— v1.4.1，复杂零件上明确指定孔轴
 - [功能清单](features.md) —— 全部能力一览（含实测数据）
@@ -100,7 +99,6 @@ print(r.ok, r.bodies, r.mass_kg, r.volume_mm3)
 - [踩过的坑](pitfalls.md) —— 实现层面的技术细节
 - [问题日志](issue-log.md) —— 开发中发现并修复的真实问题
 - [为什么不用 GetActiveObject](why-getactiveobject-fails.md) —— 花了很久才搞清的行为
-- [竞品分析](competitive-analysis.md) / [竞品 issue 分析](competitor-issues-analysis.md)
 
 ---
 
