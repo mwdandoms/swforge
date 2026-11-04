@@ -8,6 +8,7 @@
 [![docs](https://img.shields.io/badge/docs-mwdandoms.github.io-blue)](https://mwdandoms.github.io/swforge/)
 [![PyPI](https://img.shields.io/pypi/v/swforge)](https://pypi.org/project/swforge/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swforge)](https://pypi.org/project/swforge/)
+[![GitHub ZIP downloads](https://img.shields.io/github/downloads/mwdandoms/swforge/swforge.zip?label=ZIP%20downloads&displayAssetName=false&logo=github&color=blue)](https://github.com/mwdandoms/swforge/releases/latest/download/swforge.zip "各版本 swforge.zip 累计下载次数；点击下载最新版")
 [![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/mwdandoms/swforge/blob/main/LICENSE)
 [![tests](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml/badge.svg)](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml)
 

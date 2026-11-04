@@ -11,6 +11,7 @@ v1.4.1 adds [explicit face mating](https://github.com/mwdandoms/swforge/blob/mai
 [![docs](https://img.shields.io/badge/docs-mwdandoms.github.io-blue)](https://mwdandoms.github.io/swforge/)
 [![PyPI](https://img.shields.io/pypi/v/swforge)](https://pypi.org/project/swforge/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swforge)](https://pypi.org/project/swforge/)
+[![GitHub ZIP downloads](https://img.shields.io/github/downloads/mwdandoms/swforge/swforge.zip?label=ZIP%20downloads&displayAssetName=false&logo=github&color=blue)](https://github.com/mwdandoms/swforge/releases/latest/download/swforge.zip "Cumulative swforge.zip downloads across releases; click to download the latest version")
 [![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/mwdandoms/swforge/blob/main/LICENSE)
 [![tests](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml/badge.svg)](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml)
 
