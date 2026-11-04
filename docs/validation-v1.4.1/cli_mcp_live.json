@@ -1,0 +1,1418 @@
+{
+  "ok": true,
+  "mcp": {
+    "faces": {
+      "ok": true,
+      "modified": false,
+      "built": 0,
+      "sw_version": "33.5.0",
+      "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+      "configuration": "默认",
+      "mate_count_before": 0,
+      "faces": [
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_阶梯定位销-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_阶梯定位销.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8WbQAxADQAMQBfADaWr2iaW01PAJUtADEAQABtADEANAAxAF8ApWPjU4yawYsEAAAAEAAAAAEAAAABAAAAGgAAAP//AQALAG1vRmFjZVJlZl9jAQAAAAAAAAAFAAAAAAMAAAAAAAB9w5QlrUmyVH3DlCWtSbJUAAD//wEAGwBtb0Zyb21Ta3RFbnQzSW50U3VyZklkUmVwX2MAAP//AQAGAG1vRlJfY///AQANAG1vRXh0T2JqZWN0X2P//wEAEQBtb0NTdHJpbmdIYW5kbGVfY//+/zdGADoAXABTAFcAKwBBAEkAXAAwADQAXwCeW0ttwYtuY1wAdgAxAC4ANAAuADEAXABhAGMAYwBlAHAAdABhAG4AYwBlAF8AMAAyAFwAbQAxADQAMQBfADaWr2iaW01PAJUuAFMATABEAFAAUgBUAAmA//7/Cm0AMQA0ADEAXwA2lq9omltNTwCVAgAAaazqav/+/wD//v8A//7/AAAIAAAAAAAAAAAAAAAAAAAAAP/+/wLYnqSLAAAAAAAAAAAAAAAAAAAAAFYAAABtrOpqAQAAAP////8AAAAA//8BABgAbW9FbmRGYWNlM0ludFN1cmZJZFJlcF9jAAAFgAgAVgAAAG2s6moBAAAAAAAAAAAAAAAAAAyAAAAFgAgAVgAAAG2s6moAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUEYAAAAAAAAAAAAA",
+          "face_index": 0,
+          "kind": "cylinder",
+          "radius_mm": 12,
+          "area_mm2": 376.99111843077503,
+          "origin_local_mm": [
+            0,
+            34.99999999999999,
+            0
+          ],
+          "direction_local": [
+            0,
+            -1,
+            0
+          ],
+          "origin_assembly_mm": [
+            200,
+            57.49999999999999,
+            50
+          ],
+          "direction_assembly": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_阶梯定位销-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_阶梯定位销.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8WbQAxADQAMQBfADaWr2iaW01PAJUtADEAQABtADEANAAxAF8ApWPjU4yawYsEAAAAEAAAAAEAAAABAAAAGgAAAP//AQALAG1vRmFjZVJlZl9jAQAAAAAAAAADAAAAAAMAAAAAAAB9w5QlrUmyVH3DlCWtSbJUAAD//wEAGABtb0VuZEZhY2UzSW50U3VyZklkUmVwX2MAAP//AQAGAG1vRlJfY///AQANAG1vRXh0T2JqZWN0X2P//wEAEQBtb0NTdHJpbmdIYW5kbGVfY//+/zdGADoAXABTAFcAKwBBAEkAXAAwADQAXwCeW0ttwYtuY1wAdgAxAC4ANAAuADEAXABhAGMAYwBlAHAAdABhAG4AYwBlAF8AMAAyAFwAbQAxADQAMQBfADaWr2iaW01PAJUuAFMATABEAFAAUgBUAAmA//7/Cm0AMQA0ADEAXwA2lq9omltNTwCVAgAAaazqav/+/wD//v8A//7/AAAIAAAAAAAAAAAAAAAAAAAAAP/+/wLYnqSLAAAAAAAAAAAAAAAAAAAAAFYAAABtrOpqAQAAAAAAAAAAAAAA//8BABsAbW9Gcm9tU2t0RW50M0ludFN1cmZJZFJlcF9jAAAFgAgAVgAAAG2s6moBAAAA/////wAAAAAAAAAAAAAAAAAAUEYAAAAAAAAAAAAA",
+          "face_index": 1,
+          "kind": "plane",
+          "radius_mm": null,
+          "area_mm2": 452.3893421169302,
+          "origin_local_mm": [
+            0,
+            34.99999999999999,
+            0
+          ],
+          "direction_local": [
+            0,
+            1,
+            0
+          ],
+          "origin_assembly_mm": [
+            200,
+            57.49999999999999,
+            50
+          ],
+          "direction_assembly": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_阶梯定位销-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_阶梯定位销.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8WbQAxADQAMQBfADaWr2iaW01PAJUtADEAQABtADEANAAxAF8ApWPjU4yawYsEAAAAEAAAAAEAAAABAAAAGgAAAP//AQALAG1vRmFjZVJlZl9jAQAAAAAAAAADAAAAAAMAAAAAAAB9w5QlrUmyVH3DlCWtSbJUAAD//wEAGABtb0VuZEZhY2UzSW50U3VyZklkUmVwX2MAAP//AQAGAG1vRlJfY///AQANAG1vRXh0T2JqZWN0X2P//wEAEQBtb0NTdHJpbmdIYW5kbGVfY//+/zdGADoAXABTAFcAKwBBAEkAXAAwADQAXwCeW0ttwYtuY1wAdgAxAC4ANAAuADEAXABhAGMAYwBlAHAAdABhAG4AYwBlAF8AMAAyAFwAbQAxADQAMQBfADaWr2iaW01PAJUuAFMATABEAFAAUgBUAAmA//7/Cm0AMQA0ADEAXwA2lq9omltNTwCVAgAAaazqav/+/wD//v8A//7/AAAIAAAAAAAAAAAAAAAAAAAAAP/+/wLYnqSLAAAAAAAAAAAAAAAAAAAAAFYAAABtrOpqAAAAAAAAAAAAAAAA//8BABsAbW9Gcm9tU2t0RW50M0ludFN1cmZJZFJlcF9jAAAFgAgAVgAAAG2s6moBAAAA/////wAAAAAAAAAAAAAAAAAAUEYAAAAAAAAAAAAA",
+          "face_index": 2,
+          "kind": "plane",
+          "radius_mm": null,
+          "area_mm2": 452.3893421169302,
+          "origin_local_mm": [
+            0,
+            30,
+            0
+          ],
+          "direction_local": [
+            0,
+            -1,
+            0
+          ],
+          "origin_assembly_mm": [
+            200,
+            52.50000000000001,
+            50
+          ],
+          "direction_assembly": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_阶梯定位销-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_阶梯定位销.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8WbQAxADQAMQBfADaWr2iaW01PAJUtADEAQABtADEANAAxAF8ApWPjU4yawYsEAAAAEAAAAAEAAAABAAAAGgAAAP//AQALAG1vRmFjZVJlZl9jAQAAAAAAAAAFAAAAAAMAAAAAAAB9w5QlrUmyVH3DlCWtSbJUAAD//wEAFwBtb0Zyb21Ta3RFbnRTdXJmSWRSZXBfYwAA//8BAAYAbW9GUl9j//8BAA0AbW9FeHRPYmplY3RfY///AQARAG1vQ1N0cmluZ0hhbmRsZV9j//7/N0YAOgBcAFMAVwArAEEASQBcADAANABfAJ5bS23Bi25jXAB2ADEALgA0AC4AMQBcAGEAYwBjAGUAcAB0AGEAbgBjAGUAXwAwADIAXABtADEANAAxAF8ANpavaJpbTU8AlS4AUwBMAEQAUABSAFQACYD//v8KbQAxADQAMQBfADaWr2iaW01PAJUCAABprOpq//7/AP/+/wD//v8AAAgAAAAAAAAAAAAAAAAAAAAA//7/AtiepIsAAAAAAAAAAAAAAAAAAAAATwAAAGys6moBAAAA//8BABQAbW9FbmRGYWNlU3VyZklkUmVwX2MAAAWACABPAAAAbKzqagEAAAAAAAAAAAAMgAAABYAIAE8AAABsrOpqAAAAAAAAAAAAAAAAAAAAAAAAUEYAAAAAAAAAAAAA",
+          "face_index": 3,
+          "kind": "cylinder",
+          "radius_mm": 7.8,
+          "area_mm2": 1470.265361880023,
+          "origin_local_mm": [
+            0,
+            30,
+            0
+          ],
+          "direction_local": [
+            0,
+            -1,
+            0
+          ],
+          "origin_assembly_mm": [
+            200,
+            52.50000000000001,
+            50
+          ],
+          "direction_assembly": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_阶梯定位销-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_阶梯定位销.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8WbQAxADQAMQBfADaWr2iaW01PAJUtADEAQABtADEANAAxAF8ApWPjU4yawYsEAAAAEAAAAAEAAAABAAAAGgAAAP//AQALAG1vRmFjZVJlZl9jAQAAAAAAAAADAAAAAAMAAAAAAAB9w5QlrUmyVH3DlCWtSbJUAAD//wEAFABtb0VuZEZhY2VTdXJmSWRSZXBfYwAA//8BAAYAbW9GUl9j//8BAA0AbW9FeHRPYmplY3RfY///AQARAG1vQ1N0cmluZ0hhbmRsZV9j//7/N0YAOgBcAFMAVwArAEEASQBcADAANABfAJ5bS23Bi25jXAB2ADEALgA0AC4AMQBcAGEAYwBjAGUAcAB0AGEAbgBjAGUAXwAwADIAXABtADEANAAxAF8ANpavaJpbTU8AlS4AUwBMAEQAUABSAFQACYD//v8KbQAxADQAMQBfADaWr2iaW01PAJUCAABprOpq//7/AP/+/wD//v8AAAgAAAAAAAAAAAAAAAAAAAAA//7/AtiepIsAAAAAAAAAAAAAAAAAAAAATwAAAGys6moBAAAAAAAAAP//AQAXAG1vRnJvbVNrdEVudFN1cmZJZFJlcF9jAAAFgAgATwAAAGys6moBAAAAAAAAAAAAAAAAAFBGAAAAAAAAAAAAAA==",
+          "face_index": 4,
+          "kind": "plane",
+          "radius_mm": null,
+          "area_mm2": 191.13449704440296,
+          "origin_local_mm": [
+            0,
+            30,
+            0
+          ],
+          "direction_local": [
+            0,
+            1,
+            0
+          ],
+          "origin_assembly_mm": [
+            200,
+            52.50000000000001,
+            50
+          ],
+          "direction_assembly": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_阶梯定位销-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_阶梯定位销.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8WbQAxADQAMQBfADaWr2iaW01PAJUtADEAQABtADEANAAxAF8ApWPjU4yawYsEAAAAEAAAAAEAAAABAAAAGgAAAP//AQALAG1vRmFjZVJlZl9jAQAAAAAAAAADAAAAAAMAAAAAAAB9w5QlrUmyVH3DlCWtSbJUAAD//wEAFABtb0VuZEZhY2VTdXJmSWRSZXBfYwAA//8BAAYAbW9GUl9j//8BAA0AbW9FeHRPYmplY3RfY///AQARAG1vQ1N0cmluZ0hhbmRsZV9j//7/N0YAOgBcAFMAVwArAEEASQBcADAANABfAJ5bS23Bi25jXAB2ADEALgA0AC4AMQBcAGEAYwBjAGUAcAB0AGEAbgBjAGUAXwAwADIAXABtADEANAAxAF8ANpavaJpbTU8AlS4AUwBMAEQAUABSAFQACYD//v8KbQAxADQAMQBfADaWr2iaW01PAJUCAABprOpq//7/AP/+/wD//v8AAAgAAAAAAAAAAAAAAAAAAAAA//7/AtiepIsAAAAAAAAAAAAAAAAAAAAATwAAAGys6moAAAAAAAAAAP//AQAXAG1vRnJvbVNrdEVudFN1cmZJZFJlcF9jAAAFgAgATwAAAGys6moBAAAAAAAAAAAAAAAAAFBGAAAAAAAAAAAAAA==",
+          "face_index": 5,
+          "kind": "plane",
+          "radius_mm": null,
+          "area_mm2": 191.13449704440296,
+          "origin_local_mm": [
+            0,
+            0,
+            0
+          ],
+          "direction_local": [
+            0,
+            -1,
+            0
+          ],
+          "origin_assembly_mm": [
+            200,
+            22.500000000000004,
+            50
+          ],
+          "direction_assembly": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_双孔支架-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABgAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABsAbW9Gcm9tU2t0RW50M0ludFN1cmZJZFJlcF9jAAD//wEABgBtb0ZSX2P//wEADQBtb0V4dE9iamVjdF9j//8BABEAbW9DU3RyaW5nSGFuZGxlX2P//v82RgA6AFwAUwBXACsAQQBJAFwAMAA0AF8AnltLbcGLbmNcAHYAMQAuADQALgAxAFwAYQBjAGMAZQBwAHQAYQBuAGMAZQBfADAAMgBcAG0AMQA0ADEAXwDMU1RbL2W2Zy4AUwBMAEQAUABSAFQACYD//v8JbQAxADQAMQBfAMxTVFsvZbZnAgAAXqzqav/+/wD//v8A//7/AAAIAAAAAAAAAAAAAAAAAQAAAP/+/wLYnqSLAAAAAAAAAAAAAAAAAAAAAF8AAABmrOpqBAAAAP////8AAAAA//8BABgAbW9FbmRGYWNlM0ludFN1cmZJZFJlcF9jAAAFgAgAXwAAAGas6moAAAAAAAAAAAAAAAADgAAABYAIAF8AAABmrOpqAwAAAP////8AAAAADIAAAAWACABfAAAAZqzqagEAAAAAAAAAAAAAAAOAAAAFgAgAXwAAAGas6moBAAAA/////wAAAAAAAAAAAAAAAAAAUEYAAAAAAAAAAAAA",
+          "face_index": 0,
+          "kind": "plane",
+          "radius_mm": null,
+          "area_mm2": 120.00000000000011,
+          "origin_local_mm": [
+            20,
+            20,
+            60
+          ],
+          "direction_local": [
+            -1,
+            0,
+            0
+          ],
+          "origin_assembly_mm": [
+            -33,
+            10,
+            9.999999999999995
+          ],
+          "direction_assembly": [
+            -1,
+            0,
+            0
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_双孔支架-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABgAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABsAbW9Gcm9tU2t0RW50M0ludFN1cmZJZFJlcF9jAAD//wEABgBtb0ZSX2P//wEADQBtb0V4dE9iamVjdF9j//8BABEAbW9DU3RyaW5nSGFuZGxlX2P//v82RgA6AFwAUwBXACsAQQBJAFwAMAA0AF8AnltLbcGLbmNcAHYAMQAuADQALgAxAFwAYQBjAGMAZQBwAHQAYQBuAGMAZQBfADAAMgBcAG0AMQA0ADEAXwDMU1RbL2W2Zy4AUwBMAEQAUABSAFQACYD//v8JbQAxADQAMQBfAMxTVFsvZbZnAgAAXqzqav/+/wD//v8A//7/AAAIAAAAAAAAAAAAAAAAAQAAAP/+/wLYnqSLAAAAAAAAAAAAAAAAAAAAAF8AAABmrOpqAwAAAP////8AAAAA//8BABgAbW9FbmRGYWNlM0ludFN1cmZJZFJlcF9jAAAFgAgAXwAAAGas6moAAAAAAAAAAAAAAAADgAAABYAIAF8AAABmrOpqAgAAAP////8AAAAADIAAAAWACABfAAAAZqzqagEAAAAAAAAAAAAAAAOAAAAFgAgAXwAAAGas6moEAAAA/////wAAAAAAAAAAAAAAAAAAUEYAAAAAAAAAAAAA",
+          "face_index": 1,
+          "kind": "plane",
+          "radius_mm": null,
+          "area_mm2": 1200,
+          "origin_local_mm": [
+            20,
+            20,
+            66
+          ],
+          "direction_local": [
+            0,
+            0,
+            1
+          ],
+          "origin_assembly_mm": [
+            -33,
+            10,
+            16
+          ],
+          "direction_assembly": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_双孔支架-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABgAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABsAbW9Gcm9tU2t0RW50M0ludFN1cmZJZFJlcF9jAAD//wEABgBtb0ZSX2P//wEADQBtb0V4dE9iamVjdF9j//8BABEAbW9DU3RyaW5nSGFuZGxlX2P//v82RgA6AFwAUwBXACsAQQBJAFwAMAA0AF8AnltLbcGLbmNcAHYAMQAuADQALgAxAFwAYQBjAGMAZQBwAHQAYQBuAGMAZQBfADAAMgBcAG0AMQA0ADEAXwDMU1RbL2W2Zy4AUwBMAEQAUABSAFQACYD//v8JbQAxADQAMQBfAMxTVFsvZbZnAgAAXqzqav/+/wD//v8A//7/AAAIAAAAAAAAAAAAAAAAAQAAAP/+/wLYnqSLAAAAAAAAAAAAAAAAAAAAAF8AAABmrOpqAgAAAP////8AAAAA//8BABgAbW9FbmRGYWNlM0ludFN1cmZJZFJlcF9jAAAFgAgAXwAAAGas6moAAAAAAAAAAAAAAAADgAAABYAIAF8AAABmrOpqAQAAAP////8AAAAADIAAAAWACABfAAAAZqzqagEAAAAAAAAAAAAAAAOAAAAFgAgAXwAAAGas6moDAAAA/////wAAAAAAAAAAAAAAAAAAUEYAAAAAAAAAAAAA",
+          "face_index": 2,
+          "kind": "plane",
+          "radius_mm": null,
+          "area_mm2": 120.00000000000011,
+          "origin_local_mm": [
+            80,
+            20,
+            60
+          ],
+          "direction_local": [
+            1,
+            0,
+            0
+          ],
+          "origin_assembly_mm": [
+            26.999999999999996,
+            10,
+            9.999999999999995
+          ],
+          "direction_assembly": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_双孔支架-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABgAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABsAbW9Gcm9tU2t0RW50M0ludFN1cmZJZFJlcF9jAAD//wEABgBtb0ZSX2P//wEADQBtb0V4dE9iamVjdF9j//8BABEAbW9DU3RyaW5nSGFuZGxlX2P//v82RgA6AFwAUwBXACsAQQBJAFwAMAA0AF8AnltLbcGLbmNcAHYAMQAuADQALgAxAFwAYQBjAGMAZQBwAHQAYQBuAGMAZQBfADAAMgBcAG0AMQA0ADEAXwDMU1RbL2W2Zy4AUwBMAEQAUABSAFQACYD//v8JbQAxADQAMQBfAMxTVFsvZbZnAgAAXqzqav/+/wD//v8A//7/AAAIAAAAAAAAAAAAAAAAAQAAAP/+/wLYnqSLAAAAAAAAAAAAAAAAAAAAAF8AAABmrOpqAQAAAP////8AAAAA//8BABgAbW9FbmRGYWNlM0ludFN1cmZJZFJlcF9jAAAFgAgAXwAAAGas6moAAAAAAAAAAAAAAAADgAAABYAIAF8AAABmrOpqBAAAAP////8AAAAADIAAAAWACABfAAAAZqzqagEAAAAAAAAAAAAAAAOAAAAFgAgAXwAAAGas6moCAAAA/////wAAAAAAAAAAAAAAAAAAUEYAAAAAAAAAAAAA",
+          "face_index": 3,
+          "kind": "plane",
+          "radius_mm": null,
+          "area_mm2": 1200,
+          "origin_local_mm": [
+            20,
+            20,
+            60
+          ],
+          "direction_local": [
+            0,
+            0,
+            -1
+          ],
+          "origin_assembly_mm": [
+            -33,
+            10,
+            9.999999999999995
+          ],
+          "direction_assembly": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_双孔支架-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABgAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABgAbW9FbmRGYWNlM0ludFN1cmZJZFJlcF9jAAD//wEABgBtb0ZSX2P//wEADQBtb0V4dE9iamVjdF9j//8BABEAbW9DU3RyaW5nSGFuZGxlX2P//v82RgA6AFwAUwBXACsAQQBJAFwAMAA0AF8AnltLbcGLbmNcAHYAMQAuADQALgAxAFwAYQBjAGMAZQBwAHQAYQBuAGMAZQBfADAAMgBcAG0AMQA0ADEAXwDMU1RbL2W2Zy4AUwBMAEQAUABSAFQACYD//v8JbQAxADQAMQBfAMxTVFsvZbZnAgAAXqzqav/+/wD//v8A//7/AAAIAAAAAAAAAAAAAAAAAQAAAP/+/wLYnqSLAAAAAAAAAAAAAAAAAAAAAF8AAABmrOpqAQAAAAAAAAAAAAAA//8BABsAbW9Gcm9tU2t0RW50M0ludFN1cmZJZFJlcF9jAAAFgAgAXwAAAGas6moEAAAA/////wAAAAAMgAAABYAIAF8AAABmrOpqAwAAAP////8AAAAADIAAAAWACABfAAAAZqzqagIAAAD/////AAAAAAyAAAAFgAgAXwAAAGas6moBAAAA/////wAAAAAAAAAAAAAAAAAAUEYAAAAAAAAAAAAA",
+          "face_index": 4,
+          "kind": "plane",
+          "radius_mm": null,
+          "area_mm2": 360.0000000000003,
+          "origin_local_mm": [
+            0,
+            20,
+            0
+          ],
+          "direction_local": [
+            0,
+            1,
+            0
+          ],
+          "origin_assembly_mm": [
+            -53.00000000000001,
+            10,
+            -50
+          ],
+          "direction_assembly": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_双孔支架-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABgAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABgAbW9FbmRGYWNlM0ludFN1cmZJZFJlcF9jAAD//wEABgBtb0ZSX2P//wEADQBtb0V4dE9iamVjdF9j//8BABEAbW9DU3RyaW5nSGFuZGxlX2P//v82RgA6AFwAUwBXACsAQQBJAFwAMAA0AF8AnltLbcGLbmNcAHYAMQAuADQALgAxAFwAYQBjAGMAZQBwAHQAYQBuAGMAZQBfADAAMgBcAG0AMQA0ADEAXwDMU1RbL2W2Zy4AUwBMAEQAUABSAFQACYD//v8JbQAxADQAMQBfAMxTVFsvZbZnAgAAXqzqav/+/wD//v8A//7/AAAIAAAAAAAAAAAAAAAAAQAAAP/+/wLYnqSLAAAAAAAAAAAAAAAAAAAAAF8AAABmrOpqAAAAAAAAAAAAAAAA//8BABsAbW9Gcm9tU2t0RW50M0ludFN1cmZJZFJlcF9jAAAFgAgAXwAAAGas6moEAAAA/////wAAAAAMgAAABYAIAF8AAABmrOpqAQAAAP////8AAAAADIAAAAWACABfAAAAZqzqagIAAAD/////AAAAAAyAAAAFgAgAXwAAAGas6moDAAAA/////wAAAAAAAAAAAAAAAAAAUEYAAAAAAAAAAAAA",
+          "face_index": 5,
+          "kind": "plane",
+          "radius_mm": null,
+          "area_mm2": 360.0000000000003,
+          "origin_local_mm": [
+            0,
+            0,
+            0
+          ],
+          "direction_local": [
+            0,
+            -1,
+            0
+          ],
+          "origin_assembly_mm": [
+            -53.00000000000001,
+            -10,
+            -50
+          ],
+          "direction_assembly": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_双孔支架-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABQAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABcAbW9Gcm9tU2t0RW50U3VyZklkUmVwX2MAAP//AQAGAG1vRlJfY///AQANAG1vRXh0T2JqZWN0X2P//wEAEQBtb0NTdHJpbmdIYW5kbGVfY//+/zZGADoAXABTAFcAKwBBAEkAXAAwADQAXwCeW0ttwYtuY1wAdgAxAC4ANAAuADEAXABhAGMAYwBlAHAAdABhAG4AYwBlAF8AMAAyAFwAbQAxADQAMQBfAMxTVFsvZbZnLgBTAEwARABQAFIAVAAJgP/+/wltADEANAAxAF8AzFNUWy9ltmcCAABerOpq//7/AP/+/wD//v8AAAgAAAAAAAAAAAAAAAABAAAA//7/AtiepIsAAAAAAAAAAAAAAAAAAAAAWAAAAGSs6moFAAAAA4AAAAWACABYAAAAZKzqagIAAAAAAAOAAAAFgAgAWAAAAGSs6moEAAAAAAAAAAAAAAAAAFBGAAAAAAAAAAAAAA==",
+          "face_index": 6,
+          "kind": "cylinder",
+          "radius_mm": 7.999999999999993,
+          "area_mm2": 1005.3096491487329,
+          "origin_local_mm": [
+            80,
+            -1,
+            50
+          ],
+          "direction_local": [
+            0,
+            -1,
+            0
+          ],
+          "origin_assembly_mm": [
+            26.999999999999996,
+            -11,
+            0
+          ],
+          "direction_assembly": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_双孔支架-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABQAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABcAbW9Gcm9tU2t0RW50U3VyZklkUmVwX2MAAP//AQAGAG1vRlJfY///AQANAG1vRXh0T2JqZWN0X2P//wEAEQBtb0NTdHJpbmdIYW5kbGVfY//+/zZGADoAXABTAFcAKwBBAEkAXAAwADQAXwCeW0ttwYtuY1wAdgAxAC4ANAAuADEAXABhAGMAYwBlAHAAdABhAG4AYwBlAF8AMAAyAFwAbQAxADQAMQBfAMxTVFsvZbZnLgBTAEwARABQAFIAVAAJgP/+/wltADEANAAxAF8AzFNUWy9ltmcCAABerOpq//7/AP/+/wD//v8AAAgAAAAAAAAAAAAAAAABAAAA//7/AtiepIsAAAAAAAAAAAAAAAAAAAAAWAAAAGSs6moCAAAAA4AAAAWACABYAAAAZKzqagMAAAAAAAOAAAAFgAgAWAAAAGSs6moFAAAAAAAAAAAAAAAAAFBGAAAAAAAAAAAAAA==",
+          "face_index": 7,
+          "kind": "plane",
+          "radius_mm": null,
+          "area_mm2": 1055.5751316061712,
+          "origin_local_mm": [
+            88,
+            0,
+            50
+          ],
+          "direction_local": [
+            0,
+            -1,
+            0
+          ],
+          "origin_assembly_mm": [
+            34.99999999999999,
+            -10,
+            0
+          ],
+          "direction_assembly": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_双孔支架-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABQAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABcAbW9Gcm9tU2t0RW50U3VyZklkUmVwX2MAAP//AQAGAG1vRlJfY///AQANAG1vRXh0T2JqZWN0X2P//wEAEQBtb0NTdHJpbmdIYW5kbGVfY//+/zZGADoAXABTAFcAKwBBAEkAXAAwADQAXwCeW0ttwYtuY1wAdgAxAC4ANAAuADEAXABhAGMAYwBlAHAAdABhAG4AYwBlAF8AMAAyAFwAbQAxADQAMQBfAMxTVFsvZbZnLgBTAEwARABQAFIAVAAJgP/+/wltADEANAAxAF8AzFNUWy9ltmcCAABerOpq//7/AP/+/wD//v8AAAgAAAAAAAAAAAAAAAABAAAA//7/AtiepIsAAAAAAAAAAAAAAAAAAAAAWAAAAGSs6moDAAAAA4AAAAWACABYAAAAZKzqagQAAAAAAAOAAAAFgAgAWAAAAGSs6moCAAAAAAAAAAAAAAAAAFBGAAAAAAAAAAAAAA==",
+          "face_index": 8,
+          "kind": "cylinder",
+          "radius_mm": 20.000000000000004,
+          "area_mm2": 2513.2741228718355,
+          "origin_local_mm": [
+            80,
+            -1,
+            50
+          ],
+          "direction_local": [
+            0,
+            -1,
+            0
+          ],
+          "origin_assembly_mm": [
+            26.999999999999996,
+            -11,
+            0
+          ],
+          "direction_assembly": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_双孔支架-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABQAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABcAbW9Gcm9tU2t0RW50U3VyZklkUmVwX2MAAP//AQAGAG1vRlJfY///AQANAG1vRXh0T2JqZWN0X2P//wEAEQBtb0NTdHJpbmdIYW5kbGVfY//+/zZGADoAXABTAFcAKwBBAEkAXAAwADQAXwCeW0ttwYtuY1wAdgAxAC4ANAAuADEAXABhAGMAYwBlAHAAdABhAG4AYwBlAF8AMAAyAFwAbQAxADQAMQBfAMxTVFsvZbZnLgBTAEwARABQAFIAVAAJgP/+/wltADEANAAxAF8AzFNUWy9ltmcCAABerOpq//7/AP/+/wD//v8AAAgAAAAAAAAAAAAAAAABAAAA//7/AtiepIsAAAAAAAAAAAAAAAAAAAAAWAAAAGSs6moEAAAAA4AAAAWACABYAAAAZKzqagMAAAAAAAOAAAAFgAgAWAAAAGSs6moFAAAAAAAAAAAAAAAAAFBGAAAAAAAAAAAAAA==",
+          "face_index": 9,
+          "kind": "plane",
+          "radius_mm": null,
+          "area_mm2": 1055.5751316061712,
+          "origin_local_mm": [
+            100,
+            20,
+            50
+          ],
+          "direction_local": [
+            0,
+            1,
+            0
+          ],
+          "origin_assembly_mm": [
+            47,
+            10,
+            0
+          ],
+          "direction_assembly": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_双孔支架-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABQAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABcAbW9Gcm9tU2t0RW50U3VyZklkUmVwX2MAAP//AQAGAG1vRlJfY///AQANAG1vRXh0T2JqZWN0X2P//wEAEQBtb0NTdHJpbmdIYW5kbGVfY//+/zZGADoAXABTAFcAKwBBAEkAXAAwADQAXwCeW0ttwYtuY1wAdgAxAC4ANAAuADEAXABhAGMAYwBlAHAAdABhAG4AYwBlAF8AMAAyAFwAbQAxADQAMQBfAMxTVFsvZbZnLgBTAEwARABQAFIAVAAJgP/+/wltADEANAAxAF8AzFNUWy9ltmcCAABerOpq//7/AP/+/wD//v8AAAgAAAAAAAAAAAAAAAABAAAA//7/AtiepIsAAAAAAAAAAAAAAAAAAAAAUAAAAGKs6moFAAAAA4AAAAWACABQAAAAYqzqagIAAAAAAAOAAAAFgAgAUAAAAGKs6moEAAAAAAAAAAAAAAAAAFBGAAAAAAAAAAAAAA==",
+          "face_index": 10,
+          "kind": "cylinder",
+          "radius_mm": 8,
+          "area_mm2": 1005.3096491487339,
+          "origin_local_mm": [
+            20,
+            -1,
+            50
+          ],
+          "direction_local": [
+            0,
+            -1,
+            0
+          ],
+          "origin_assembly_mm": [
+            -33,
+            -11,
+            0
+          ],
+          "direction_assembly": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_双孔支架-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABQAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABcAbW9Gcm9tU2t0RW50U3VyZklkUmVwX2MAAP//AQAGAG1vRlJfY///AQANAG1vRXh0T2JqZWN0X2P//wEAEQBtb0NTdHJpbmdIYW5kbGVfY//+/zZGADoAXABTAFcAKwBBAEkAXAAwADQAXwCeW0ttwYtuY1wAdgAxAC4ANAAuADEAXABhAGMAYwBlAHAAdABhAG4AYwBlAF8AMAAyAFwAbQAxADQAMQBfAMxTVFsvZbZnLgBTAEwARABQAFIAVAAJgP/+/wltADEANAAxAF8AzFNUWy9ltmcCAABerOpq//7/AP/+/wD//v8AAAgAAAAAAAAAAAAAAAABAAAA//7/AtiepIsAAAAAAAAAAAAAAAAAAAAAUAAAAGKs6moCAAAAA4AAAAWACABQAAAAYqzqagMAAAAAAAOAAAAFgAgAUAAAAGKs6moFAAAAAAAAAAAAAAAAAFBGAAAAAAAAAAAAAA==",
+          "face_index": 11,
+          "kind": "plane",
+          "radius_mm": null,
+          "area_mm2": 414.6902302738528,
+          "origin_local_mm": [
+            28,
+            0,
+            50
+          ],
+          "direction_local": [
+            0,
+            -1,
+            0
+          ],
+          "origin_assembly_mm": [
+            -25.000000000000004,
+            -10,
+            0
+          ],
+          "direction_assembly": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_双孔支架-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABQAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABcAbW9Gcm9tU2t0RW50U3VyZklkUmVwX2MAAP//AQAGAG1vRlJfY///AQANAG1vRXh0T2JqZWN0X2P//wEAEQBtb0NTdHJpbmdIYW5kbGVfY//+/zZGADoAXABTAFcAKwBBAEkAXAAwADQAXwCeW0ttwYtuY1wAdgAxAC4ANAAuADEAXABhAGMAYwBlAHAAdABhAG4AYwBlAF8AMAAyAFwAbQAxADQAMQBfAMxTVFsvZbZnLgBTAEwARABQAFIAVAAJgP/+/wltADEANAAxAF8AzFNUWy9ltmcCAABerOpq//7/AP/+/wD//v8AAAgAAAAAAAAAAAAAAAABAAAA//7/AtiepIsAAAAAAAAAAAAAAAAAAAAAUAAAAGKs6moDAAAAA4AAAAWACABQAAAAYqzqagQAAAAAAAOAAAAFgAgAUAAAAGKs6moCAAAAAAAAAAAAAAAAAFBGAAAAAAAAAAAAAA==",
+          "face_index": 12,
+          "kind": "cylinder",
+          "radius_mm": 14.000000000000002,
+          "area_mm2": 1759.2918860102843,
+          "origin_local_mm": [
+            20,
+            -1,
+            50
+          ],
+          "direction_local": [
+            0,
+            -1,
+            0
+          ],
+          "origin_assembly_mm": [
+            -33,
+            -11,
+            0
+          ],
+          "direction_assembly": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+          "assembly_configuration": "默认",
+          "component": "m141_双孔支架-1",
+          "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+          "component_configuration": "默认",
+          "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABQAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABcAbW9Gcm9tU2t0RW50U3VyZklkUmVwX2MAAP//AQAGAG1vRlJfY///AQANAG1vRXh0T2JqZWN0X2P//wEAEQBtb0NTdHJpbmdIYW5kbGVfY//+/zZGADoAXABTAFcAKwBBAEkAXAAwADQAXwCeW0ttwYtuY1wAdgAxAC4ANAAuADEAXABhAGMAYwBlAHAAdABhAG4AYwBlAF8AMAAyAFwAbQAxADQAMQBfAMxTVFsvZbZnLgBTAEwARABQAFIAVAAJgP/+/wltADEANAAxAF8AzFNUWy9ltmcCAABerOpq//7/AP/+/wD//v8AAAgAAAAAAAAAAAAAAAABAAAA//7/AtiepIsAAAAAAAAAAAAAAAAAAAAAUAAAAGKs6moEAAAAA4AAAAWACABQAAAAYqzqagMAAAAAAAOAAAAFgAgAUAAAAGKs6moFAAAAAAAAAAAAAAAAAFBGAAAAAAAAAAAAAA==",
+          "face_index": 13,
+          "kind": "plane",
+          "radius_mm": null,
+          "area_mm2": 414.6902302738528,
+          "origin_local_mm": [
+            34,
+            20,
+            50
+          ],
+          "direction_local": [
+            0,
+            1,
+            0
+          ],
+          "origin_assembly_mm": [
+            -19.000000000000004,
+            10,
+            0
+          ],
+          "direction_assembly": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "count": 20,
+      "mate_count_after": 0,
+      "elapsed_s": 8.49
+    },
+    "applied": {
+      "ok": true,
+      "modified": true,
+      "built": 2,
+      "sw_version": "33.5.0",
+      "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+      "configuration": "默认",
+      "mate_count_before": 0,
+      "mates": [
+        {
+          "ok": true,
+          "type": "concentric",
+          "feature_name": "同心1",
+          "entity_identity_match": true,
+          "feature_error": 0,
+          "geometry": {
+            "gap_mm": 0,
+            "parallel_error_deg": 0,
+            "direction_dot": 1,
+            "origin_a_mm": [
+              26.999999999999996,
+              -11,
+              0
+            ],
+            "origin_b_mm": [
+              26.999999999999996,
+              9.999999999999991,
+              0
+            ],
+            "axis_a": [
+              0,
+              -1,
+              0
+            ],
+            "axis_b": [
+              0,
+              -1,
+              0
+            ]
+          }
+        },
+        {
+          "ok": true,
+          "type": "coincident",
+          "feature_name": "重合1",
+          "entity_identity_match": true,
+          "feature_error": 0,
+          "geometry": {
+            "gap_mm": 8.673617379884035e-15,
+            "parallel_error_deg": 0,
+            "direction_dot": -1,
+            "origin_a_mm": [
+              47,
+              10,
+              0
+            ],
+            "origin_b_mm": [
+              26.999999999999996,
+              9.999999999999991,
+              0
+            ],
+            "axis_a": [
+              0,
+              1,
+              0
+            ],
+            "axis_b": [
+              0,
+              -1,
+              0
+            ]
+          }
+        }
+      ],
+      "requested": 2,
+      "component_transforms": [
+        {
+          "component": "m141_双孔支架-1",
+          "transform": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            -0.053000000000000005,
+            -0.01,
+            -0.05,
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "component": "m141_阶梯定位销-1",
+          "transform": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0.026999999999999996,
+            -0.020000000000000007,
+            0,
+            1,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "mate_count_after": 2,
+      "elapsed_s": 9.847
+    },
+    "native_wrong_owner": {
+      "ok": false,
+      "modified": false,
+      "built": 0,
+      "sw_version": "33.5.0",
+      "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+      "configuration": "默认",
+      "mate_count_before": 2,
+      "error": "持久引用所属组件不符",
+      "elapsed_s": 1.845
+    },
+    "inspected": {
+      "ok": true,
+      "modified": false,
+      "built": 0,
+      "sw_version": "33.5.0",
+      "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+      "configuration": "默认",
+      "mate_count_before": 2,
+      "mates": [
+        {
+          "ok": true,
+          "type": "concentric",
+          "feature_name": "同心1",
+          "entity_identity_match": true,
+          "feature_error": 0,
+          "geometry": {
+            "gap_mm": 0,
+            "parallel_error_deg": 0,
+            "direction_dot": 1,
+            "origin_a_mm": [
+              26.999999999999996,
+              -11,
+              0
+            ],
+            "origin_b_mm": [
+              26.999999999999996,
+              9.999999999999991,
+              0
+            ],
+            "axis_a": [
+              0,
+              -1,
+              0
+            ],
+            "axis_b": [
+              0,
+              -1,
+              0
+            ]
+          }
+        },
+        {
+          "ok": true,
+          "type": "coincident",
+          "feature_name": "重合1",
+          "entity_identity_match": true,
+          "feature_error": 0,
+          "geometry": {
+            "gap_mm": 8.673617379884035e-15,
+            "parallel_error_deg": 0,
+            "direction_dot": -1,
+            "origin_a_mm": [
+              47,
+              10,
+              0
+            ],
+            "origin_b_mm": [
+              26.999999999999996,
+              9.999999999999991,
+              0
+            ],
+            "axis_a": [
+              0,
+              1,
+              0
+            ],
+            "axis_b": [
+              0,
+              -1,
+              0
+            ]
+          }
+        }
+      ],
+      "requested": 2,
+      "component_transforms": [
+        {
+          "component": "m141_双孔支架-1",
+          "transform": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            -0.053000000000000005,
+            -0.01,
+            -0.05,
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "component": "m141_阶梯定位销-1",
+          "transform": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0.026999999999999996,
+            -0.020000000000000007,
+            0,
+            1,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "mate_count_after": 2,
+      "elapsed_s": 3.276
+    }
+  },
+  "cli_faces": {
+    "ok": true,
+    "modified": false,
+    "built": 0,
+    "sw_version": "33.5.0",
+    "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+    "configuration": "默认",
+    "mate_count_before": 2,
+    "faces": [
+      {
+        "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+        "assembly_configuration": "默认",
+        "component": "m141_阶梯定位销-1",
+        "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_阶梯定位销.SLDPRT",
+        "component_configuration": "默认",
+        "face_ref": "UEYAAAMAAAD//v8WbQAxADQAMQBfADaWr2iaW01PAJUtADEAQABtADEANAAxAF8ApWPjU4yawYsEAAAAEAAAAAEAAAABAAAAGgAAAP//AQALAG1vRmFjZVJlZl9jAQAAAAAAAAAFAAAAAAMAAAAAAAB9w5QlrUmyVH3DlCWtSbJUAAD//wEAGwBtb0Zyb21Ta3RFbnQzSW50U3VyZklkUmVwX2MAAP//AQAGAG1vRlJfY///AQANAG1vRXh0T2JqZWN0X2P//wEAEQBtb0NTdHJpbmdIYW5kbGVfY//+/zdGADoAXABTAFcAKwBBAEkAXAAwADQAXwCeW0ttwYtuY1wAdgAxAC4ANAAuADEAXABhAGMAYwBlAHAAdABhAG4AYwBlAF8AMAAyAFwAbQAxADQAMQBfADaWr2iaW01PAJUuAFMATABEAFAAUgBUAAmA//7/Cm0AMQA0ADEAXwA2lq9omltNTwCVAgAAaazqav/+/wD//v8A//7/AAAIAAAAAAAAAAAAAAAAAAAAAP/+/wLYnqSLAAAAAAAAAAAAAAAAAAAAAFYAAABtrOpqAQAAAP////8AAAAA//8BABgAbW9FbmRGYWNlM0ludFN1cmZJZFJlcF9jAAAFgAgAVgAAAG2s6moBAAAAAAAAAAAAAAAAAAyAAAAFgAgAVgAAAG2s6moAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUEYAAAAAAAAAAAAA",
+        "face_index": 0,
+        "kind": "cylinder",
+        "radius_mm": 12,
+        "area_mm2": 376.99111843077503,
+        "origin_local_mm": [
+          0,
+          34.99999999999999,
+          0
+        ],
+        "direction_local": [
+          0,
+          -1,
+          0
+        ],
+        "origin_assembly_mm": [
+          26.999999999999996,
+          14.99999999999999,
+          0
+        ],
+        "direction_assembly": [
+          0,
+          -1,
+          0
+        ]
+      },
+      {
+        "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+        "assembly_configuration": "默认",
+        "component": "m141_阶梯定位销-1",
+        "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_阶梯定位销.SLDPRT",
+        "component_configuration": "默认",
+        "face_ref": "UEYAAAMAAAD//v8WbQAxADQAMQBfADaWr2iaW01PAJUtADEAQABtADEANAAxAF8ApWPjU4yawYsEAAAAEAAAAAEAAAABAAAAGgAAAP//AQALAG1vRmFjZVJlZl9jAQAAAAAAAAAFAAAAAAMAAAAAAAB9w5QlrUmyVH3DlCWtSbJUAAD//wEAFwBtb0Zyb21Ta3RFbnRTdXJmSWRSZXBfYwAA//8BAAYAbW9GUl9j//8BAA0AbW9FeHRPYmplY3RfY///AQARAG1vQ1N0cmluZ0hhbmRsZV9j//7/N0YAOgBcAFMAVwArAEEASQBcADAANABfAJ5bS23Bi25jXAB2ADEALgA0AC4AMQBcAGEAYwBjAGUAcAB0AGEAbgBjAGUAXwAwADIAXABtADEANAAxAF8ANpavaJpbTU8AlS4AUwBMAEQAUABSAFQACYD//v8KbQAxADQAMQBfADaWr2iaW01PAJUCAABprOpq//7/AP/+/wD//v8AAAgAAAAAAAAAAAAAAAAAAAAA//7/AtiepIsAAAAAAAAAAAAAAAAAAAAATwAAAGys6moBAAAA//8BABQAbW9FbmRGYWNlU3VyZklkUmVwX2MAAAWACABPAAAAbKzqagEAAAAAAAAAAAAMgAAABYAIAE8AAABsrOpqAAAAAAAAAAAAAAAAAAAAAAAAUEYAAAAAAAAAAAAA",
+        "face_index": 3,
+        "kind": "cylinder",
+        "radius_mm": 7.8,
+        "area_mm2": 1470.265361880023,
+        "origin_local_mm": [
+          0,
+          30,
+          0
+        ],
+        "direction_local": [
+          0,
+          -1,
+          0
+        ],
+        "origin_assembly_mm": [
+          26.999999999999996,
+          9.999999999999991,
+          0
+        ],
+        "direction_assembly": [
+          0,
+          -1,
+          0
+        ]
+      },
+      {
+        "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+        "assembly_configuration": "默认",
+        "component": "m141_双孔支架-1",
+        "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+        "component_configuration": "默认",
+        "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABQAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABcAbW9Gcm9tU2t0RW50U3VyZklkUmVwX2MAAP//AQAGAG1vRlJfY///AQANAG1vRXh0T2JqZWN0X2P//wEAEQBtb0NTdHJpbmdIYW5kbGVfY//+/zZGADoAXABTAFcAKwBBAEkAXAAwADQAXwCeW0ttwYtuY1wAdgAxAC4ANAAuADEAXABhAGMAYwBlAHAAdABhAG4AYwBlAF8AMAAyAFwAbQAxADQAMQBfAMxTVFsvZbZnLgBTAEwARABQAFIAVAAJgP/+/wltADEANAAxAF8AzFNUWy9ltmcCAABerOpq//7/AP/+/wD//v8AAAgAAAAAAAAAAAAAAAABAAAA//7/AtiepIsAAAAAAAAAAAAAAAAAAAAAWAAAAGSs6moFAAAAA4AAAAWACABYAAAAZKzqagIAAAAAAAOAAAAFgAgAWAAAAGSs6moEAAAAAAAAAAAAAAAAAFBGAAAAAAAAAAAAAA==",
+        "face_index": 6,
+        "kind": "cylinder",
+        "radius_mm": 7.999999999999993,
+        "area_mm2": 1005.3096491487329,
+        "origin_local_mm": [
+          80,
+          -1,
+          50
+        ],
+        "direction_local": [
+          0,
+          -1,
+          0
+        ],
+        "origin_assembly_mm": [
+          26.999999999999996,
+          -11,
+          0
+        ],
+        "direction_assembly": [
+          0,
+          -1,
+          0
+        ]
+      },
+      {
+        "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+        "assembly_configuration": "默认",
+        "component": "m141_双孔支架-1",
+        "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+        "component_configuration": "默认",
+        "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABQAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABcAbW9Gcm9tU2t0RW50U3VyZklkUmVwX2MAAP//AQAGAG1vRlJfY///AQANAG1vRXh0T2JqZWN0X2P//wEAEQBtb0NTdHJpbmdIYW5kbGVfY//+/zZGADoAXABTAFcAKwBBAEkAXAAwADQAXwCeW0ttwYtuY1wAdgAxAC4ANAAuADEAXABhAGMAYwBlAHAAdABhAG4AYwBlAF8AMAAyAFwAbQAxADQAMQBfAMxTVFsvZbZnLgBTAEwARABQAFIAVAAJgP/+/wltADEANAAxAF8AzFNUWy9ltmcCAABerOpq//7/AP/+/wD//v8AAAgAAAAAAAAAAAAAAAABAAAA//7/AtiepIsAAAAAAAAAAAAAAAAAAAAAWAAAAGSs6moDAAAAA4AAAAWACABYAAAAZKzqagQAAAAAAAOAAAAFgAgAWAAAAGSs6moCAAAAAAAAAAAAAAAAAFBGAAAAAAAAAAAAAA==",
+        "face_index": 8,
+        "kind": "cylinder",
+        "radius_mm": 20.000000000000004,
+        "area_mm2": 2513.2741228718355,
+        "origin_local_mm": [
+          80,
+          -1,
+          50
+        ],
+        "direction_local": [
+          0,
+          -1,
+          0
+        ],
+        "origin_assembly_mm": [
+          26.999999999999996,
+          -11,
+          0
+        ],
+        "direction_assembly": [
+          0,
+          -1,
+          0
+        ]
+      },
+      {
+        "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+        "assembly_configuration": "默认",
+        "component": "m141_双孔支架-1",
+        "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+        "component_configuration": "默认",
+        "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABQAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABcAbW9Gcm9tU2t0RW50U3VyZklkUmVwX2MAAP//AQAGAG1vRlJfY///AQANAG1vRXh0T2JqZWN0X2P//wEAEQBtb0NTdHJpbmdIYW5kbGVfY//+/zZGADoAXABTAFcAKwBBAEkAXAAwADQAXwCeW0ttwYtuY1wAdgAxAC4ANAAuADEAXABhAGMAYwBlAHAAdABhAG4AYwBlAF8AMAAyAFwAbQAxADQAMQBfAMxTVFsvZbZnLgBTAEwARABQAFIAVAAJgP/+/wltADEANAAxAF8AzFNUWy9ltmcCAABerOpq//7/AP/+/wD//v8AAAgAAAAAAAAAAAAAAAABAAAA//7/AtiepIsAAAAAAAAAAAAAAAAAAAAAUAAAAGKs6moFAAAAA4AAAAWACABQAAAAYqzqagIAAAAAAAOAAAAFgAgAUAAAAGKs6moEAAAAAAAAAAAAAAAAAFBGAAAAAAAAAAAAAA==",
+        "face_index": 10,
+        "kind": "cylinder",
+        "radius_mm": 8,
+        "area_mm2": 1005.3096491487339,
+        "origin_local_mm": [
+          20,
+          -1,
+          50
+        ],
+        "direction_local": [
+          0,
+          -1,
+          0
+        ],
+        "origin_assembly_mm": [
+          -33,
+          -11,
+          0
+        ],
+        "direction_assembly": [
+          0,
+          -1,
+          0
+        ]
+      },
+      {
+        "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+        "assembly_configuration": "默认",
+        "component": "m141_双孔支架-1",
+        "part_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+        "component_configuration": "默认",
+        "face_ref": "UEYAAAMAAAD//v8VbQAxADQAMQBfAMxTVFsvZbZnLQAxAEAAbQAxADQAMQBfAKVj41OMmsGLBAAAABAAAAABAAAAAQAAABkAAAD//wEACwBtb0ZhY2VSZWZfYwEAAAAAAAAABQAAAAADAAAAAAAAfcOUJa1JslR9w5QlrUmyVAAA//8BABcAbW9Gcm9tU2t0RW50U3VyZklkUmVwX2MAAP//AQAGAG1vRlJfY///AQANAG1vRXh0T2JqZWN0X2P//wEAEQBtb0NTdHJpbmdIYW5kbGVfY//+/zZGADoAXABTAFcAKwBBAEkAXAAwADQAXwCeW0ttwYtuY1wAdgAxAC4ANAAuADEAXABhAGMAYwBlAHAAdABhAG4AYwBlAF8AMAAyAFwAbQAxADQAMQBfAMxTVFsvZbZnLgBTAEwARABQAFIAVAAJgP/+/wltADEANAAxAF8AzFNUWy9ltmcCAABerOpq//7/AP/+/wD//v8AAAgAAAAAAAAAAAAAAAABAAAA//7/AtiepIsAAAAAAAAAAAAAAAAAAAAAUAAAAGKs6moDAAAAA4AAAAWACABQAAAAYqzqagQAAAAAAAOAAAAFgAgAUAAAAGKs6moCAAAAAAAAAAAAAAAAAFBGAAAAAAAAAAAAAA==",
+        "face_index": 12,
+        "kind": "cylinder",
+        "radius_mm": 14.000000000000002,
+        "area_mm2": 1759.2918860102843,
+        "origin_local_mm": [
+          20,
+          -1,
+          50
+        ],
+        "direction_local": [
+          0,
+          -1,
+          0
+        ],
+        "origin_assembly_mm": [
+          -33,
+          -11,
+          0
+        ],
+        "direction_assembly": [
+          0,
+          -1,
+          0
+        ]
+      }
+    ],
+    "count": 6,
+    "mate_count_after": 2,
+    "elapsed_s": 5.968
+  },
+  "cli_inspect_save": {
+    "ok": true,
+    "modified": false,
+    "built": 0,
+    "sw_version": "33.5.0",
+    "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+    "configuration": "默认",
+    "mate_count_before": 2,
+    "mates": [
+      {
+        "ok": true,
+        "type": "concentric",
+        "feature_name": "同心1",
+        "entity_identity_match": true,
+        "feature_error": 0,
+        "geometry": {
+          "gap_mm": 0,
+          "parallel_error_deg": 0,
+          "direction_dot": 1,
+          "origin_a_mm": [
+            26.999999999999996,
+            -11,
+            0
+          ],
+          "origin_b_mm": [
+            26.999999999999996,
+            9.999999999999991,
+            0
+          ],
+          "axis_a": [
+            0,
+            -1,
+            0
+          ],
+          "axis_b": [
+            0,
+            -1,
+            0
+          ]
+        }
+      },
+      {
+        "ok": true,
+        "type": "coincident",
+        "feature_name": "重合1",
+        "entity_identity_match": true,
+        "feature_error": 0,
+        "geometry": {
+          "gap_mm": 8.673617379884035e-15,
+          "parallel_error_deg": 0,
+          "direction_dot": -1,
+          "origin_a_mm": [
+            47,
+            10,
+            0
+          ],
+          "origin_b_mm": [
+            26.999999999999996,
+            9.999999999999991,
+            0
+          ],
+          "axis_a": [
+            0,
+            1,
+            0
+          ],
+          "axis_b": [
+            0,
+            -1,
+            0
+          ]
+        }
+      }
+    ],
+    "requested": 2,
+    "component_transforms": [
+      {
+        "component": "m141_双孔支架-1",
+        "transform": [
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          1,
+          -0.053000000000000005,
+          -0.01,
+          -0.05,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "component": "m141_阶梯定位销-1",
+        "transform": [
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          1,
+          0.026999999999999996,
+          -0.020000000000000007,
+          0,
+          1,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "mate_count_after": 2,
+    "elapsed_s": 6.13,
+    "save": {
+      "ok": true,
+      "error_code": 0,
+      "warning_code": 0
+    }
+  },
+  "cli_duplicate": {
+    "ok": false,
+    "modified": false,
+    "built": 0,
+    "sw_version": "33.5.0",
+    "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\interface_smoke\\m141_接口验证.SLDASM",
+    "configuration": "默认",
+    "mate_count_before": 2,
+    "error": "目标面之间已有同类型配合，不重复创建",
+    "elapsed_s": 4.176
+  },
+  "final_inspection": {
+    "ok": true,
+    "modified": false,
+    "built": 0,
+    "sw_version": "33.5.0",
+    "assembly_path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_显式选面演示.SLDASM",
+    "configuration": "默认",
+    "mate_count_before": 2,
+    "mates": [
+      {
+        "ok": true,
+        "type": "concentric",
+        "feature_name": "同心2",
+        "entity_identity_match": true,
+        "feature_error": 0,
+        "geometry": {
+          "gap_mm": 1.0551910960100406e-14,
+          "parallel_error_deg": 0,
+          "direction_dot": 1,
+          "origin_a_mm": [
+            26.999999999999996,
+            -11,
+            0
+          ],
+          "origin_b_mm": [
+            27.000000000000007,
+            9.999999999999998,
+            1.734723475976807e-15
+          ],
+          "axis_a": [
+            0,
+            -1,
+            0
+          ],
+          "axis_b": [
+            0,
+            -1,
+            0
+          ]
+        }
+      },
+      {
+        "ok": true,
+        "type": "coincident",
+        "feature_name": "重合1",
+        "entity_identity_match": true,
+        "feature_error": 0,
+        "geometry": {
+          "gap_mm": 1.734723475976807e-15,
+          "parallel_error_deg": 0,
+          "direction_dot": -1,
+          "origin_a_mm": [
+            47,
+            10,
+            0
+          ],
+          "origin_b_mm": [
+            27.000000000000007,
+            9.999999999999998,
+            1.734723475976807e-15
+          ],
+          "axis_a": [
+            0,
+            1,
+            0
+          ],
+          "axis_b": [
+            0,
+            -1,
+            0
+          ]
+        }
+      }
+    ],
+    "requested": 2,
+    "component_transforms": [
+      {
+        "component": "m141_双孔支架-1",
+        "transform": [
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          1,
+          -0.053000000000000005,
+          -0.01,
+          -0.05,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "component": "m141_阶梯定位销-1",
+        "transform": [
+          -0.8371691043312224,
+          0,
+          -0.5469441386039887,
+          0,
+          1,
+          0,
+          0.5469441386039887,
+          0,
+          -0.8371691043312224,
+          0.027000000000000007,
+          -0.02,
+          1.734723475976807e-18,
+          1,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "mate_count_after": 2,
+    "elapsed_s": 4.769
+  },
+  "final_save": [
+    true,
+    0,
+    0
+  ],
+  "inventory": {
+    "ok": true,
+    "document_count": 5,
+    "documents": [
+      {
+        "path": "F:\\SW+AI\\04_实测证据\\v1.4.0\\attached_acceptance_02\\公差与粗糙度演示.SLDPRT",
+        "title": "公差与粗糙度演示",
+        "modified": false
+      },
+      {
+        "path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_双孔支架.SLDPRT",
+        "title": "m141_双孔支架",
+        "modified": false
+      },
+      {
+        "path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_阶梯定位销.SLDPRT",
+        "title": "m141_阶梯定位销",
+        "modified": false
+      },
+      {
+        "path": "F:\\SW+AI\\04_实测证据\\v1.4.1\\acceptance_02\\m141_显式选面演示.SLDASM",
+        "title": "m141_显式选面演示",
+        "modified": false
+      },
+      {
+        "path": "F:\\SW+AI\\04_实测证据\\v1.4.0\\attached_acceptance_02\\公差与粗糙度演示.SLDDRW",
+        "title": "公差与粗糙度演示 - 图纸1",
+        "modified": true
+      }
+    ],
+    "process_id": 31560,
+    "working_set_mb": 526.28
+  }
+}

@@ -131,7 +131,7 @@ G:\GT\swforge\
 │   ├── gb_materials.py      20 个国标牌号 + 材质库部署
 │   ├── guard.py             活动文档守卫（多客户端）
 │   ├── resources.py         文档数守卫（SolidWorks 上限 8 个）
-│   ├── selftest.py          10 项实机自检
+│   ├── selftest.py          13 项实机自检
 │   ├── probe.py             28 项 API 反射探测
 │   ├── status.py            swforge status
 │   ├── release_check.py     发版一致性检查

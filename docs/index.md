@@ -23,7 +23,7 @@ layout: default
 | 你的情况 | 适合吗 |
 |---|---|
 | 有一批 SolidWorks 零件要出图 | ✅ 批量出图，5 个零件约 16 秒 |
-| 想让 Claude / Cursor / DSH 直接操作 SolidWorks | ✅ 标准 MCP，22 个工具 |
+| 想让 Claude / Cursor / DSH 直接操作 SolidWorks | ✅ 标准 MCP，30 个工具 |
 | 需要国标材质和国标图框 | ✅ 20 个 GB 牌号，GB 图框 |
 | 需要精确的干涉体积 | ✅ 实测 4000.000 mm³，偏差 0.00% |
 | 需要**公差、粗糙度、形位公差**自动标注 | ❌ 没有，需人工补 |
@@ -49,7 +49,7 @@ pip install "swforge[mcp,pdf]"
 swforge selftest
 ```
 
-九项检查全在真实 SolidWorks 上跑：
+十三项检查全在真实 SolidWorks 上跑：
 
 ```
 [PASS] 连接与版本                  0.00s  SolidWorks 33.5.0，往返 1 ms
@@ -90,10 +90,12 @@ print(r.ok, r.bodies, r.mass_kg, r.volume_mm3)
 ## 文档
 
 - [v1.4 交接文档](handover-v1.4.md) —— 给接手的开发者（粗糙度/公差）
-- [功能清单](features.md) —— v1.1 全部能力一览（含实测数据）
+- [粗糙度与公差标注](annotations.md) —— v1.4，含实机验收入口
+- [显式配合选面](face-mates.md) —— v1.4.1，复杂零件上明确指定孔轴
+- [功能清单](features.md) —— 全部能力一览（含实测数据）
 - [快速开始](quickstart.md) —— 装、连、建第一个零件
-- [自检说明](selftest.md) —— 九项检查各验证什么
-- [BOM 明细表](bom.md) —— 从装配读清单，同零件合并计数 —— 九项检查各验证什么
+- [自检说明](selftest.md) —— 十三项检查各验证什么
+- [BOM 明细表](bom.md) —— 从装配读清单，同零件合并计数
 - [已知限制](limitations.md) —— **先说清楚做不到什么**
 - [踩过的坑](pitfalls.md) —— 实现层面的技术细节
 - [问题日志](issue-log.md) —— 开发中发现并修复的真实问题

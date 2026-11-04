@@ -31,7 +31,7 @@
 > 这是**真实输出渲染成的动图**，不是录屏。内容是 `swforge selftest` 在
 > SolidWorks 2025 SP5.0 上的实测结果，`demo/make_gif.py` 可复现。
 >
-> 十项检查每一项都在真机上跑，读回结果再判定。注意那四行小字——
+> 十三项检查每一项都在真机上跑，读回结果再判定。注意那四行小字——
 > 体积偏差 **0.000%**、密度 **7850 kg/m³**、干涉 **4000.0 mm³**、
 > 配合前后位置 **X=[60.0, 0.0] → [0.0, 0.0]**。
 > 这些数字是读回来的，不是「调用没报错」。
@@ -68,11 +68,10 @@ SolidWorks 自动化有三类工具，各有各的坑：
 
 | 项目 | 数值 |
 |---|---|
-| 源码 | **6 563 行** Python，22 个模块 |
+| 源码 | **7 887 行** Python，25 个模块 |
 | 测试 | **238 项离线 + 13 项实机自检；历史双进程并发实测** |
-| MCP 工具 | **22 个** |
-| CLI 子命令 / Python 导出 | **17 个** / **55 项** |
-| 公开导出 | **41 项** |
+| MCP 工具 | **30 个** |
+| CLI 子命令 / Python 导出 | **24 个** / **64 项** |
 | GB 牌号 | **20 个**（密度 / 弹性模量 / 泊松比 / 国标出处） |
 | 几何能力 | box / plate / tube(XYZ) / cylinder(XYZ) / revolve(XYZ) / fillet / chamfer |
 | 实测环境 | SolidWorks 2025 SP5.0 (33.5.0) + Python 3.14.3 |
@@ -111,7 +110,7 @@ pip install "swforge[mcp,pdf]"
 
 | extras | 提供 |
 |---|---|
-| `[mcp]` | MCP 服务器（22 个工具） |
+| `[mcp]` | MCP 服务器（30 个工具） |
 | `[pdf]` | PDFium 内容验证 |
 | `[mechdog]` | 委托 MechDog 做深度标注与制造审核 |
 
@@ -178,7 +177,7 @@ body_interference(part, "A", "B")
 ### MCP —— 任意支持 MCP 的智能体都能接
 
 服务器走**标准 MCP stdio 协议**，已用官方客户端实测握手通过
-（协议 `2025-11-25`、22 个工具、schema 全部合规、`serverInfo.version` 报 0.9.0）。
+（协议 `2025-11-25`、30 个工具、schema 全部合规、`serverInfo.version` 报 0.9.0）。
 
 **Claude Desktop**（`%APPDATA%\Claude\claude_desktop_config.json`）
 
@@ -214,9 +213,24 @@ SolidWorks 必须手动启动、长度单位 mm、文档上限 8 个、以及推
 （validate → build → color → read_colors → drawing → layout → pdf）。
 这是外部智能体能正确使用的前提，`tests/test_mcp.py` 会守住它。
 
-22 个工具：`sw_validate_part` `sw_build_part` `sw_apply_colors` `sw_read_colors`
-`sw_survey` `sw_produce_drawing` `sw_layout_views` `sw_export_pdf`
-`sw_list_materials` `sw_ensure_material_library` `sw_resource_status` …
+30 个工具：
+
+```
+建模      sw_validate_part  sw_build_part  sw_apply_colors  sw_read_colors  sw_list_colors
+          sw_survey  sw_preview_edges  sw_purge_giant  sw_purge_small  sw_close_all
+
+工程图    sw_produce_drawing  sw_layout_views  sw_export_pdf  sw_make_atlas
+          sw_delivery_check  sw_list_dimensions
+
+标注      sw_add_surface_finish   sw_add_surface_finishes   sw_list_surface_edges
+          sw_set_tolerance                    ← v1.4 新增
+
+装配      sw_list_mate_faces   sw_apply_face_mates   sw_inspect_face_mates   ← v1.4.1 新增
+
+材质      sw_list_materials  sw_ensure_material_library
+
+运维      sw_ping  sw_capabilities  sw_resources  sw_resource_status  sw_sweep_documents
+```
 
 ---
 

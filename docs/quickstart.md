@@ -10,7 +10,7 @@ pip install "swforge[mcp,pdf]"
 
 | 附加项 | 装什么 |
 |---|---|
-| `[mcp]` | MCP 服务器（22 个工具），给 Claude / Cursor 这类智能体用 |
+| `[mcp]` | MCP 服务器（30 个工具），给 Claude / Cursor 这类智能体用 |
 | `[pdf]` | PDF 导出与渲染验证 |
 | `[dev]` | 开发用（pytest 等） |
 
