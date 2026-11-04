@@ -11,9 +11,9 @@
 [![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/mwdandoms/swforge/blob/main/LICENSE)
 [![tests](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml/badge.svg)](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml)
 
-[![swforge 演示：代码驱动 SolidWorks](https://raw.githubusercontent.com/mwdandoms/swforge/main/demo/poster.png)](https://github.com/mwdandoms/swforge/releases/download/v1.4.1/swforge-demo-2m42s-1080p.mp4)
+[![swforge 演示：代码驱动 SolidWorks](https://raw.githubusercontent.com/mwdandoms/swforge/main/demo/poster.png)](https://github.com/mwdandoms/swforge/releases/download/v1.4.1/swforge-demo-2m21s-1080p60.mp4)
 
-> ▶ **点击上图播放 2 分 42 秒完整演示**（7.2 MB）——从 SolidWorks **关闭状态**开始，
+> ▶ **点击上图播放 2 分 21 秒完整演示**（6.7 MB）——从 SolidWorks **关闭状态**开始，
 > 建模 → 国标材质 → GB 工程图 → 尺寸 → 粗糙度 → 公差 → PDF → 装配 → 配合 → 干涉，全程无人操作。
 > 左边是建出来的零件，右边是同一套代码出的 GB 图。
 
