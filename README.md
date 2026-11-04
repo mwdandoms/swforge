@@ -11,6 +11,12 @@
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![tests](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml/badge.svg)](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml)
 
+[![swforge 演示：代码驱动 SolidWorks](https://raw.githubusercontent.com/mwdandoms/swforge/main/demo/poster.png)](https://github.com/mwdandoms/swforge/releases/download/v1.2.1/swforge-demo-100s-1080p.mp4)
+
+> ▶ **点击上图播放 100 秒完整演示**（7.6 MB）——从 SolidWorks **关闭状态**开始，
+> 建模 → 配国标材质 → 出 GB 工程图 → 装配配合 → 干涉检查，全程无人操作。
+> 左边是建出来的零件，右边是同一套代码出的 GB 图。
+
 > 本项目只在 **SolidWorks 2025 SP5.0 + Windows + Python 3.14** 上做过完整实测。
 > 版本兼容（目标下探到 2019）是下一版的主要目标，见路线图。
 
@@ -57,9 +63,10 @@ SolidWorks 自动化有三类工具，各有各的坑：
 
 | 项目 | 数值 |
 |---|---|
-| 源码 | **约 4 400 行** Python，14 个模块 |
-| 测试 | **124 项**（95 离线 + 29 实机） |
+| 源码 | **6 563 行** Python，22 个模块 |
+| 测试 | **158 项离线 + 10 项实机自检 + 双进程并发实测** |
 | MCP 工具 | **22 个** |
+| CLI 子命令 / Python 导出 | **17 个** / **55 项** |
 | 公开导出 | **41 项** |
 | GB 牌号 | **20 个**（密度 / 弹性模量 / 泊松比 / 国标出处） |
 | 几何能力 | box / plate / tube(XYZ) / cylinder(XYZ) / revolve(XYZ) / fillet / chamfer |
