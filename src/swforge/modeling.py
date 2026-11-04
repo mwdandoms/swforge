@@ -201,6 +201,38 @@ class PartBuilder:
         self._add(tag, "Cylinder", vals, color)
         return self
 
+    def hole(self, tag, axis="y", x=0, y=0, z=0, r=5, h=10, color=None):
+        """【未实现】挖圆柱孔。
+
+        实测结论（2026-11-04）：`FeatureCut` / `FeatureCut4` 在本机
+        SolidWorks 2025 SP5.0 上**一律返回 null**，试过：
+
+          · T1=0（给定深度）与 T1=1（完全贯穿）
+          · D1/D2 传或不传深度
+          · UseFeatScope = true / false
+          · FeatureCut4(27 参) 与 FeatureCut(20 参)
+          · 草图选在基准面（与实体底面重合）
+
+        每次都 `FeatureCut* -> null`，日志无更多信息。原因未定位，
+        不做猜测性"修好"——把失败包装成成功比失败更糟。
+
+        **当前可用的替代方案**：用 `revolve()` 旋转一个环形轮廓，
+        造出来的就是真孔（实测体积与理论值误差 0.00 mm³）：
+
+            # 轴套：内孔 Ø16，外径 Ø50，长 30
+            b.revolve("轴套", [(8,0),(25,0),(25,30),(8,30)],
+                      axis="y", angle=360)
+
+        或者用 `tube_y/x/z()` 造方孔。
+
+        真正实现挖孔需要另找 API 路径（可能是 IFeatureManager 的
+        另一组入口，或需要先用 C# 早期绑定导出草图实体）。
+        """
+        raise NotImplementedError(
+            "hole() 尚未实现：FeatureCut 在本机返回 null。"
+            "请改用 revolve() 旋转环形轮廓造孔，或 tube_*() 造方孔。"
+            "详见 docs/limitations.md。")
+
     def revolve(self, tag, profile_pts, axis="y", angle=360, color="silver", x=0, y=0, z=0):
         """闭合多边形 [(径向, 轴向), ...] 绕指定正轴旋转，角度为度。
 
@@ -462,6 +494,7 @@ public class __CLASS__ {
     static StringBuilder log = new StringBuilder();
     static Dictionary<string,double[]> colors = new Dictionary<string,double[]>();
     static Dictionary<string,IFeature> sources = new Dictionary<string,IFeature>();
+    static Dictionary<string,IFeature> cuts = new Dictionary<string,IFeature>();
     static void L(string s) { log.AppendLine(s); }
 
     static IFeature Datum(string axis) {
@@ -553,6 +586,7 @@ public class __CLASS__ {
         End(sketch);
         Register(tag,Extrude(sketch,axis,axis=="x"?x:axis=="y"?y:z,h),rgb);
     }
+
 
     // 旋转轮廓上的点：pts 用 (径向, 轴向) 描述，换成世界坐标。
     static double[] RevWorld(string axis,double r,double a,double x,double y,double z) {
