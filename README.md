@@ -288,10 +288,6 @@ python demo/demo.py --step 4   # 只跑第 4 步（出工程图）
 六步：环境自检 → 建模+分色 → GB 材质 → 出工程图 → 装配+配合 → 干涉检测。
 产物都落在 `demo/out/`。
 
-**演讲/录制用的配套材料**：
-- [`docs/bilibili-script.md`](https://github.com/mwdandoms/swforge/blob/main/docs/bilibili-script.md) —— B 站视频台本（分段、旁白、后期建议）
-
----
 
 ---
 

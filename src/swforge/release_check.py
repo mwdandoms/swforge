@@ -183,6 +183,31 @@ def check_release(root: str | None = None,
                 for f in changed[:5]:
                     warnings.append(f"     {f}")
 
+    # ---- 3b. 内部材料不该入库：营销策划、商业计划、竞品分析、内部交接
+    # 起因：docs/bilibili-script.md 和 docs/roadmap.md 曾经直接进了公开仓库
+    # 和 sdist（PyPI 1.2.1 起的包都带着）。已发布的包无法删除，只能事前拦。
+    INTERNAL = {
+        "docs/bilibili-script.md": "营销策划（视频台本）",
+        "docs/roadmap.md": "商业计划（路线图与退出条件）",
+        "docs/roadmap-v1.6.md": "商业计划（路线图）",
+        "docs/competitive-analysis.md": "竞品分析",
+        "docs/competitor-issues-analysis.md": "竞品问题分析",
+        "docs/handover-v1.4.md": "内部交接",
+        "docs/handover-v1.5.md": "内部交接",
+    }
+    leaked = [f for f in INTERNAL if os.path.isfile(os.path.join(root, f))]
+    facts["internal_docs"] = leaked
+    if leaked:
+        issues.append(
+            f"{len(leaked)} 份内部材料位于公开目录，会被 sdist 和文档站带出去"
+        )
+        for f in leaked:
+            issues.append(f"     {f}  —— {INTERNAL[f]}")
+        issues.append(
+            "     处理：移到仓库外，或加进 .gitignore；已提交的需 git rm。"
+            "sdist 另需在 MANIFEST.in 里 exclude/prune（见该文件）"
+        )
+
     # ---- 4. PyPI
     if online:
         remote_ver, err = _pypi_version(pkg)

@@ -100,7 +100,6 @@ print(r.ok, r.bodies, r.mass_kg, r.volume_mm3)
 - [踩过的坑](pitfalls.md) —— 实现层面的技术细节
 - [问题日志](issue-log.md) —— 开发中发现并修复的真实问题
 - [为什么不用 GetActiveObject](why-getactiveobject-fails.md) —— 花了很久才搞清的行为
-- [路线图](roadmap.md) —— 下一阶段方向和退出条件
 - [竞品分析](competitive-analysis.md) / [竞品 issue 分析](competitor-issues-analysis.md)
 
 ---
