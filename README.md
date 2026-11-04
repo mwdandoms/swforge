@@ -1,4 +1,4 @@
-**中文** | [English](README.en.md)
+**中文** | [English](https://github.com/mwdandoms/swforge/blob/main/README.en.md)
 # swforge
 
 **用 Python / 命令行 / MCP 驱动本机 SolidWorks —— 建模、配 GB 材质、装配配合、查干涉、出 GB 标准工程图，每一步都有回读验证。**
@@ -8,7 +8,7 @@
 [![docs](https://img.shields.io/badge/docs-mwdandoms.github.io-blue)](https://mwdandoms.github.io/swforge/)
 [![PyPI](https://img.shields.io/pypi/v/swforge)](https://pypi.org/project/swforge/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swforge)](https://pypi.org/project/swforge/)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/mwdandoms/swforge/blob/main/LICENSE)
 [![tests](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml/badge.svg)](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml)
 
 [![swforge 演示：代码驱动 SolidWorks](https://raw.githubusercontent.com/mwdandoms/swforge/main/demo/poster.png)](https://github.com/mwdandoms/swforge/releases/download/v1.2.1/swforge-demo-100s-1080p.mp4)
@@ -38,6 +38,11 @@
 
 ## 它解决什么问题
 
+v1.4.1 新增[显式配合选面](https://github.com/mwdandoms/swforge/blob/main/docs/face-mates.md)：通过持久面引用指定孔轴或平面，核对原生配合实体与装配几何，支持失败批次回退。
+
+v1.4 新增按明确要求设置尺寸公差和粗糙度符号，支持 Python、CLI、MCP，含回读验证。
+公差偏差用毫米，符号位置用米；用法与实机验收入口见 [标注文档](https://github.com/mwdandoms/swforge/blob/main/docs/annotations.md)。
+
 SolidWorks 自动化有三类工具，各有各的坑：
 
 | 做法 | 批量建模 | 出工程图 | 分色 | 装配配合 |
@@ -64,7 +69,7 @@ SolidWorks 自动化有三类工具，各有各的坑：
 | 项目 | 数值 |
 |---|---|
 | 源码 | **6 563 行** Python，22 个模块 |
-| 测试 | **158 项离线 + 10 项实机自检 + 双进程并发实测** |
+| 测试 | **238 项离线 + 13 项实机自检；历史双进程并发实测** |
 | MCP 工具 | **22 个** |
 | CLI 子命令 / Python 导出 | **17 个** / **55 项** |
 | 公开导出 | **41 项** |
@@ -83,7 +88,7 @@ SolidWorks 自动化有三类工具，各有各的坑：
 |---|---|
 | **只在 SolidWorks 2025 SP5.0 完整实测** | 2019~2024 未验证。用 `swforge capabilities --api` 可以自己查本机支持情况 |
 | **低版本文件格式** | 2025 存的 `.SLDPRT` 2019 打不开，未做版本降级保存 |
-| **公差 / 粗糙度不自动生成** | 设计决策：不编造工程要求。目前需要人工补 |
+| **公差 / 粗糙度不自动生成** | 设计决策：不编造工程要求。v1.4 可通过显式接口补充 |
 | **剖视图 / 局部放大** | 只有基础三视图 |
 | **BOM / 明细表 / 爆炸视图** | 未实现 |
 | **齿轮 / 钣金 / 焊件** | 只支持盒体、管、圆柱、旋转体及其圆角倒角 |
@@ -269,7 +274,7 @@ python demo/demo.py --step 4   # 只跑第 4 步（出工程图）
 产物都落在 `demo/out/`。
 
 **演讲/录制用的配套材料**：
-- [`docs/bilibili-script.md`](docs/bilibili-script.md) —— B 站视频台本（分段、旁白、后期建议）
+- [`docs/bilibili-script.md`](https://github.com/mwdandoms/swforge/blob/main/docs/bilibili-script.md) —— B 站视频台本（分段、旁白、后期建议）
 
 ---
 
@@ -313,9 +318,9 @@ python demo/demo.py --step 4   # 只跑第 4 步（出工程图）
 | SW 由 COM 后台拉起时连不上 | 不在 ROT，`GetActiveObject` 失败，要 fallback 到 `CreateInstance` |
 | 装配零件被放到 60 米外 | `AddComponent5` 内部要**米**，项目约定是**毫米** |
 
-更多见 [`docs/pitfalls.md`](docs/pitfalls.md)。
+更多见 [`docs/pitfalls.md`](https://github.com/mwdandoms/swforge/blob/main/docs/pitfalls.md)。
 
-深度长文：[**《为什么 SolidWorks 的 GetActiveObject 会失败》**](docs/why-getactiveobject-fails.md)
+深度长文：[**《为什么 SolidWorks 的 GetActiveObject 会失败》**](https://github.com/mwdandoms/swforge/blob/main/docs/why-getactiveobject-fails.md)
 
 ---
 
@@ -385,7 +390,7 @@ python -m pytest tests -q
 
 ## 许可
 
-MIT。见 [LICENSE](LICENSE)。
+MIT。见 [LICENSE](https://github.com/mwdandoms/swforge/blob/main/LICENSE)。
 
 本项目可选依赖 [MechDog](https://github.com/wudahua/Solidworks_AssetMate_MechDog)（同样 MIT），
 只在其 Python API 层调用，不复制其代码。

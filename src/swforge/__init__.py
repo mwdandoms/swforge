@@ -37,9 +37,15 @@ from .cleanup import survey, delete_bodies, purge_giant, purge_small
 from .drawing import (have_mechdog, produce, export_pdf, normalize_layout,
                       make_atlas, delivery_check, add_dimensions, count_dimensions)
 
-__version__ = "1.3.1"
+from .annotations import add_surface_finish, add_surface_finishes, list_surface_edges, list_dimensions, set_tolerance
+
+from .mate_faces import list_mate_faces, apply_face_mates, inspect_face_mates
+
+__version__ = "1.4.1"
 
 __all__ = [
+    "list_mate_faces", "apply_face_mates", "inspect_face_mates",
+    "add_surface_finish", "add_surface_finishes", "list_surface_edges", "list_dimensions", "set_tolerance",
     "check_status",
     "read_volume",
     "add_section_view",

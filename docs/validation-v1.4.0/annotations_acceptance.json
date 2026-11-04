@@ -1,0 +1,1875 @@
+{
+  "ok": true,
+  "checks": [
+    {
+      "name": "模型回读",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "path": "F:\\SW+AI\\04_实测证据\\v1.4.0\\attached_acceptance_02\\公差与粗糙度演示.SLDPRT",
+        "bodies": 1,
+        "features_ok": 1,
+        "features_failed": 0,
+        "elapsed_s": 5.9978389000007155,
+        "bbox_mm": "包络 X 0.000~160.000 Y 0.000~20.000 Z 0.000~100.000",
+        "log": "SWFORGE_CONNECT via=GetActiveObject\nSWFORGE_DOCUMENTS before=0 limit=8\n模板: C:\\ProgramData\\SolidWorks\\SOLIDWORKS 2025\\templates\\gb_part.prtdot\n底板 -> True\nSWFORGE_COLOR total=6 requested=0 verified=0\n包络 X 0.000~160.000 Y 0.000~20.000 Z 0.000~100.000\nSWFORGE_MATERIAL requested=Q235 got=Q235 db=swforge_gb_materials\nSWFORGE_MASS mass_kg=2.512000000 volume_mm3=320000.000\n保存 True err=0 warnings=0\nSWFORGE_DOCUMENTS after=1\nSWFORGE_MEMORY working_set_bytes=316993536\nSWFORGE_RESULT ok=1 failed=0 bodies=1 saved=True errors=0\n",
+        "error": "",
+        "color_coverage": 1.0,
+        "color_faces": 0,
+        "paint_error": "",
+        "material_requested": "Q235",
+        "material_applied": "Q235",
+        "material_error": "",
+        "mass_kg": 2.512,
+        "volume_mm3": 320000.0
+      }
+    },
+    {
+      "name": "生成三视图",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "err": 0,
+        "warn": 0,
+        "drawing": "F:\\SW+AI\\04_实测证据\\v1.4.0\\attached_acceptance_02\\公差与粗糙度演示.SLDDRW",
+        "engine": "builtin",
+        "degraded": false,
+        "annotations_requested": false,
+        "template": "C:\\ProgramData\\SOLIDWORKS\\SOLIDWORKS 2025\\templates\\gb_a3.drwdot",
+        "note": "基础三视图；未自动拟定尺寸、公差或粗糙度，需设计审核",
+        "first_view": "<COMObject <unknown>>",
+        "ready_for_manufacture": false,
+        "review_required": true
+      }
+    },
+    {
+      "name": "创建尺寸",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "error": "",
+        "mode": "curated",
+        "before": 0,
+        "after": 6,
+        "added": 6,
+        "views": [
+          {
+            "view": "工程图视图1",
+            "dimensions": 2
+          },
+          {
+            "view": "工程图视图2",
+            "dimensions": 2
+          },
+          {
+            "view": "工程图视图3",
+            "dimensions": 2
+          }
+        ],
+        "units": {
+          "before": 0,
+          "after": 0,
+          "changed": false,
+          "unit": "mm"
+        },
+        "overall": {
+          "ok": true,
+          "done": 6,
+          "tried": 6,
+          "dims": [
+            {
+              "view": "工程图视图1",
+              "via": "vertex",
+              "horizontal": "ok",
+              "value": "160.00",
+              "orient": "*前视"
+            },
+            {
+              "view": "工程图视图1",
+              "via": "vertex",
+              "vertical": "ok",
+              "value": "20.00",
+              "orient": "*前视"
+            },
+            {
+              "view": "工程图视图2",
+              "via": "vertex",
+              "horizontal": "ok",
+              "value": "160.00",
+              "orient": "*上视"
+            },
+            {
+              "view": "工程图视图2",
+              "via": "vertex",
+              "vertical": "ok",
+              "value": "100.00",
+              "orient": "*上视"
+            },
+            {
+              "view": "工程图视图3",
+              "via": "vertex",
+              "horizontal": "ok",
+              "value": "100.00",
+              "orient": "*右视"
+            },
+            {
+              "view": "工程图视图3",
+              "via": "vertex",
+              "vertical": "ok",
+              "value": "20.00",
+              "orient": "*右视"
+            }
+          ],
+          "elapsed_s": 1.33,
+          "raw": ""
+        },
+        "layout": {
+          "ok": true,
+          "dry_run": false,
+          "views": 3,
+          "sheet_mm": [
+            420.0,
+            297.0
+          ],
+          "scale": 1.0,
+          "block_mm": [
+            188.76,
+            118.76
+          ],
+          "positions_m": [
+            [
+              0.12376,
+              0.19694
+            ],
+            [
+              0.12376,
+              0.12006
+            ],
+            [
+              0.23564,
+              0.19694
+            ]
+          ],
+          "roles": [
+            "main",
+            "top",
+            "right"
+          ],
+          "warnings": [],
+          "moved": 3,
+          "saved": true,
+          "errors": []
+        },
+        "note": "受控标注：只标总尺寸与最大的几个内部跨度，跨视图去重；公差与粗糙度可用 annotations 接口按明确要求补充。要旧的全量标注传 curated=False"
+      }
+    },
+    {
+      "name": "尺寸枚举",
+      "ok": true,
+      "detail": [
+        {
+          "name": "RD1@工程图视图1@公差与粗糙度演示.Drawing",
+          "view": "工程图视图1",
+          "dimension_type": 2,
+          "system_value": 0.16,
+          "value": 160.0,
+          "unit": "mm"
+        },
+        {
+          "name": "RD2@工程图视图1@公差与粗糙度演示.Drawing",
+          "view": "工程图视图1",
+          "dimension_type": 2,
+          "system_value": 0.02,
+          "value": 20.0,
+          "unit": "mm"
+        },
+        {
+          "name": "RD1@工程图视图2@公差与粗糙度演示.Drawing",
+          "view": "工程图视图2",
+          "dimension_type": 2,
+          "system_value": 0.16,
+          "value": 160.0,
+          "unit": "mm"
+        },
+        {
+          "name": "RD2@工程图视图2@公差与粗糙度演示.Drawing",
+          "view": "工程图视图2",
+          "dimension_type": 2,
+          "system_value": 0.1,
+          "value": 100.0,
+          "unit": "mm"
+        },
+        {
+          "name": "RD1@工程图视图3@公差与粗糙度演示.Drawing",
+          "view": "工程图视图3",
+          "dimension_type": 2,
+          "system_value": 0.1,
+          "value": 100.0,
+          "unit": "mm"
+        },
+        {
+          "name": "RD2@工程图视图3@公差与粗糙度演示.Drawing",
+          "view": "工程图视图3",
+          "dimension_type": 2,
+          "system_value": 0.02,
+          "value": 20.0,
+          "unit": "mm"
+        }
+      ]
+    },
+    {
+      "name": "同值尺寸拒绝猜选",
+      "ok": true,
+      "detail": {
+        "ok": false,
+        "error": "ValueError: 尺寸匹配 2 项，必须唯一；请用 list_dimensions 返回的完整 name 和 view",
+        "modified": false
+      }
+    },
+    {
+      "name": "symmetric",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "error": "",
+        "modified": true,
+        "name": "RD1@工程图视图1@公差与粗糙度演示.Drawing",
+        "view": "工程图视图1",
+        "nominal_before_mm": 160.0,
+        "type_readback": 4,
+        "values_readback": [
+          -0.1,
+          0.1
+        ],
+        "fit_readback": {
+          "hole": "",
+          "shaft": ""
+        },
+        "nominal_after_mm": 160.0
+      }
+    },
+    {
+      "name": "fit",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "error": "",
+        "modified": true,
+        "name": "RD2@工程图视图1@公差与粗糙度演示.Drawing",
+        "view": "工程图视图1",
+        "nominal_before_mm": 20.0,
+        "type_readback": 7,
+        "values_readback": [
+          0.0,
+          0.021
+        ],
+        "fit_readback": {
+          "hole": "H7",
+          "shaft": "g6"
+        },
+        "nominal_after_mm": 20.0
+      }
+    },
+    {
+      "name": "limit",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "error": "",
+        "modified": true,
+        "name": "RD1@工程图视图2@公差与粗糙度演示.Drawing",
+        "view": "工程图视图2",
+        "nominal_before_mm": 160.0,
+        "type_readback": 3,
+        "values_readback": [
+          -0.1,
+          0.1
+        ],
+        "fit_readback": {
+          "hole": "",
+          "shaft": ""
+        },
+        "nominal_after_mm": 160.0
+      }
+    },
+    {
+      "name": "bilateral",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "error": "",
+        "modified": true,
+        "name": "RD2@工程图视图2@公差与粗糙度演示.Drawing",
+        "view": "工程图视图2",
+        "nominal_before_mm": 100.0,
+        "type_readback": 2,
+        "values_readback": [
+          -0.05,
+          0.2
+        ],
+        "fit_readback": {
+          "hole": "",
+          "shaft": ""
+        },
+        "nominal_after_mm": 100.0
+      }
+    },
+    {
+      "name": "公差回退为无",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "error": "",
+        "modified": true,
+        "name": "RD1@工程图视图1@公差与粗糙度演示.Drawing",
+        "view": "工程图视图1",
+        "nominal_before_mm": 160.0,
+        "type_readback": 0,
+        "values_readback": [
+          -0.1,
+          0.1
+        ],
+        "fit_readback": {
+          "hole": "",
+          "shaft": ""
+        },
+        "nominal_after_mm": 160.0
+      }
+    },
+    {
+      "name": "公差回退后恢复",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "error": "",
+        "modified": true,
+        "name": "RD1@工程图视图1@公差与粗糙度演示.Drawing",
+        "view": "工程图视图1",
+        "nominal_before_mm": 160.0,
+        "type_readback": 4,
+        "values_readback": [
+          -0.1,
+          0.1
+        ],
+        "fit_readback": {
+          "hole": "",
+          "shaft": ""
+        },
+        "nominal_after_mm": 160.0
+      }
+    },
+    {
+      "name": "五个粗糙度附着轮廓边",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "results": [
+          {
+            "ok": true,
+            "created": true,
+            "error": "",
+            "requested": {
+              "x": 0.12375999999999997,
+              "y": 0.20194,
+              "ra": "3.2",
+              "symbol_type": 1,
+              "prod_method": "",
+              "lay": 0,
+              "view_name": "工程图视图1",
+              "edge_index": 0,
+              "edge_fraction": 0.5,
+              "leader": false,
+              "edge_start_m": [
+                0.08375999999999997,
+                0.20194,
+                0.025
+              ],
+              "edge_end_m": [
+                0.16375999999999996,
+                0.20194,
+                0.025
+              ]
+            },
+            "type": 1,
+            "lay_readback": 0,
+            "texts": [
+              "3.2"
+            ],
+            "position": [
+              0.12375999999999997,
+              0.20194,
+              0.025
+            ],
+            "placement": "edge",
+            "attached_entity_count": 1,
+            "ra_readback": "3.2",
+            "view_count_before": 3,
+            "view_count_after": 3
+          },
+          {
+            "ok": true,
+            "created": true,
+            "error": "",
+            "requested": {
+              "x": 0.12375999999999997,
+              "y": 0.14506,
+              "ra": "1.6",
+              "symbol_type": 0,
+              "prod_method": "",
+              "lay": 0,
+              "view_name": "工程图视图2",
+              "edge_index": 0,
+              "edge_fraction": 0.5,
+              "leader": false,
+              "edge_start_m": [
+                0.16375999999999996,
+                0.14506,
+                0.005
+              ],
+              "edge_end_m": [
+                0.08375999999999997,
+                0.14506,
+                0.005
+              ]
+            },
+            "type": 0,
+            "lay_readback": 0,
+            "texts": [
+              "1.6"
+            ],
+            "position": [
+              0.12375999999999997,
+              0.14506,
+              0.005
+            ],
+            "placement": "edge",
+            "attached_entity_count": 1,
+            "ra_readback": "1.6",
+            "view_count_before": 3,
+            "view_count_after": 3
+          },
+          {
+            "ok": true,
+            "created": true,
+            "error": "",
+            "requested": {
+              "x": 0.23564000000000004,
+              "y": 0.20194,
+              "ra": "6.3",
+              "symbol_type": 2,
+              "prod_method": "",
+              "lay": 0,
+              "view_name": "工程图视图3",
+              "edge_index": 0,
+              "edge_fraction": 0.5,
+              "leader": false,
+              "edge_start_m": [
+                0.21064000000000005,
+                0.20194,
+                0.04
+              ],
+              "edge_end_m": [
+                0.26064000000000004,
+                0.20194,
+                0.04
+              ]
+            },
+            "type": 2,
+            "lay_readback": 0,
+            "texts": [
+              "6.3"
+            ],
+            "position": [
+              0.23564000000000004,
+              0.20194,
+              0.04
+            ],
+            "placement": "edge",
+            "attached_entity_count": 1,
+            "ra_readback": "6.3",
+            "view_count_before": 3,
+            "view_count_after": 3
+          },
+          {
+            "ok": true,
+            "created": true,
+            "error": "",
+            "requested": {
+              "x": 0.17875999999999997,
+              "y": 0.21994,
+              "ra": "0.8",
+              "symbol_type": 1,
+              "prod_method": "铣",
+              "lay": 0,
+              "view_name": "工程图视图1",
+              "edge_index": 1,
+              "edge_fraction": 0.5,
+              "leader": true,
+              "edge_start_m": [
+                0.16375999999999996,
+                0.20194,
+                0.025
+              ],
+              "edge_end_m": [
+                0.16375999999999996,
+                0.19194,
+                0.025
+              ]
+            },
+            "type": 1,
+            "lay_readback": 0,
+            "texts": [
+              "铣",
+              "0.8"
+            ],
+            "position": [
+              0.17875999999999997,
+              0.21994,
+              0.1
+            ],
+            "placement": "edge",
+            "attached_entity_count": 1,
+            "leader_points": [
+              0.17875999999999997,
+              0.21994,
+              0.1,
+              0.16375999999999996,
+              0.19194,
+              0.025
+            ],
+            "ra_readback": "0.8",
+            "view_count_before": 3,
+            "view_count_after": 3
+          },
+          {
+            "ok": true,
+            "created": true,
+            "error": "",
+            "requested": {
+              "x": 0.17875999999999997,
+              "y": 0.13206,
+              "ra": "12.5",
+              "symbol_type": 1,
+              "prod_method": "",
+              "lay": 0,
+              "view_name": "工程图视图2",
+              "edge_index": 1,
+              "edge_fraction": 0.5,
+              "leader": true,
+              "edge_start_m": [
+                0.16375999999999996,
+                0.09505999999999999,
+                0.005
+              ],
+              "edge_end_m": [
+                0.16375999999999996,
+                0.14506,
+                0.005
+              ]
+            },
+            "type": 1,
+            "lay_readback": 0,
+            "texts": [
+              "12.5"
+            ],
+            "position": [
+              0.17875999999999997,
+              0.13206,
+              0.1
+            ],
+            "placement": "edge",
+            "attached_entity_count": 1,
+            "leader_points": [
+              0.17875999999999997,
+              0.13206,
+              0.1,
+              0.16375999999999996,
+              0.09505999999999999,
+              0.005
+            ],
+            "ra_readback": "12.5",
+            "view_count_before": 3,
+            "view_count_after": 3
+          }
+        ],
+        "created": 5,
+        "error": ""
+      }
+    },
+    {
+      "name": "图纸外位置拒绝插入",
+      "ok": true,
+      "detail": {
+        "ok": false,
+        "created": false,
+        "error": "ValueError: 位置 (10.0, 0.1) 超出图纸内部 (0,0.42) × (0,0.297)，单位米"
+      }
+    },
+    {
+      "name": "连续20次插入",
+      "ok": true,
+      "detail": [
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.04,
+            "y": 0.24,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 0
+          },
+          "type": 1,
+          "lay_readback": 0,
+          "texts": [
+            "3.2"
+          ],
+          "position": [
+            0.04,
+            0.24,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.10500000000000001,
+            "y": 0.24,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 1
+          },
+          "type": 1,
+          "lay_readback": 1,
+          "texts": [
+            "C  ",
+            "3.2"
+          ],
+          "position": [
+            0.10500000000000001,
+            0.24,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.17,
+            "y": 0.24,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 2
+          },
+          "type": 1,
+          "lay_readback": 2,
+          "texts": [
+            "X  ",
+            "3.2"
+          ],
+          "position": [
+            0.17,
+            0.24,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.23500000000000001,
+            "y": 0.24,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 3
+          },
+          "type": 1,
+          "lay_readback": 3,
+          "texts": [
+            "M  ",
+            "3.2"
+          ],
+          "position": [
+            0.23500000000000001,
+            0.24,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.3,
+            "y": 0.24,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 4
+          },
+          "type": 1,
+          "lay_readback": 4,
+          "texts": [
+            "=  ",
+            "3.2"
+          ],
+          "position": [
+            0.3,
+            0.24,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.04,
+            "y": 0.195,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 5
+          },
+          "type": 1,
+          "lay_readback": 5,
+          "texts": [
+            "<LAY-PERP>",
+            "  ",
+            "3.2"
+          ],
+          "position": [
+            0.04,
+            0.195,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.10500000000000001,
+            "y": 0.195,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 6
+          },
+          "type": 1,
+          "lay_readback": 6,
+          "texts": [
+            "R  ",
+            "3.2"
+          ],
+          "position": [
+            0.10500000000000001,
+            0.195,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.17,
+            "y": 0.195,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 7
+          },
+          "type": 1,
+          "lay_readback": 7,
+          "texts": [
+            "P  ",
+            "3.2"
+          ],
+          "position": [
+            0.17,
+            0.195,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.23500000000000001,
+            "y": 0.195,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 0
+          },
+          "type": 1,
+          "lay_readback": 0,
+          "texts": [
+            "3.2"
+          ],
+          "position": [
+            0.23500000000000001,
+            0.195,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.3,
+            "y": 0.195,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 1
+          },
+          "type": 1,
+          "lay_readback": 1,
+          "texts": [
+            "C  ",
+            "3.2"
+          ],
+          "position": [
+            0.3,
+            0.195,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.04,
+            "y": 0.15,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 2
+          },
+          "type": 1,
+          "lay_readback": 2,
+          "texts": [
+            "X  ",
+            "3.2"
+          ],
+          "position": [
+            0.04,
+            0.15,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.10500000000000001,
+            "y": 0.15,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 3
+          },
+          "type": 1,
+          "lay_readback": 3,
+          "texts": [
+            "M  ",
+            "3.2"
+          ],
+          "position": [
+            0.10500000000000001,
+            0.15,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.17,
+            "y": 0.15,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 4
+          },
+          "type": 1,
+          "lay_readback": 4,
+          "texts": [
+            "=  ",
+            "3.2"
+          ],
+          "position": [
+            0.17,
+            0.15,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.23500000000000001,
+            "y": 0.15,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 5
+          },
+          "type": 1,
+          "lay_readback": 5,
+          "texts": [
+            "<LAY-PERP>",
+            "  ",
+            "3.2"
+          ],
+          "position": [
+            0.23500000000000001,
+            0.15,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.3,
+            "y": 0.15,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 6
+          },
+          "type": 1,
+          "lay_readback": 6,
+          "texts": [
+            "R  ",
+            "3.2"
+          ],
+          "position": [
+            0.3,
+            0.15,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.04,
+            "y": 0.10499999999999998,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 7
+          },
+          "type": 1,
+          "lay_readback": 7,
+          "texts": [
+            "P  ",
+            "3.2"
+          ],
+          "position": [
+            0.04,
+            0.10499999999999998,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.10500000000000001,
+            "y": 0.10499999999999998,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 0
+          },
+          "type": 1,
+          "lay_readback": 0,
+          "texts": [
+            "3.2"
+          ],
+          "position": [
+            0.10500000000000001,
+            0.10499999999999998,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.17,
+            "y": 0.10499999999999998,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 1
+          },
+          "type": 1,
+          "lay_readback": 1,
+          "texts": [
+            "C  ",
+            "3.2"
+          ],
+          "position": [
+            0.17,
+            0.10499999999999998,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.23500000000000001,
+            "y": 0.10499999999999998,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 2
+          },
+          "type": 1,
+          "lay_readback": 2,
+          "texts": [
+            "X  ",
+            "3.2"
+          ],
+          "position": [
+            0.23500000000000001,
+            0.10499999999999998,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        },
+        {
+          "ok": true,
+          "created": true,
+          "error": "",
+          "requested": {
+            "x": 0.3,
+            "y": 0.10499999999999998,
+            "ra": "3.2",
+            "symbol_type": 1,
+            "prod_method": "",
+            "lay": 3
+          },
+          "type": 1,
+          "lay_readback": 3,
+          "texts": [
+            "M  ",
+            "3.2"
+          ],
+          "position": [
+            0.3,
+            0.10499999999999998,
+            0.0
+          ],
+          "placement": "sheet",
+          "ra_readback": "3.2",
+          "view_count_before": 0,
+          "view_count_after": 0
+        }
+      ]
+    },
+    {
+      "name": "保存工程图",
+      "ok": true,
+      "detail": {
+        "saved": true,
+        "error": 0,
+        "warning": 0
+      }
+    },
+    {
+      "name": "重开公差_symmetric",
+      "ok": true,
+      "detail": {
+        "name": "RD1@工程图视图1@公差与粗糙度演示.Drawing",
+        "type": 4,
+        "value": 160.0,
+        "offsets": [
+          -0.1,
+          0.1
+        ],
+        "fit": {
+          "hole": "",
+          "shaft": ""
+        }
+      }
+    },
+    {
+      "name": "重开公差_fit",
+      "ok": true,
+      "detail": {
+        "name": "RD2@工程图视图1@公差与粗糙度演示.Drawing",
+        "type": 7,
+        "value": 20.0,
+        "offsets": [
+          0.0,
+          0.021
+        ],
+        "fit": {
+          "hole": "H7",
+          "shaft": "g6"
+        }
+      }
+    },
+    {
+      "name": "重开公差_limit",
+      "ok": true,
+      "detail": {
+        "name": "RD1@工程图视图2@公差与粗糙度演示.Drawing",
+        "type": 3,
+        "value": 160.0,
+        "offsets": [
+          -0.1,
+          0.1
+        ],
+        "fit": {
+          "hole": "",
+          "shaft": ""
+        }
+      }
+    },
+    {
+      "name": "重开公差_bilateral",
+      "ok": true,
+      "detail": {
+        "name": "RD2@工程图视图2@公差与粗糙度演示.Drawing",
+        "type": 2,
+        "value": 100.0,
+        "offsets": [
+          -0.05,
+          0.2
+        ],
+        "fit": {
+          "hole": "",
+          "shaft": ""
+        }
+      }
+    },
+    {
+      "name": "重开粗糙度",
+      "ok": true,
+      "detail": [
+        {
+          "type": 1,
+          "texts": [
+            "3.2"
+          ],
+          "position": [
+            0.12375999999999997,
+            0.20194,
+            0.025
+          ],
+          "attached_entity_count": 1
+        },
+        {
+          "type": 1,
+          "texts": [
+            "铣",
+            "0.8"
+          ],
+          "position": [
+            0.17875999999999997,
+            0.21994,
+            0.1
+          ],
+          "attached_entity_count": 1
+        },
+        {
+          "type": 0,
+          "texts": [
+            "1.6"
+          ],
+          "position": [
+            0.12375999999999997,
+            0.14506,
+            0.005
+          ],
+          "attached_entity_count": 1
+        },
+        {
+          "type": 1,
+          "texts": [
+            "12.5"
+          ],
+          "position": [
+            0.17875999999999997,
+            0.13206,
+            0.1
+          ],
+          "attached_entity_count": 1
+        },
+        {
+          "type": 2,
+          "texts": [
+            "6.3"
+          ],
+          "position": [
+            0.23564000000000004,
+            0.20194,
+            0.04
+          ],
+          "attached_entity_count": 1
+        }
+      ]
+    },
+    {
+      "name": "五个符号随视图移动10毫米",
+      "ok": true,
+      "detail": [
+        {
+          "before": [
+            0.12375999999999997,
+            0.20194,
+            0.025
+          ],
+          "after": [
+            0.13376,
+            0.21194000000000002,
+            0.025
+          ],
+          "ok": true
+        },
+        {
+          "before": [
+            0.17875999999999997,
+            0.21994,
+            0.1
+          ],
+          "after": [
+            0.18875999999999998,
+            0.22994,
+            0.1
+          ],
+          "ok": true
+        },
+        {
+          "before": [
+            0.12375999999999997,
+            0.14506,
+            0.005
+          ],
+          "after": [
+            0.13376,
+            0.15506,
+            0.005
+          ],
+          "ok": true
+        },
+        {
+          "before": [
+            0.17875999999999997,
+            0.13206,
+            0.1
+          ],
+          "after": [
+            0.18875999999999998,
+            0.14206000000000002,
+            0.1
+          ],
+          "ok": true
+        },
+        {
+          "before": [
+            0.23564000000000004,
+            0.20194,
+            0.04
+          ],
+          "after": [
+            0.24564000000000005,
+            0.21194000000000002,
+            0.04
+          ],
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "PDF导出并独立渲染",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "path": "F:\\SW+AI\\04_实测证据\\v1.4.0\\attached_acceptance_02\\公差与粗糙度演示.pdf",
+        "fmt": "pdf",
+        "err": 0,
+        "warn": 0,
+        "sw_reported_ok": true,
+        "validation": {
+          "ok": true,
+          "page_count": 1,
+          "engine": "pdfium",
+          "all_pages_rendered": true
+        },
+        "error": ""
+      }
+    },
+    {
+      "name": "PDF标注文字",
+      "ok": true,
+      "detail": " 160 ±0.10 \r\n 20 H7/g6 \r\n3.2\r\n铣\r\n0.8\r\n160.10\r\n159.90\r\n 100 \r\n+\r\n-\r\n0.20\r\n0.05\r\n1.6\r\n12.5\r\n 100 \r\n 20 \r\n6.3\r\n审核\r\n校核\r\n设计\r\n标记 处数 分区 更改文件号 签名 年 月 日\r\n工艺\r\n标准化\r\n批准\r\n阶 段 标 记\r\n共 张 第 张\r\n重量 比例\r\n 日期\r\n 签字\r\n底图总号\r\n旧底图总号\r\n描校\r\n描图\r\n借(通)用件登记\r\n零 件 代 号\r\n版本\r\n主管设计\r\n替代\r\n1:2\r\n1\r\n1\r\n2.512\r\n“图样名称”\r\n “图样代号”\r\n \r\nQ235\r\n1\r\n2\r\n3\r\n4\r\n5\r\n6\r\n7\r\n8\r\n1\r\n2\r\n3\r\n4\r\n5\r\n6\r\n7\r\n8\r\nFEDCB\r\nA\r\nA\r\nBCD"
+    }
+  ],
+  "before": {
+    "ok": true,
+    "document_count": 0,
+    "documents": [],
+    "process_id": 31560,
+    "working_set_mb": 277.6
+  },
+  "dimensions": [
+    {
+      "name": "RD1@工程图视图1@公差与粗糙度演示.Drawing",
+      "view": "工程图视图1",
+      "dimension_type": 2,
+      "system_value": 0.16,
+      "value": 160.0,
+      "unit": "mm"
+    },
+    {
+      "name": "RD2@工程图视图1@公差与粗糙度演示.Drawing",
+      "view": "工程图视图1",
+      "dimension_type": 2,
+      "system_value": 0.02,
+      "value": 20.0,
+      "unit": "mm"
+    },
+    {
+      "name": "RD1@工程图视图2@公差与粗糙度演示.Drawing",
+      "view": "工程图视图2",
+      "dimension_type": 2,
+      "system_value": 0.16,
+      "value": 160.0,
+      "unit": "mm"
+    },
+    {
+      "name": "RD2@工程图视图2@公差与粗糙度演示.Drawing",
+      "view": "工程图视图2",
+      "dimension_type": 2,
+      "system_value": 0.1,
+      "value": 100.0,
+      "unit": "mm"
+    },
+    {
+      "name": "RD1@工程图视图3@公差与粗糙度演示.Drawing",
+      "view": "工程图视图3",
+      "dimension_type": 2,
+      "system_value": 0.1,
+      "value": 100.0,
+      "unit": "mm"
+    },
+    {
+      "name": "RD2@工程图视图3@公差与粗糙度演示.Drawing",
+      "view": "工程图视图3",
+      "dimension_type": 2,
+      "system_value": 0.02,
+      "value": 20.0,
+      "unit": "mm"
+    }
+  ],
+  "tolerances": [
+    {
+      "ok": true,
+      "error": "",
+      "modified": true,
+      "name": "RD1@工程图视图1@公差与粗糙度演示.Drawing",
+      "view": "工程图视图1",
+      "nominal_before_mm": 160.0,
+      "type_readback": 4,
+      "values_readback": [
+        -0.1,
+        0.1
+      ],
+      "fit_readback": {
+        "hole": "",
+        "shaft": ""
+      },
+      "nominal_after_mm": 160.0
+    },
+    {
+      "ok": true,
+      "error": "",
+      "modified": true,
+      "name": "RD2@工程图视图1@公差与粗糙度演示.Drawing",
+      "view": "工程图视图1",
+      "nominal_before_mm": 20.0,
+      "type_readback": 7,
+      "values_readback": [
+        0.0,
+        0.021
+      ],
+      "fit_readback": {
+        "hole": "H7",
+        "shaft": "g6"
+      },
+      "nominal_after_mm": 20.0
+    },
+    {
+      "ok": true,
+      "error": "",
+      "modified": true,
+      "name": "RD1@工程图视图2@公差与粗糙度演示.Drawing",
+      "view": "工程图视图2",
+      "nominal_before_mm": 160.0,
+      "type_readback": 3,
+      "values_readback": [
+        -0.1,
+        0.1
+      ],
+      "fit_readback": {
+        "hole": "",
+        "shaft": ""
+      },
+      "nominal_after_mm": 160.0
+    },
+    {
+      "ok": true,
+      "error": "",
+      "modified": true,
+      "name": "RD2@工程图视图2@公差与粗糙度演示.Drawing",
+      "view": "工程图视图2",
+      "nominal_before_mm": 100.0,
+      "type_readback": 2,
+      "values_readback": [
+        -0.05,
+        0.2
+      ],
+      "fit_readback": {
+        "hole": "",
+        "shaft": ""
+      },
+      "nominal_after_mm": 100.0
+    }
+  ],
+  "surfaces": {
+    "ok": true,
+    "results": [
+      {
+        "ok": true,
+        "created": true,
+        "error": "",
+        "requested": {
+          "x": 0.12375999999999997,
+          "y": 0.20194,
+          "ra": "3.2",
+          "symbol_type": 1,
+          "prod_method": "",
+          "lay": 0,
+          "view_name": "工程图视图1",
+          "edge_index": 0,
+          "edge_fraction": 0.5,
+          "leader": false,
+          "edge_start_m": [
+            0.08375999999999997,
+            0.20194,
+            0.025
+          ],
+          "edge_end_m": [
+            0.16375999999999996,
+            0.20194,
+            0.025
+          ]
+        },
+        "type": 1,
+        "lay_readback": 0,
+        "texts": [
+          "3.2"
+        ],
+        "position": [
+          0.12375999999999997,
+          0.20194,
+          0.025
+        ],
+        "placement": "edge",
+        "attached_entity_count": 1,
+        "ra_readback": "3.2",
+        "view_count_before": 3,
+        "view_count_after": 3
+      },
+      {
+        "ok": true,
+        "created": true,
+        "error": "",
+        "requested": {
+          "x": 0.12375999999999997,
+          "y": 0.14506,
+          "ra": "1.6",
+          "symbol_type": 0,
+          "prod_method": "",
+          "lay": 0,
+          "view_name": "工程图视图2",
+          "edge_index": 0,
+          "edge_fraction": 0.5,
+          "leader": false,
+          "edge_start_m": [
+            0.16375999999999996,
+            0.14506,
+            0.005
+          ],
+          "edge_end_m": [
+            0.08375999999999997,
+            0.14506,
+            0.005
+          ]
+        },
+        "type": 0,
+        "lay_readback": 0,
+        "texts": [
+          "1.6"
+        ],
+        "position": [
+          0.12375999999999997,
+          0.14506,
+          0.005
+        ],
+        "placement": "edge",
+        "attached_entity_count": 1,
+        "ra_readback": "1.6",
+        "view_count_before": 3,
+        "view_count_after": 3
+      },
+      {
+        "ok": true,
+        "created": true,
+        "error": "",
+        "requested": {
+          "x": 0.23564000000000004,
+          "y": 0.20194,
+          "ra": "6.3",
+          "symbol_type": 2,
+          "prod_method": "",
+          "lay": 0,
+          "view_name": "工程图视图3",
+          "edge_index": 0,
+          "edge_fraction": 0.5,
+          "leader": false,
+          "edge_start_m": [
+            0.21064000000000005,
+            0.20194,
+            0.04
+          ],
+          "edge_end_m": [
+            0.26064000000000004,
+            0.20194,
+            0.04
+          ]
+        },
+        "type": 2,
+        "lay_readback": 0,
+        "texts": [
+          "6.3"
+        ],
+        "position": [
+          0.23564000000000004,
+          0.20194,
+          0.04
+        ],
+        "placement": "edge",
+        "attached_entity_count": 1,
+        "ra_readback": "6.3",
+        "view_count_before": 3,
+        "view_count_after": 3
+      },
+      {
+        "ok": true,
+        "created": true,
+        "error": "",
+        "requested": {
+          "x": 0.17875999999999997,
+          "y": 0.21994,
+          "ra": "0.8",
+          "symbol_type": 1,
+          "prod_method": "铣",
+          "lay": 0,
+          "view_name": "工程图视图1",
+          "edge_index": 1,
+          "edge_fraction": 0.5,
+          "leader": true,
+          "edge_start_m": [
+            0.16375999999999996,
+            0.20194,
+            0.025
+          ],
+          "edge_end_m": [
+            0.16375999999999996,
+            0.19194,
+            0.025
+          ]
+        },
+        "type": 1,
+        "lay_readback": 0,
+        "texts": [
+          "铣",
+          "0.8"
+        ],
+        "position": [
+          0.17875999999999997,
+          0.21994,
+          0.1
+        ],
+        "placement": "edge",
+        "attached_entity_count": 1,
+        "leader_points": [
+          0.17875999999999997,
+          0.21994,
+          0.1,
+          0.16375999999999996,
+          0.19194,
+          0.025
+        ],
+        "ra_readback": "0.8",
+        "view_count_before": 3,
+        "view_count_after": 3
+      },
+      {
+        "ok": true,
+        "created": true,
+        "error": "",
+        "requested": {
+          "x": 0.17875999999999997,
+          "y": 0.13206,
+          "ra": "12.5",
+          "symbol_type": 1,
+          "prod_method": "",
+          "lay": 0,
+          "view_name": "工程图视图2",
+          "edge_index": 1,
+          "edge_fraction": 0.5,
+          "leader": true,
+          "edge_start_m": [
+            0.16375999999999996,
+            0.09505999999999999,
+            0.005
+          ],
+          "edge_end_m": [
+            0.16375999999999996,
+            0.14506,
+            0.005
+          ]
+        },
+        "type": 1,
+        "lay_readback": 0,
+        "texts": [
+          "12.5"
+        ],
+        "position": [
+          0.17875999999999997,
+          0.13206,
+          0.1
+        ],
+        "placement": "edge",
+        "attached_entity_count": 1,
+        "leader_points": [
+          0.17875999999999997,
+          0.13206,
+          0.1,
+          0.16375999999999996,
+          0.09505999999999999,
+          0.005
+        ],
+        "ra_readback": "12.5",
+        "view_count_before": 3,
+        "view_count_after": 3
+      }
+    ],
+    "created": 5,
+    "error": ""
+  },
+  "reopened_symbols": [
+    {
+      "type": 1,
+      "texts": [
+        "3.2"
+      ],
+      "position": [
+        0.12375999999999997,
+        0.20194,
+        0.025
+      ],
+      "attached_entity_count": 1
+    },
+    {
+      "type": 1,
+      "texts": [
+        "铣",
+        "0.8"
+      ],
+      "position": [
+        0.17875999999999997,
+        0.21994,
+        0.1
+      ],
+      "attached_entity_count": 1
+    },
+    {
+      "type": 0,
+      "texts": [
+        "1.6"
+      ],
+      "position": [
+        0.12375999999999997,
+        0.14506,
+        0.005
+      ],
+      "attached_entity_count": 1
+    },
+    {
+      "type": 1,
+      "texts": [
+        "12.5"
+      ],
+      "position": [
+        0.17875999999999997,
+        0.13206,
+        0.1
+      ],
+      "attached_entity_count": 1
+    },
+    {
+      "type": 2,
+      "texts": [
+        "6.3"
+      ],
+      "position": [
+        0.23564000000000004,
+        0.20194,
+        0.04
+      ],
+      "attached_entity_count": 1
+    }
+  ],
+  "pdf_text": " 160 ±0.10 \r\n 20 H7/g6 \r\n3.2\r\n铣\r\n0.8\r\n160.10\r\n159.90\r\n 100 \r\n+\r\n-\r\n0.20\r\n0.05\r\n1.6\r\n12.5\r\n 100 \r\n 20 \r\n6.3\r\n审核\r\n校核\r\n设计\r\n标记 处数 分区 更改文件号 签名 年 月 日\r\n工艺\r\n标准化\r\n批准\r\n阶 段 标 记\r\n共 张 第 张\r\n重量 比例\r\n 日期\r\n 签字\r\n底图总号\r\n旧底图总号\r\n描校\r\n描图\r\n借(通)用件登记\r\n零 件 代 号\r\n版本\r\n主管设计\r\n替代\r\n1:2\r\n1\r\n1\r\n2.512\r\n“图样名称”\r\n “图样代号”\r\n \r\nQ235\r\n1\r\n2\r\n3\r\n4\r\n5\r\n6\r\n7\r\n8\r\n1\r\n2\r\n3\r\n4\r\n5\r\n6\r\n7\r\n8\r\nFEDCB\r\nA\r\nA\r\nBCD",
+  "pdf": {
+    "ok": true,
+    "path": "F:\\SW+AI\\04_实测证据\\v1.4.0\\attached_acceptance_02\\公差与粗糙度演示.pdf",
+    "fmt": "pdf",
+    "err": 0,
+    "warn": 0,
+    "sw_reported_ok": true,
+    "validation": {
+      "ok": true,
+      "page_count": 1,
+      "engine": "pdfium",
+      "all_pages_rendered": true
+    },
+    "error": ""
+  },
+  "after": {
+    "ok": true,
+    "document_count": 2,
+    "documents": [
+      {
+        "path": "F:\\SW+AI\\04_实测证据\\v1.4.0\\attached_acceptance_02\\公差与粗糙度演示.SLDPRT",
+        "title": "公差与粗糙度演示",
+        "modified": false
+      },
+      {
+        "path": "F:\\SW+AI\\04_实测证据\\v1.4.0\\attached_acceptance_02\\公差与粗糙度演示.SLDDRW",
+        "title": "公差与粗糙度演示 - 图纸1",
+        "modified": false
+      }
+    ],
+    "process_id": 31560,
+    "working_set_mb": 323.47
+  }
+}

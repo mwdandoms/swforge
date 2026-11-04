@@ -1,0 +1,129 @@
+{
+  "ok": true,
+  "passed": 10,
+  "failed": 0,
+  "skipped": 0,
+  "work_dir": "F:\\SW+AI\\04_实测证据\\v1.4.0\\swforge_rollback_131_selftest",
+  "swforge": "1.3.1",
+  "sw_version": "33.5.0",
+  "results": [
+    {
+      "name": "connect",
+      "title": "连接与版本",
+      "why": "同类项目最常见的第一道坎（vespo92 #1）",
+      "ok": true,
+      "detail": "SolidWorks 33.5.0，往返 9 ms",
+      "elapsed_s": 0.01
+    },
+    {
+      "name": "activate",
+      "title": "文档切换后真正激活",
+      "why": "对应 andrewbartels1 #91",
+      "ok": true,
+      "detail": "3 次切换全部正确（每次都回读标题）",
+      "elapsed_s": 13.48
+    },
+    {
+      "name": "resource",
+      "title": "资源守卫与清扫",
+      "why": "对应 andrewbartels1 #101",
+      "ok": true,
+      "detail": "峰值 5/8，清扫后 2",
+      "elapsed_s": 22.02
+    },
+    {
+      "name": "readback",
+      "title": "几何回读准确",
+      "why": "对应 andrewbartels1 #100",
+      "ok": true,
+      "detail": "体积 100000.0 mm³（理论 100000），偏差 0.000%",
+      "elapsed_s": 6.77
+    },
+    {
+      "name": "material",
+      "title": "材质真的赋上（密度≠1000）",
+      "why": "SolidWorks 默认密度是水，质量会错 7.85 倍",
+      "ok": true,
+      "detail": "材质回读=Q235，密度反算 7850 kg/m³（Q235 标准 7850）",
+      "elapsed_s": 7.56
+    },
+    {
+      "name": "interference",
+      "title": "干涉体积精确",
+      "why": "同类项目这次调用常返回 0/None",
+      "ok": true,
+      "detail": "报告 1 处干涉，明细 1 条，体积 4000.0 mm³（理论 4000），偏差 0.00%",
+      "elapsed_s": 22.03
+    },
+    {
+      "name": "mate",
+      "title": "配合真正加成功",
+      "why": "errStatus 语义反直觉，容易误判",
+      "ok": true,
+      "detail": "配合前 X=[0.0, 60.0] 配合后 X=[0.0, 0.0]，配合表 1 条",
+      "elapsed_s": 24.07
+    },
+    {
+      "name": "drawing",
+      "title": "出图与尺寸值正确",
+      "why": "尺寸选错轴会标出错误的值",
+      "ok": true,
+      "detail": "6 个尺寸，取值 [20.0, 100.0, 160.0]",
+      "elapsed_s": 12.8
+    },
+    {
+      "name": "concurrency",
+      "title": "活动文档守卫（多客户端）",
+      "why": "对应 hjbaard #10：多个客户端抢同一个 SolidWorks",
+      "ok": true,
+      "detail": "被切到 'st_cc_b' 后正确检测到，并成功抢回；当前活动文档 'st_cc_a'",
+      "elapsed_s": 14.9
+    },
+    {
+      "name": "probe",
+      "title": "API 反射探测",
+      "why": "对应 andrewbartels1 #195",
+      "ok": true,
+      "detail": "探测 28 项，可用 28 项，耗时 0.56s，互操作 33.5.0.53",
+      "elapsed_s": 0.56
+    }
+  ],
+  "elapsed_s": 129.76,
+  "package_path": "C:\\Users\\MWD\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\site-packages\\swforge\\__init__.py",
+  "inventory_before": {
+    "ok": true,
+    "document_count": 2,
+    "documents": [
+      {
+        "path": "F:\\SW+AI\\04_实测证据\\v1.4.0\\attached_acceptance_02\\公差与粗糙度演示.SLDPRT",
+        "title": "公差与粗糙度演示",
+        "modified": false
+      },
+      {
+        "path": "F:\\SW+AI\\04_实测证据\\v1.4.0\\attached_acceptance_02\\公差与粗糙度演示.SLDDRW",
+        "title": "公差与粗糙度演示 - 图纸1",
+        "modified": false
+      }
+    ],
+    "process_id": 31560,
+    "working_set_mb": 313.13
+  },
+  "inventory_after": {
+    "ok": true,
+    "document_count": 2,
+    "documents": [
+      {
+        "path": "F:\\SW+AI\\04_实测证据\\v1.4.0\\attached_acceptance_02\\公差与粗糙度演示.SLDPRT",
+        "title": "公差与粗糙度演示",
+        "modified": false
+      },
+      {
+        "path": "F:\\SW+AI\\04_实测证据\\v1.4.0\\attached_acceptance_02\\公差与粗糙度演示.SLDDRW",
+        "title": "公差与粗糙度演示 - 图纸1",
+        "modified": true
+      }
+    ],
+    "process_id": 31560,
+    "working_set_mb": 351.2
+  }
+}

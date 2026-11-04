@@ -4,6 +4,25 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.1] - 2026-11-04
+
+### Added and fixed
+
+- Explicit concentric/coincident mates using persistent face references scoped to assembly, configuration and component instance. Native mate entities and assembly-space geometry are verified.
+- Concentric hole/shaft faces may have different radii. Invalid references, mismatched scope and duplicate mates are rejected without selecting alternative faces.
+- Batch preflight, attempted rollback of newly created mates and component transforms, and read-only inspection after save/reopen.
+- Corrected reversed planar parameters in the automatic path, added component transforms and post-mate geometry checks. Automatic selection still does not establish design intent for complex parts.
+- Two CLI commands, three MCP tools, a thirteenth live self-check and a reproducible acceptance script. See `docs/face-mates.md`.
+
+## [1.4.0] - 2026-11-04
+
+### Added
+
+- Single and batch surface-finish symbols, with native visible-edge attachment (on-edge or leader), explicit sheet coordinates or view-outline placement. Readback includes type, Ra, manufacturing method, lay, position and attached entities; save/reopen and movement with the view are verified.
+- Current-sheet dimension enumeration and symmetric, bilateral, limit and fit tolerances. Offsets are entered in mm and converted to metres; ambiguous matches are rejected and nominal values remain unchanged. Failed writes attempt to restore the previous tolerance.
+- Four CLI commands, five MCP tools, two additional live self-checks and a reproducible acceptance script covering save/reopen, movement with the view, 20 consecutive insertions and PDF rendering.
+- Corrected ignored surface-symbol insertion coordinates on SW2025. Only SW2025 SP5.0 is live-verified; no automatic process recommendations or geometric tolerances.
+
 ## [1.3.1] - 2026-11-04
 
 ### Fixed

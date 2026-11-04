@@ -40,13 +40,12 @@ main goal of v0.9.
 | Auto annotation | `InsertModelAnnotations4` inserts model driving dimensions, **deduplicated across views**, capped around 18 |
 | Overall dimensions | supported, but **the right/top view may snap to inner contours** (measured 114 / 14 where 100 was expected) |
 | Dimension avoidance | ❌ none; dimensions may overlap geometry or each other |
-| **Tolerances** | ❌ **not generated** — deliberate: no invented engineering requirements |
-| **Surface finish** | ❌ same |
+| **Tolerances** | v1.4 accepts explicit symmetric/bilateral/limit/fit requirements with readback; no automatic grade selection |
+| **Surface finish** | v1.4 supports native straight-edge attachment, leaders and standalone symbols; positions in metres; curved edges and assembly-view attachment are unverified; no automatic avoidance |
 | Geometric tolerance (GD&T) | ❌ unsupported |
 | Full annotation pipeline | ❌ MechDog's `annotations=True` path still produces PDF `err=1` |
 
-**Conclusion**: the drawings are good for "see the shape plus the main dimensions".
-Before real production they still need tolerances, surface finish and a human sign-off.
+**Conclusion**: explicit tolerances and surface finish can be added in v1.4. Drawings still need process review, complete annotation and human sign-off. See [annotation usage](annotations.md).
 
 ---
 
@@ -55,8 +54,8 @@ Before real production they still need tolerances, surface finish and a human si
 | Item | Note |
 |---|---|
 | Insert + fix | ✅ |
-| Concentric mate | ✅ auto-selects equal-radius cylindrical faces |
-| Coincident mate | ✅ auto-selects parallel planes |
+| Concentric mate | v1.4.1 supports explicit persistent face references, including unequal hole/shaft radii; automatic selection can still choose unintended faces |
+| Coincident mate | v1.4.1 supports explicit planar faces with assembly-space normal and gap readback |
 | Distance / angle / gear mates | ❌ not implemented |
 | Sub-assemblies | ❌ untested |
 | Assembly-level interference API | ❌ **returns 0 for a known 500 mm³ overlap on this machine — unusable** |

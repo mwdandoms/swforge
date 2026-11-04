@@ -166,7 +166,106 @@ def _main(argv: list[str] | None = None) -> int:
     p.add_argument("spec")
     p.add_argument("--out", required=True)
 
+    p = sub.add_parser('surface-finish', help='添加粗糙度并回读；坐标单位米，Ra 单位 μm')
+    p.add_argument('drawing', nargs='?', default=None)
+    p.add_argument('--ra', default='3.2')
+    p.add_argument('--x', type=float)
+    p.add_argument('--y', type=float)
+    p.add_argument('--symbol-type', choices=['basic', 'machining', 'no_machining'], default='machining')
+    p.add_argument('--view', default=None)
+    p.add_argument('--prod-method', default='')
+    p.add_argument('--edge', type=int, default=None, help='附着的可见直边索引，先运行 surface-edges')
+    p.add_argument('--edge-fraction', type=float, default=.5)
+    p.add_argument('--leader', action='store_true', help='用引线指向指定轮廓边')
+    p.add_argument('--save', action='store_true', help='回读成功后保存源工程图')
+
+    p = sub.add_parser('dimensions', help='列出当前图纸尺寸完整名称、视图和值')
+    p.add_argument('drawing', nargs='?', default=None)
+
+    p = sub.add_parser('surface-edges', help='枚举视图可见直边索引和图纸坐标，用于粗糙度附着')
+    p.add_argument('drawing', nargs='?', default=None)
+    p.add_argument('--view', default=None)
+
+    p = sub.add_parser('tolerance', help='设置明确给定的尺寸公差并回读，偏差单位毫米')
+    p.add_argument('drawing', nargs='?', default=None)
+    group = p.add_mutually_exclusive_group(required=True)
+    group.add_argument('--dim', default=None)
+    group.add_argument('--value', type=float, default=None)
+    p.add_argument('--view', default=None)
+    p.add_argument('--type', choices=['symmetric', 'bilateral', 'limit', 'fit', 'none'], default='symmetric')
+    p.add_argument('--upper', type=float, default=None)
+    p.add_argument('--lower', type=float, default=None)
+    p.add_argument('--fit', default=None)
+    p.add_argument('--save', action='store_true', help='回读成功后保存源工程图')
+
+    p = sub.add_parser('mate-faces', help='只读枚举装配圆柱面/平面的持久引用，坐标单位毫米')
+    p.add_argument('assembly', nargs='?', default=None)
+    p.add_argument('--component', default=None)
+    p.add_argument('--kind', choices=['cylinder','plane'], default=None)
+    p.add_argument('--out', default=None, help='把面清单写入JSON文件')
+
+    p = sub.add_parser('mate', help='按JSON中的明确面引用建立同心/重合配合并回读')
+    p.add_argument('assembly', nargs='?', default=None)
+    p.add_argument('--spec', required=True, help='包含 mates 列表的JSON文件')
+    p.add_argument('--inspect', action='store_true', help='只读检查指定配合是否存在且几何正确')
+    p.add_argument('--save', action='store_true', help='全部回读成功后保存装配体')
+
     args = ap.parse_args(argv)
+    if args.cmd == 'mate-faces':
+        from .mate_faces import list_mate_faces
+        result = list_mate_faces(args.assembly,component=args.component,kind=args.kind)
+        if args.out:
+            with open(args.out,'w',encoding='utf8') as stream:
+                json.dump(result,stream,ensure_ascii=False,indent=2)
+        return _result(result)
+    if args.cmd == 'mate':
+        from .mate_faces import apply_face_mates, inspect_face_mates
+        with open(args.spec,encoding='utf8') as stream:
+            spec = json.load(stream)
+        action = inspect_face_mates if args.inspect else apply_face_mates
+        result = action(args.assembly,mates=spec['mates'])
+        if result['ok'] and args.save:
+            from .session import get_session, _value
+            from .drawing import _save_as
+            md = get_session().sw().ActiveDoc
+            path = str(_value(md,'GetPathName'))
+            if os.path.normcase(path) != os.path.normcase(result['assembly_path']):
+                result.update(ok=False,error='保存前活动装配已被切换，停止保存')
+            else:
+                saved,error,warning = _save_as(md,path)
+                result['save'] = dict(ok=bool(saved and not error),error_code=error,warning_code=warning)
+                if not result['save']['ok']:
+                    result.update(ok=False,error='显式配合已在内存中完成，但保存失败')
+        return _result(result)
+    if args.cmd in ('surface-finish', 'surface-edges', 'dimensions', 'tolerance'):
+        from .annotations import add_surface_finish, list_surface_edges, list_dimensions, set_tolerance
+        if args.cmd == 'surface-edges':
+            return _result({'ok': True, 'edges': list_surface_edges(args.drawing, args.view)})
+        if args.cmd == 'dimensions':
+            return _result({'ok': True, 'dimensions': list_dimensions(args.drawing)})
+        if args.cmd == 'surface-finish':
+            result = add_surface_finish(args.drawing, x=args.x, y=args.y, ra=args.ra,
+                                        symbol_type=args.symbol_type, view_name=args.view,
+                                        prod_method=args.prod_method, edge_index=args.edge,
+                                        edge_fraction=args.edge_fraction, leader=args.leader)
+        else:
+            result = set_tolerance(args.drawing, dim_name=args.dim, dim_value=args.value,
+                                   tol_type=args.type, upper=args.upper, lower=args.lower,
+                                   fit=args.fit, view_name=args.view)
+        if result['ok'] and args.save:
+            from .annotations import _drawing
+            from .drawing import _save_as
+            from .session import _value
+            _, md = _drawing(args.drawing)
+            path = str(_value(md, 'GetPathName') or '')
+            if not path:
+                result.update(ok=False, error='工程图尚未命名，无法保存；标注仍在内存中')
+            else:
+                saved, error, warning = _save_as(md, path)
+                result['save'] = {'ok': saved, 'error_code': error, 'warning_code': warning}
+                if not saved or error:
+                    result.update(ok=False, error=f'保存工程图失败：{error}')
+        return _result(result)
     if args.cmd == "materials":
         from .gb_materials import GB_MATERIALS, ensure_library, library_path
         rows = [{"grade": n, "density_kg_m3": v[0], "elastic_pa": v[1],

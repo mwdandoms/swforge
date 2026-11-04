@@ -3,8 +3,8 @@
 
 分工
 ----
-* **标注**交给 AssetMate_MechDog（29 个工程图工具，原生尺寸/公差/
-  形位公差/粗糙度/孔标注/BOM 明细栏/交付自检），本包不重复造轮子。
+* **标注**：本包提供受控尺寸与 v1.4 公差/粗糙度接口；
+  AssetMate_MechDog 作为可选增强入口。
 * **排版与成册**由本包负责：MechDog 自动布局在 4 视图以上会挤在一起，
   这里提供 `normalize_layout()` 按 GB 的「长对正、高平齐」重排，
   再用 `make_atlas()` 拼成多页 PDF 图集。
@@ -197,7 +197,7 @@ def add_dimensions(drawing_path: str | None = None, all_views: bool = True,
             "overall": overall_result,
             "layout": layout,
             "note": "受控标注：只标总尺寸与最大的几个内部跨度，跨视图去重；"
-                    "公差与粗糙度需人工补。要旧的全量标注传 curated=False",
+                    "公差与粗糙度可用 annotations 接口按明确要求补充。要旧的全量标注传 curated=False",
         }
 
     try:
@@ -239,7 +239,7 @@ def add_dimensions(drawing_path: str | None = None, all_views: bool = True,
         "units": units,
         "overall": overall_result,
         "layout": layout,
-        "note": "自动标注只插入模型驱动尺寸；公差与粗糙度需人工补，不自动编造",
+        "note": "自动标注只插入模型驱动尺寸；公差与粗糙度可显式调用 annotations 接口，不自动编造",
     }
 
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""装配配合（Mate）：同心 / 重合，自动选面。
+"""装配配合：同心 / 重合；复杂零件优先使用显式持久面引用。
 
 为什么用 C# 而不是 Python COM
 -----------------------------
@@ -116,10 +116,21 @@ public class __CLASS__ {
                     } else if (s.IsPlane()) {
                         double[] p = (double[])s.PlaneParams;
                         fi.kind = 2;
-                        fi.pnt = new double[] { p[0], p[1], p[2] };
-                        fi.normal = new double[] { p[3], p[4], p[5] };
+                        // PlaneParams 前三项是法向，后三项才是位置；原实现读反会选错面。
+                        fi.pnt = new double[] { p[3], p[4], p[5] };
+                        fi.normal = (double[])f.Normal;
                     }
                 } catch { fi.kind = 0; }
+                if (fi.kind != 0) {
+                    IMathUtility math = (IMathUtility)sw.GetMathUtility();
+                    if (fi.kind == 1) {
+                        fi.origin = (double[])((IMathPoint)((IMathPoint)math.CreatePoint(fi.origin)).MultiplyTransform(comp.Transform2)).ArrayData;
+                        fi.axis = (double[])((IMathVector)((IMathVector)math.CreateVector(fi.axis)).MultiplyTransform(comp.Transform2)).ArrayData;
+                    } else {
+                        fi.pnt = (double[])((IMathPoint)((IMathPoint)math.CreatePoint(fi.pnt)).MultiplyTransform(comp.Transform2)).ArrayData;
+                        fi.normal = (double[])((IMathVector)((IMathVector)math.CreateVector(fi.normal)).MultiplyTransform(comp.Transform2)).ArrayData;
+                    }
+                }
                 outList.Add(fi);
             }
         }
@@ -149,6 +160,23 @@ public class __CLASS__ {
         int n = 0;
         for (IFeature f = (IFeature)md.FirstFeature(); f != null; f = (IFeature)f.GetNextFeature()) n++;
         return n;
+    }
+
+    static FaceInfo Updated(FaceInfo selected, IComponent2 component) {
+        foreach (FaceInfo current in Faces(component)) if (sw.IsSame(current.face, selected.face) == 1) return current;
+        throw new Exception("配合后的目标面无法回读");
+    }
+
+    static double Gap(FaceInfo a, FaceInfo b, string op) {
+        double[] p = op == "concentric" ? a.origin : a.pnt;
+        double[] q = op == "concentric" ? b.origin : b.pnt;
+        double[] u = op == "concentric" ? a.axis : a.normal;
+        double[] v = op == "concentric" ? b.axis : b.normal;
+        if (!Parallel(u,v,1e-10)) return Double.PositiveInfinity;
+        double[] d = {q[0]-p[0],q[1]-p[1],q[2]-p[2]};
+        if (op == "coincident") return Math.Abs(Dot(d,u))/Math.Sqrt(Dot(u,u))*1000;
+        double[] cross = {d[1]*u[2]-d[2]*u[1],d[2]*u[0]-d[0]*u[2],d[0]*u[1]-d[1]*u[0]};
+        return Math.Sqrt(Dot(cross,cross)/Dot(u,u))*1000;
     }
 
     public static string Run() {
@@ -256,10 +284,13 @@ public class __CLASS__ {
                 // 关键：swAddMateError_NoError == 1（不是 0！）
                 // 判据 = Mate2 非空 且 errStatus==1；特征数只作参考（配合特征在
                 // MateGroup 之下，FirstFeature 链遍历不一定能数到）。
-                bool ok = (mate != null) && (errStatus == 1);
+                md.EditRebuild3();
+                double gap = Double.PositiveInfinity;
+                if (mate != null && errStatus == 1) gap = Gap(Updated(pa, ca), Updated(pb, cb), op);
+                bool ok = (mate != null) && (errStatus == 1) && gap <= 0.001;
                 L("SWFORGE_MATE op=" + op + " result=" + (ok ? "ok" : "fail") +
                   " errStatus=" + errStatus + " features " + before + "->" + after +
-                  " how=" + how);
+                  " how=" + how + " gap_mm=" + gap.ToString("G17",System.Globalization.CultureInfo.InvariantCulture));
             }
 
             // 结果几何核对：每个组件的包围盒中心
@@ -318,6 +349,23 @@ class MateBuilder:
         self.assembly_path = assembly_path
         self.timeout_s = timeout_s
         self._specs: list[str] = []
+        self._face_specs: list[dict] = []
+
+    def concentric_faces(self, face_a: dict, face_b: dict,
+                         alignment: str = 'closest', verify_tolerance_mm: float = .001) -> "MateBuilder":
+        """同心配合：明确指定持久面引用；允许孔轴半径不同，不自动换面。"""
+        from .mate_faces import _operation
+        self._face_specs.append(_operation(dict(type='concentric',face_a=face_a,face_b=face_b,
+                                               alignment=alignment,verify_tolerance_mm=verify_tolerance_mm)))
+        return self
+
+    def coincident_faces(self, face_a: dict, face_b: dict,
+                         alignment: str = 'closest', verify_tolerance_mm: float = .001) -> "MateBuilder":
+        """重合配合：明确指定两个平面并回读装配坐标中的法向与间距。"""
+        from .mate_faces import _operation
+        self._face_specs.append(_operation(dict(type='coincident',face_a=face_a,face_b=face_b,
+                                               alignment=alignment,verify_tolerance_mm=verify_tolerance_mm)))
+        return self
 
     def concentric(self, a: int, b: int, radius_tol_mm: float = 0.05) -> "MateBuilder":
         self._specs.append(f"concentric|{int(a)}|{int(b)}|{float(radius_tol_mm)}")
@@ -328,6 +376,11 @@ class MateBuilder:
         return self
 
     def apply(self) -> dict:
+        if self._face_specs:
+            if self._specs:
+                return {'ok':False,'error':'同一批次不能混用自动选面与显式面引用','modified':False,'built':0}
+            from .mate_faces import apply_face_mates
+            return apply_face_mates(self.assembly_path,self._face_specs,timeout_s=self.timeout_s)
         # 允许空规格：这时只做「读装配坐标包围盒」，用于前后对比
         if self.assembly_path:
             _activate_assembly(self.assembly_path)
@@ -390,6 +443,8 @@ class MateBuilder:
             "component_boxes_center_mm": boxes,
             "elapsed_s": round(elapsed, 2),
             "raw": out if not mates else "",
+            "selection_mode": "automatic",
+            "note": "自动选面不保证选中设计意图；复杂件请使用 concentric_faces/coincident_faces",
         }
 
 

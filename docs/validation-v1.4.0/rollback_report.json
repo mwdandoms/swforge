@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "stages": [
+    {
+      "name": "rollback_install_131",
+      "returncode": 0
+    },
+    {
+      "name": "rollback_131_selftest",
+      "returncode": 0
+    },
+    {
+      "name": "restore_install_140",
+      "returncode": 0
+    },
+    {
+      "name": "restore_140_selftest",
+      "returncode": 0
+    }
+  ]
+}

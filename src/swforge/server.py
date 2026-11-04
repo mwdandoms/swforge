@@ -49,7 +49,7 @@ def build_mcp():
     mcp = FastMCP(
         "swforge",
         instructions=(
-            "swforge：驱动本机 SolidWorks 的机械设计工具箱（单位一律 mm）。\n"
+            "swforge：驱动本机 SolidWorks 的机械设计工具箱（建模用 mm，工程图标注坐标用米）。\n"
             "\n"
             "使用前提：SolidWorks 必须已在用户桌面上运行并完成启动，否则工具会返回连接错误。\n"
             "\n"
@@ -64,9 +64,10 @@ def build_mcp():
             "必要时 sw_sweep_documents 清场，否则会报文档数超限。\n"
             "- 材质用国标牌号（Q235 / Q355 / 45 / 40Cr …），用 sw_list_materials 查看可用牌号。\n"
             "- 所有工具返回 JSON，成功看 ok=true，失败看 error。\n"
-            "- 工程图不含公差与粗糙度，不要对外声称图纸可直接投产。\n"
+            "- 公差与粗糙度须显式调用标注工具，不能自动推荐工艺要求；图纸仍需工程审核。\n"
+            "- 标注工具只修改内存工程图；粗糙度坐标用米，Ra 用 μm，尺寸及公差偏差用 mm。\n"
             "\n"
-            "This server drives a real SolidWorks instance. All lengths are millimetres. "
+            "This server drives a real SolidWorks instance. Model lengths and tolerance offsets are mm; annotation positions are metres. "
             "Every tool returns JSON with an ok field."
         ),
     )
@@ -82,6 +83,76 @@ def build_mcp():
             mcp.tool()(run_on_sta)
             return run_on_sta
         return register
+
+    @tool()
+    def sw_add_surface_finish(drawing_path: str | None = None,
+                              x: float | None = None, y: float | None = None,
+                              ra: str = '3.2', symbol_type: str = 'machining',
+                              view_name: str | None = None, prod_method: str = '',
+                              edge_index: int | None = None, edge_fraction: float = .5,
+                              leader: bool = False) -> dict:
+        """添加粗糙度并回读类型、Ra、位置。坐标米，Ra μm；指定 view_name/edge_index 可原生附着直边，leader=True 加引线。
+
+        不指定边时是独立图纸符号；省略坐标从视图右上角推算。只修改内存。
+        """
+        from .annotations import add_surface_finish
+        return add_surface_finish(drawing_path, x=x, y=y, ra=ra, symbol_type=symbol_type,
+                                  view_name=view_name, prod_method=prod_method, edge_index=edge_index,
+                                  edge_fraction=edge_fraction, leader=leader)
+
+    @tool()
+    def sw_list_surface_edges(drawing_path: str | None = None, view_name: str | None = None) -> dict:
+        """枚举指定视图的可见直边索引与图纸端点（米），供粗糙度显式附着；只读。"""
+        from .annotations import list_surface_edges
+        return {'ok': True, 'edges': list_surface_edges(drawing_path, view_name)}
+
+    @tool()
+    def sw_add_surface_finishes(finishes: list[dict], drawing_path: str | None = None) -> dict:
+        """批量添加明确指定的粗糙度。每项 x/y 为米、ra 为 μm，可指定 view_name；只修改内存。"""
+        from .annotations import add_surface_finishes
+        return add_surface_finishes(drawing_path, finishes)
+
+    @tool()
+    def sw_list_dimensions(drawing_path: str | None = None) -> dict:
+        """枚举当前图纸的尺寸完整名称、视图和毫米值，用于唯一定位公差对象。只读。"""
+        from .annotations import list_dimensions
+        return {'ok': True, 'dimensions': list_dimensions(drawing_path)}
+
+    @tool()
+    def sw_set_tolerance(drawing_path: str | None = None, dim_name: str | None = None,
+                         dim_value: float | None = None, view_name: str | None = None,
+                         tol_type: str = 'symmetric', upper: float | None = None,
+                         lower: float | None = None, fit: str | None = None) -> dict:
+        """应用明确给定的线性尺寸公差，偏差用 mm；支持 symmetric/bilateral/limit/fit/none。
+
+        必须唯一匹配。配合如 H7/g6，不自动推荐等级。回读并核对名义值；只修改内存。
+        """
+        from .annotations import set_tolerance
+        return set_tolerance(drawing_path, dim_name=dim_name, dim_value=dim_value,
+                             view_name=view_name, tol_type=tol_type, upper=upper,
+                             lower=lower, fit=fit)
+
+    @tool()
+    def sw_list_mate_faces(assembly_path: str | None = None, component: str | None = None,
+                           kind: str | None = None) -> dict:
+        """只读枚举装配顶层零件的圆柱面/平面，坐标和半径用mm，含持久面引用与装配坐标。"""
+        from .mate_faces import list_mate_faces
+        return list_mate_faces(assembly_path,component=component,kind=kind)
+
+    @tool()
+    def sw_apply_face_mates(mates: list[dict], assembly_path: str | None = None) -> dict:
+        """按明确的 face_a/face_b 持久引用建立 concentric/coincident 配合，回读面身份与轴距/平面间距。
+
+        不要求同心孔轴半径相等，不自动替换目标面。失败尝试回退本批次新配合；只改内存，需另行保存。
+        """
+        from .mate_faces import apply_face_mates
+        return apply_face_mates(assembly_path,mates=mates)
+
+    @tool()
+    def sw_inspect_face_mates(mates: list[dict], assembly_path: str | None = None) -> dict:
+        """只读核对明确面的原生配合、实体身份及几何误差；用于保存重开验证，线性单位mm。"""
+        from .mate_faces import inspect_face_mates
+        return inspect_face_mates(assembly_path,mates=mates)
 
     # ------------------------------------------------------------------ 会话
     @tool()

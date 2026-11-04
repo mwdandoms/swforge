@@ -80,7 +80,11 @@ def _close_created(work: str, prefix: str = ""):
             continue
         if not path:
             continue
-        in_work = os.path.abspath(path).lower().startswith(os.path.abspath(work).lower())
+        try:
+            in_work = os.path.commonpath([os.path.abspath(path).lower(), os.path.abspath(work).lower()]) == os.path.abspath(work).lower()
+        except ValueError:
+            # 用户文档可在其他盘符，跨盘 commonpath 会抛异常，不能中断清理。
+            continue
         if in_work and (not prefix or prefix.lower() in os.path.basename(path).lower()):
             try:
                 sw.CloseDoc(path)
@@ -165,7 +169,8 @@ def _chk_resource_guard(work: str):
         b.build(paint=False, keep_open=True)
 
     peak = resource_status()
-    sweep_documents(dry_run=False)
+    sweep_documents(dry_run=False, markers=(), extra_roots=(work,),
+                    keep=[d['path'] for d in before['documents'] if d.get('path')])
     after = resource_status()
     detail = (f"峰值 {peak['document_count']}/{peak['limit']}，"
               f"清扫后 {after['document_count']}")
@@ -479,6 +484,86 @@ def _chk_concurrency(work: str):
                   f"当前活动文档 {active_title()!r}")
 
 
+def _annotation_fixture(work, stem):
+    from .modeling import PartBuilder
+    from .drawing import produce, add_dimensions
+    part = os.path.join(work, stem + '.SLDPRT')
+    drawing = os.path.join(work, stem + '.SLDDRW')
+    builder = PartBuilder(part, material='Q235')
+    builder.box('公差试块', 0, 160, 0, 20, 0, 100)
+    built = builder.build(paint=False, keep_open=False)
+    if not built.ok:
+        raise RuntimeError(built.error)
+    produced = produce(part, drawing, paper='A3', keep_open=True)
+    if not produced.get('ok'):
+        raise RuntimeError(produced.get('error'))
+    dimensions = add_dimensions(drawing, curated=True, internal=0)
+    if not dimensions.get('ok'):
+        raise RuntimeError(dimensions.get('error'))
+    return drawing
+
+
+def _chk_surface_finish(work):
+    from .annotations import add_surface_finish, list_surface_edges
+    try:
+        drawing = _annotation_fixture(work, 'st_surface')
+        edges = list_surface_edges(drawing)
+        top = max((e for e in edges if abs(e['start_m'][1]-e['end_m'][1])<1e-7), key=lambda e:e['start_m'][1])
+        result = add_surface_finish(drawing, view_name=top['view'], edge_index=top['edge_index'], ra='3.2')
+        return result['ok'], f"Ra={result.get('ra_readback')}，类型={result.get('type')}，附着实体={result.get('attached_entity_count')}，位置={result.get('position')}；{result.get('error', '')}"
+    finally:
+        _close_created(work, 'st_surface')
+
+
+def _chk_tolerance(work):
+    from .annotations import list_dimensions, set_tolerance
+    try:
+        drawing = _annotation_fixture(work, 'st_tolerance')
+        rows = list_dimensions(drawing)
+        if not rows:
+            return False, '工程图没有可操作尺寸'
+        result = set_tolerance(drawing, dim_name=rows[0]['name'], upper=.1)
+        return result['ok'], f"±0.1 mm 回读={result.get('values_readback')}，名义值={result.get('nominal_after_mm')}；{result.get('error', '')}"
+    finally:
+        _close_created(work, 'st_tolerance')
+
+
+def _chk_explicit_mate(work):
+    from .modeling import PartBuilder
+    from .assembly import AssemblyBuilder
+    from .mate_faces import list_mate_faces, apply_face_mates
+    try:
+        ring = os.path.join(work, 'st_explicit_孔环.SLDPRT')
+        pin = os.path.join(work, 'st_explicit_销.SLDPRT')
+        assembly = os.path.join(work, 'st_explicit_装配.SLDASM')
+        b = PartBuilder(ring,material='Q235')
+        b.revolve('真实孔环',[(8,0),(14,0),(14,20),(8,20)],axis='y',x=80,z=50)
+        built = b.build(paint=False,keep_open=False)
+        if not built.ok:
+            return False,built.error
+        b = PartBuilder(pin,material='45').cylinder('销',r=7.8,h=30)
+        built = b.build(paint=False,keep_open=False)
+        if not built.ok:
+            return False,built.error
+        made = AssemblyBuilder(assembly).add(ring,fixed=True).add(pin,x=200,y=40,z=50).build()
+        if not made['ok']:
+            return False,str(made)
+        faces = list_mate_faces(assembly)
+        if not faces['ok']:
+            return False,str(faces)
+        rows = faces['faces']
+        hole = next(f for f in rows if f['kind']=='cylinder' and abs(f['radius_mm']-8)<1e-6)
+        shaft = next(f for f in rows if f['kind']=='cylinder' and abs(f['radius_mm']-7.8)<1e-6)
+        top = next(f for f in rows if f['component']==hole['component'] and f['kind']=='plane' and f['direction_local'][1]>.99)
+        cap = next(f for f in rows if f['component']==shaft['component'] and f['kind']=='plane' and f['direction_local'][1]>.99)
+        result = apply_face_mates(assembly,[dict(type='concentric',face_a=hole,face_b=shaft),
+                                            dict(type='coincident',face_a=top,face_b=cap,alignment='aligned')])
+        gaps = [r['geometry']['gap_mm'] for r in result.get('mates',[])]
+        return result['ok'],f"明确两面配合 {result.get('built',0)} 项，轴距/平面间距 mm={gaps}；{result.get('error','')}"
+    finally:
+        _close_created(work,'st_explicit_')
+
+
 CHECKS = [
     Check("connect", "连接与版本", _chk_connect,
           "同类项目最常见的第一道坎（vespo92 #1）"),
@@ -500,6 +585,12 @@ CHECKS = [
           "对应 hjbaard #10：多个客户端抢同一个 SolidWorks"),
     Check("probe", "API 反射探测", _chk_probe,
           "对应 andrewbartels1 #195"),
+    Check('surface_finish', '粗糙度符号可加可读', _chk_surface_finish,
+          '插入坐标可能被忽略，必须回读 Annotation 位置'),
+    Check('tolerance', '公差可设可读', _chk_tolerance,
+          '偏差按毫米输入、米写入，名义值不能改变'),
+    Check('explicit_mate','显式配合面与几何回读',_chk_explicit_mate,
+          '半径不同的孔轴也可同心，必须核对原生配合面身份与装配坐标'),
 ]
 
 
@@ -584,11 +675,8 @@ def run_selftest(work_dir: str | None = None,
         # 每项跑完清一次场：任何一项留下没关的文档都会挤占后续的名额
         _close_created(work_dir)
 
-    try:
-        from .resources import sweep_documents
-        sweep_documents(dry_run=False)
-    except Exception:                                  # noqa: BLE001
-        pass
+    # 自检只能关闭自己的产物；不能按临时路径猜测并清扫其他客户端的文档。
+    _close_created(work_dir)
 
     if tmp_created and not keep:
         shutil.rmtree(work_dir, ignore_errors=True)

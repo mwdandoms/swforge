@@ -1,6 +1,8 @@
-[中文](README.md) | **English**
+[中文](https://github.com/mwdandoms/swforge/blob/main/README.md) | **English**
 
 # swforge
+
+v1.4.1 adds [explicit face mating](https://github.com/mwdandoms/swforge/blob/main/docs/face-mates.md): persistent references, native mate-entity identity checks, assembly-space geometry verification and attempted batch rollback. Only SW2025 SP5.0 is live-verified.
 
 **Drive your local SolidWorks from Python, CLI, or MCP — modeling, GB material assignment, assembly mates, interference checks, and GB-standard drawings, with readback verification at every step.**
 
@@ -9,7 +11,7 @@
 [![docs](https://img.shields.io/badge/docs-mwdandoms.github.io-blue)](https://mwdandoms.github.io/swforge/)
 [![PyPI](https://img.shields.io/pypi/v/swforge)](https://pypi.org/project/swforge/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swforge)](https://pypi.org/project/swforge/)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/mwdandoms/swforge/blob/main/LICENSE)
 [![tests](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml/badge.svg)](https://github.com/mwdandoms/swforge/actions/workflows/tests.yml)
 
 > Tested end-to-end only on **SolidWorks 2025 SP5.0 + Windows + Python 3.14**.
@@ -291,9 +293,9 @@ Three things that must be said:
 | Cannot connect when SolidWorks was started via COM | It is not in the ROT; fall back from `GetActiveObject` to `CreateInstance` |
 | Assembly parts land 60 metres away | `AddComponent5` expects **metres** while the project convention is **millimetres** |
 
-See [`docs/pitfalls.en.md`](docs/pitfalls.en.md) for the full list.
+See [`docs/pitfalls.en.md`](https://github.com/mwdandoms/swforge/blob/main/docs/pitfalls.en.md) for the full list.
 
-Deep dive: [**Why SolidWorks GetActiveObject fails**](docs/why-getactiveobject-fails.md) (Chinese)
+Deep dive: [**Why SolidWorks GetActiveObject fails**](https://github.com/mwdandoms/swforge/blob/main/docs/why-getactiveobject-fails.md) (Chinese)
 
 ---
 
@@ -363,7 +365,7 @@ python -m pytest tests -q
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](https://github.com/mwdandoms/swforge/blob/main/LICENSE).
 
 The optional [MechDog](https://github.com/wudahua/Solidworks_AssetMate_MechDog) dependency
 (also MIT) is called only through its Python API; no code is copied.
