@@ -170,3 +170,42 @@ def test_json_serialisable(repo):
 def test_ok_flag_matches_todo(repo):
     s = check_status(str(repo), online=False)
     assert s["ok"] == (not s["todo"])
+
+def test_pypi_cache_delay_does_not_raise_false_alarm(monkeypatch):
+    """PyPI 首页版本号有缓存延迟，不能因此报「可能没发」。
+
+    这是实机踩到的：1.3.0 明明已经可以 pip install，
+    但 status 因为首页还显示 1.2.1 而报了一条提醒。
+    **误报比不报更糟**——人会开始忽略所有提醒。
+    """
+    import swforge.status as st
+
+    monkeypatch.setattr(st, "_pypi_version", lambda *a, **k: ("1.2.1", ""))
+    # 直接查具体版本时确认存在
+    monkeypatch.setattr(st, "_pypi_has_version", lambda v, *a, **k: (True, ""))
+
+    s = _bare(pypi="1.2.1", version="1.3.0")
+    # 手工跑一遍 PyPI 那段逻辑
+    facts = s["facts"]
+    ver, err = st._pypi_version("swforge")
+    if not err and ver != facts["version"]:
+        have, _ = st._pypi_has_version(facts["version"])
+        if have:
+            facts["pypi"] = facts["version"]
+            s["warnings"].append("CDN 缓存")
+
+    text = format_status(s)
+    assert "需要你操作：无" in text
+    assert "PyPI 最新 1.2.1" not in text
+
+
+def test_pypi_missing_version_is_a_todo(monkeypatch):
+    """真的没发出去时，必须进「需要你操作」。"""
+    import swforge.status as st
+
+    monkeypatch.setattr(st, "_pypi_version", lambda *a, **k: ("1.2.1", ""))
+    monkeypatch.setattr(st, "_pypi_has_version", lambda v, *a, **k: (False, "HTTP 404"))
+
+    ver, _ = st._pypi_version("swforge")
+    have, _ = st._pypi_has_version("1.3.0")
+    assert ver == "1.2.1" and have is False

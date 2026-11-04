@@ -4,6 +4,22 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.1] - 2026-11-04
+
+### Fixed
+
+- **`status` raised a false alarm right after a release.** PyPI's
+  `/pypi/<pkg>/json` endpoint caches `info.version` for a few minutes, so
+  1.3.0 could be installed but `status` reported "PyPI has 1.2.1, local is
+  1.3.0 (maybe cache delay, maybe not published)".
+
+  A false alarm is worse than silence: it teaches you to ignore the check.
+
+  When the index version lags, `status` now queries
+  `/pypi/<pkg>/<version>/json` directly to confirm the target version really
+  exists. If it does, that becomes a note; if it does not, it becomes an item
+  under "needs your action".
+
 ## [1.3.0] - 2026-11-04
 
 ### Added

@@ -144,6 +144,28 @@ def _pypi_version(pkg: str = PACKAGE, timeout: int = 20) -> tuple[str, str]:
         return "", f"{type(exc).__name__}"
 
 
+def _pypi_has_version(version: str, pkg: str = PACKAGE,
+                      timeout: int = 15) -> tuple[bool, str]:
+    """直接查 `/pypi/<pkg>/<version>/json` —— 这个端点不走首页的 CDN 缓存。
+
+    为什么需要它：`/pypi/<pkg>/json` 的 `info.version` 有几分钟缓存延迟。
+    刚发完版立刻查，它会说"最新是上一版"，于是 status 报一条假的
+    "可能没发"。**误报比不报更糟**——人会开始忽略提醒。
+
+    所以：首页说落后时，再用这个端点确认目标版本是否真的在。
+    """
+    try:
+        req = urllib.request.Request(
+            f"https://pypi.org/pypi/{pkg}/{version}/json",
+            headers={"User-Agent": "swforge-status"})
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.status == 200, ""
+    except urllib.error.HTTPError as e:
+        return False, f"HTTP {e.code}"
+    except Exception as exc:                           # noqa: BLE001
+        return False, f"{type(exc).__name__}"
+
+
 def _slug(root: str) -> str:
     """从 origin 的 URL 里取 owner/repo。"""
     code, out = _run(["git", "remote", "get-url", "origin"], root, timeout=20)
@@ -216,8 +238,20 @@ def check_status(root: str | None = None,
         if err:
             warn.append(f"查不到 PyPI（{err}）")
         elif ver and facts["version"] and ver != facts["version"]:
-            warn.append(f"PyPI 最新 {ver}，本地 {facts['version']}"
-                        f"（可能缓存延迟，也可能没发）")
+            # 首页版本号有 CDN 缓存。先确认本地这个版本到底在不在，
+            # 避免刚发完版就报「可能没发」这种假警报。
+            have, _ = _pypi_has_version(facts["version"], pkg)
+            facts["pypi_has_local"] = have
+            if have:
+                facts["pypi"] = facts["version"]
+                warn.append(f"PyPI 首页仍显示 {ver}（CDN 缓存），"
+                            f"但 {facts['version']} 已确认存在并可直接安装")
+            else:
+                todo.append({
+                    "what": f"本地是 {facts['version']}，PyPI 上没有这个版本"
+                            f"（最新 {ver}）",
+                    "how": "打标签触发发布，或手动 twine upload",
+                })
 
     # ---- GitHub：CI + 待批准
     if online:
