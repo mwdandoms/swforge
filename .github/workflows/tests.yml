@@ -27,8 +27,8 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest
-          python -m pip install -e .
+          python -m pip install pytest tomli
+          python -m pip install -e ".[mcp,pdf]"
 
       - name: Run offline tests
         # 只跑不需要 SolidWorks 的用例。实机用例（-m sw）在 CI 上必然失败：
@@ -48,8 +48,8 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest
-          python -m pip install -e .
+          python -m pip install pytest tomli
+          python -m pip install -e ".[mcp,pdf]"
 
       - name: Offline tests must not reach SolidWorks
         # SWFORGE_STRICT_MARKERS=1 打开 conftest 里的运行时守卫：

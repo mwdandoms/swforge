@@ -1,116 +1,72 @@
----
-layout: default
----
+**中文** | [English](README.en.md)
 
 # swforge
 
-**用 Python / 命令行 / MCP 驱动本机 SolidWorks。**
-建模、配 GB 材质、装配配合、查干涉、出 GB 标准工程图 —— 每一步都回读验证。
+**让 SolidWorks 少一点重复操作，多一点可复用成果。**
 
----
+从参数化零件、材料配色，到装配、工程图、BOM 和 PDF，swforge 把常用机械设计步骤串起来，方便重复执行，也方便核对结果。
 
-## 一句话
+[![PyPI](https://img.shields.io/pypi/v/swforge)](https://pypi.org/project/swforge/) [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![SolidWorks](https://img.shields.io/badge/SolidWorks-2025%20SP5%20tested-red)](docs/validation-community.md)
 
-> **不确定结果对不对的自动化，不算自动化。**
+[![建模与工程图演示](https://raw.githubusercontent.com/mwdandoms/swforge/main/demo/poster.png)](https://github.com/mwdandoms/swforge/releases/download/v1.4.1/swforge-demo-2m21s-1080p60.mp4)
 
-同类工具普遍是「调用没报错就算成功」。swforge 是**每一步都把结果读回来核对**：
-建完读实体数和体积，赋完材质读密度，加完配合读位置变没变，出完图读尺寸值对不对。
+点击查看历史版本演示：建模、材料、工程图、标注与装配。演示录制于1.4.1，并非本次社区版的全部功能验收。
 
----
+## 能帮你做什么
 
-## 30 秒判断适不适合你
-
-| 你的情况 | 适合吗 |
+| 你的工作 | swforge 可以提供 |
 |---|---|
-| 有一批 SolidWorks 零件要出图 | ✅ 批量出图，5 个零件约 16 秒 |
-| 想让 Claude / Cursor / DSH 直接操作 SolidWorks | ✅ 标准 MCP，30 个工具 |
-| 需要国标材质和国标图框 | ✅ 20 个 GB 牌号，GB 图框 |
-| 需要精确的干涉体积 | ✅ 实测 4000.000 mm³，偏差 0.00% |
-| 需要**公差、粗糙度、形位公差**自动标注 | ❌ 没有，需人工补 |
-| 需要图纸**直接投产** | ❌ 不行 |
-| 用 macOS / Linux | ❌ 只能 Windows + SolidWorks |
-| 不是 SolidWorks 2025 SP5 | ⚠️ 未测试，先跑 `swforge selftest` |
+| 同类零件反复画 | 参数化板件、方管、圆柱、旋转体、切除、孔、倒角和圆角；另存变型 |
+| 材料、颜色反复设置 | GB牌号材料库、规则配色，以及材料和颜色回读 |
+| 装配整理与检查 | 组件、配合、干涉检查、装配变型和原生BOM |
+| 工程图反复整理 | 三视图、剖视、局部放大、尺寸、公差和粗糙度 |
+| 按统一风格出图 | A0–A4基础GB导向模板、第一角投影、标题栏、字体与线宽检查 |
+| 多份文件一起交付 | 批量出图、多页图册、PDF/DWG/DXF导出及交付记录 |
+| 用AI助手协助设计 | 接入支持MCP的助手，也可以直接使用Python或命令行 |
 
----
+**结果可以回读核对。** 材料是否写入、颜色是否生效、尺寸是否附着、导出文件是否为本轮生成，都有相应检查入口。检查覆盖范围会明确说明，工程师仍需审核最终图纸。
 
-## 装
+## 与同类工具相比，侧重点在哪里
 
-```powershell
-pip install "swforge[mcp,pdf]"
+| 工具或方式 | 官方介绍或常见使用重点 | swforge的适用侧重 |
+|---|---|---|
+| 项目专用宏 | 固定步骤的重复执行；具体能力取决于宏实现 | 把建模、改型、出图、交付连接成可重复使用的流程 |
+| [CAD+ Toolset](https://cadplus.xarial.com/) | 属性、批处理、导出、BOM及桌面/PDM工具 | 适合希望同时通过脚本、命令行和AI助手完成参数化工程任务的用户 |
+| [AssetMate MechDog](https://github.com/wudahua/Solidworks_AssetMate_MechDog) | SolidWorks MCP、工程图标注、特征台账和交付检查 | swforge提供参数化实体/机械家族、变型、GB基础出图与多页交付流程；部分工程图增强可与MechDog配合 |
+
+对比依据为上述项目官方介绍及swforge当前功能范围，不是同任务性能测试，也不代表其他产品缺少某项能力。swforge目前只实测SW2025 SP5，不以兼容版本数量或速度倍数作为宣传卖点。
+
+## 安装与开始
+
+需要Windows、Python 3.10+，以及你已有的SolidWorks安装和使用授权。当前实机环境为SolidWorks 2025 SP5。
+
+```bash
+pip install swforge
+pip install "swforge[mcp,pdf]"  # AI助手接入与PDF校验
+swforge --help
 ```
-
-前提：Windows + SolidWorks 2025 + Python 3.10+，**且 SolidWorks 要先手动启动**。
-
----
-
-## 先自检
-
-```powershell
-swforge selftest
-```
-
-十三项检查全在真实 SolidWorks 上跑：
-
-```
-[PASS] 连接与版本                  0.00s  SolidWorks 33.5.0，往返 1 ms
-[PASS] 文档切换后真正激活            7.52s  3 次切换全部正确（每次都回读标题）
-[PASS] 资源守卫与清扫               11.37s  峰值 3/8，清扫后 0
-[PASS] 几何回读准确                 3.61s  体积 100000.0 mm³，偏差 0.000%
-[PASS] 材质真的赋上（密度≠1000）      3.59s  密度反算 7850 kg/m³
-[PASS] 干涉体积精确                 11.61s  体积 4000.0 mm³，偏差 0.00%
-[PASS] 配合真正加成功               11.34s  X=[0.0,60.0] → [0.0,0.0]
-[PASS] 出图与尺寸值正确              6.05s  6 个尺寸 [20.0, 100.0, 160.0]
-[PASS] API 反射探测                 0.43s  探测 28 项，可用 28 项
-
-结果：9 通过 / 0 失败   耗时 56.2s
-```
-
-**失败时它会指出是哪一环、对应同类项目的哪个已知问题**，不是笼统的「失败」。
-
----
-
-## 最小示例
 
 ```python
 from swforge import PartBuilder
 
-b = PartBuilder("底板.SLDPRT", material="Q235")
-b.box("底板", 0, 160, 0, 20, 0, 100)
-r = b.build()
-
-print(r.ok, r.bodies, r.mass_kg, r.volume_mm3)
-# True 1 2.512 320000.0
+result = (PartBuilder(r"F:\out\plate.SLDPRT", material="Q235")
+          .box("plate", 0, 120, 0, 80, 0, 20)
+          .build(keep_open=False))
+print(result.ok)
 ```
 
-读回来的 `bodies` / `mass_kg` / `volume_mm3` 才是重点 ——
-**不是「调用没抛异常」，是真的读到了几何。**
+使用新输出路径并保留原模型。批处理时注意打开的SW文档数量，默认上限8份。
 
----
+## 社区版与后续高级模块
 
-## 文档
+**本仓库及PyPI的Community版为MIT开源，允许商业使用。** 包含建模、材料配色、装配、标注、BOM、图册、批处理、基础GB模板与校验、结果回读和文档保护。
 
-- [粗糙度与公差标注](annotations.md) —— v1.4，含实机验收入口
-- [显式配合选面](face-mates.md) —— v1.4.1，复杂零件上明确指定孔轴
-- [功能清单](features.md) —— 全部能力一览（含实测数据）
-- [快速开始](quickstart.md) —— 装、连、建第一个零件
-- [自检说明](selftest.md) —— 十三项检查各验证什么
-- [BOM 明细表](bom.md) —— 从装配读清单，同零件合并计数
-- [已知限制](limitations.md) —— **先说清楚做不到什么**
-- [踩过的坑](pitfalls.md) —— 实现层面的技术细节
-- [问题日志](issue-log.md) —— 开发中发现并修复的真实问题
-- [为什么不用 GetActiveObject](why-getactiveobject-fails.md) —— 花了很久才搞清的行为
+高级GB条文审查、栅格/整套一致性审图及工艺规则编排实现，本次不包含在GitHub、源码包或wheel中，保留本地待拆分。未来高级模块是否发布及其许可将单独说明；当前没有把它们作为已上线商业功能出售。此前已MIT公开的版本继续遵循原许可。
 
----
+基础GB功能也有覆盖范围：配合表为有限代号和尺寸段；字体尚未认证精确长仿宋；图纸检查不是完整GB认证、制造批准或强度认证。几何公差现有五类接口，本轮保存重开实测为平面度。详见[社区版范围](COMMUNITY_SCOPE.json)和[验证说明](docs/validation-community.md)。
 
-## 数据可信度
+MCP用户升级注意：1.7使用`sw_discover`、`sw_describe`、`sw_invoke`、`sw_status`四个入口。先发现操作，再按需查看和调用；Python和CLI继续保留社区版操作。见[迁移说明](docs/community-migration.md)。
 
-所有公开数字都是本机实测，注明环境：
+## 致谢与反馈
 
-| 数字 | 来源 |
-|---|---|
-| 批量出图 5 件 15.7 秒 | SolidWorks 2025 SP5.0 实测 |
-| 干涉 4000.000 mm³ | 两个 20mm 立方重叠 10mm，理论核对 |
-| 密度 7850 kg/m³ | mass/volume 反算，与 GB/T 700 一致 |
-| 尺寸 22 → 9 个 | 同一支架改版前后对比 |
-
-**没做过的验证，不写成做过。**
+保留原项目及依赖许可。感谢[AssetMate MechDog](https://github.com/wudahua/Solidworks_AssetMate_MechDog)等开源项目提供的工程图能力与经验。问题反馈请附SW版本、最小示例和回读结果，避免附带企业敏感模型。

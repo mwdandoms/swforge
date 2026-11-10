@@ -224,10 +224,18 @@ def test_version_matches_pyproject():
 
     with open(pyproject, encoding="utf-8") as fh:
         text = fh.read()
-    m = re.search(r'^version\s*=\s*"([^"]+)"', text, re.M)
-    assert m, "pyproject.toml 里找不到 version"
-    assert swforge.__version__ == m.group(1), (
-        f"包版本 {swforge.__version__} 与 pyproject 的 {m.group(1)} 不一致")
+    try:
+        import tomllib
+    except ModuleNotFoundError:
+        import tomli as tomllib
+    project=tomllib.loads(text)
+    if 'version' in project['project']:
+        expected=project['project']['version']
+    else:
+        assert 'version' in project['project']['dynamic']
+        assert project['tool']['setuptools']['dynamic']['version']['attr']=='swforge.version.__version__'
+        from swforge.version import __version__ as expected
+    assert swforge.__version__==expected
 
 
 

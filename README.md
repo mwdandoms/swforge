@@ -1,111 +1,72 @@
-**中文** | [English](https://github.com/mwdandoms/swforge/blob/main/README.en.md)
+**中文** | [English](README.en.md)
 
 # swforge
 
-**用 Python / 命令行 / MCP 驱动本机 SolidWorks —— 建模、配 GB 材质、装配配合、查干涉、出 GB 工程图，每一步都读回核对。**
+**让 SolidWorks 少一点重复操作，多一点可复用成果。**
 
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
-[![SolidWorks](https://img.shields.io/badge/SolidWorks-2025%20SP5%20tested-red)]()
-[![PyPI](https://img.shields.io/pypi/v/swforge)](https://pypi.org/project/swforge/)
-[![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/mwdandoms/swforge/blob/main/LICENSE)
-[![docs](https://img.shields.io/badge/docs-mwdandoms.github.io-blue)](https://mwdandoms.github.io/swforge/)
+从参数化零件、材料配色，到装配、工程图、BOM 和 PDF，swforge 把常用机械设计步骤串起来，方便重复执行，也方便核对结果。
 
-[![swforge 演示：代码驱动 SolidWorks](https://raw.githubusercontent.com/mwdandoms/swforge/main/demo/poster.png)](https://github.com/mwdandoms/swforge/releases/download/v1.4.1/swforge-demo-2m21s-1080p60.mp4)
+[![PyPI](https://img.shields.io/pypi/v/swforge)](https://pypi.org/project/swforge/) [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![SolidWorks](https://img.shields.io/badge/SolidWorks-2025%20SP5%20tested-red)](docs/validation-community.md)
 
-> ▶ **点图播放 2 分 21 秒完整演示**（6.7 MB）——从 SolidWorks 关闭状态开始，
-> 建模 → 国标材质 → GB 工程图 → 尺寸 → 粗糙度 → 公差 → PDF → 装配 → 配合 → 干涉，
-> **全程无人操作**。左边是建出来的零件，右边是同一套代码出的 GB 图。
+[![建模与工程图演示](https://raw.githubusercontent.com/mwdandoms/swforge/main/demo/poster.png)](https://github.com/mwdandoms/swforge/releases/download/v1.4.1/swforge-demo-2m21s-1080p60.mp4)
 
----
+点击查看历史版本演示：建模、材料、工程图、标注与装配。演示录制于1.4.1，并非本次社区版的全部功能验收。
 
-## 为什么用它
+## 能帮你做什么
 
-| 用别的工具 | 用 swforge |
+| 你的工作 | swforge 可以提供 |
 |---|---|
-| 调用没报错就算成功，出错要人工去查 | 每步读回真实结果比对，对不上就停下报错 |
-| 材质默认密度按水算，质量错 7.85 倍 | 内置国标材质库，赋完反算密度核对 |
-| 出的图图框标题栏不对，车间不认 | GB 图框、标题栏、粗糙度、尺寸公差 |
-| 干涉只告诉你「有 / 没有」 | 给精确体积，例如 4000.0 mm³ |
+| 同类零件反复画 | 参数化板件、方管、圆柱、旋转体、切除、孔、倒角和圆角；另存变型 |
+| 材料、颜色反复设置 | GB牌号材料库、规则配色，以及材料和颜色回读 |
+| 装配整理与检查 | 组件、配合、干涉检查、装配变型和原生BOM |
+| 工程图反复整理 | 三视图、剖视、局部放大、尺寸、公差和粗糙度 |
+| 按统一风格出图 | A0–A4基础GB导向模板、第一角投影、标题栏、字体与线宽检查 |
+| 多份文件一起交付 | 批量出图、多页图册、PDF/DWG/DXF导出及交付记录 |
+| 用AI助手协助设计 | 接入支持MCP的助手，也可以直接使用Python或命令行 |
 
----
+**结果可以回读核对。** 材料是否写入、颜色是否生效、尺寸是否附着、导出文件是否为本轮生成，都有相应检查入口。检查覆盖范围会明确说明，工程师仍需审核最终图纸。
 
-## 能做什么
+## 与同类工具相比，侧重点在哪里
 
-**建模** — 矩形、板、方管（三轴）、圆柱、旋转体、圆角、倒角
+| 工具或方式 | 官方介绍或常见使用重点 | swforge的适用侧重 |
+|---|---|---|
+| 项目专用宏 | 固定步骤的重复执行；具体能力取决于宏实现 | 把建模、改型、出图、交付连接成可重复使用的流程 |
+| [CAD+ Toolset](https://cadplus.xarial.com/) | 属性、批处理、导出、BOM及桌面/PDM工具 | 适合希望同时通过脚本、命令行和AI助手完成参数化工程任务的用户 |
+| [AssetMate MechDog](https://github.com/wudahua/Solidworks_AssetMate_MechDog) | SolidWorks MCP、工程图标注、特征台账和交付检查 | swforge提供参数化实体/机械家族、变型、GB基础出图与多页交付流程；部分工程图增强可与MechDog配合 |
 
-**加工特征** — 指定实体的矩形切除、三轴正负向通孔 / 盲孔 / 平底沉孔、孔网格
+对比依据为上述项目官方介绍及swforge当前功能范围，不是同任务性能测试，也不代表其他产品缺少某项能力。swforge目前只实测SW2025 SP5，不以兼容版本数量或速度倍数作为宣传卖点。
 
-**装配** — 组件定位、重合 / 同心 / 距离 / 角度 / 锁定配合、显式持久面引用配合、干涉检查
+## 安装与开始
 
-**工程图** — GB 三视图、剖视、局部放大、自动标尺寸、直径标注、表面粗糙度、尺寸公差、导出 PDF / DWG / DXF
-
-**出图检查** — 视图越纸幅、视图重叠、悬空标注、必填属性、模型与图纸一致性
-
-**其他** — BOM 明细表、批量出图、文档数上限保护
-
----
-
-## 安装
+需要Windows、Python 3.10+，以及你已有的SolidWorks安装和使用授权。当前实机环境为SolidWorks 2025 SP5。
 
 ```bash
-pip install swforge              # 只装库
-pip install "swforge[mcp,pdf]"   # 带 MCP 服务器和 PDF 预览
+pip install swforge
+pip install "swforge[mcp,pdf]"  # AI助手接入与PDF校验
+swforge --help
 ```
-
-前提：Windows + 完整安装的 SolidWorks + Python 3.10 以上。**先手动启动 SolidWorks，再调用本库。**
-
-实测环境为 SolidWorks 2025 SP5.0 / Windows 11 / Python 3.14。其他 SW 版本未验证。
-
----
-
-## 三十秒例子
 
 ```python
 from swforge import PartBuilder
 
-b = PartBuilder(r"F:\out\plate.SLDPRT", material="Q235")
-b.box("plate", 0, 100, 0, 20, 0, 60)
-b.hole("mount", "plate", axis="y", x=30, y=20, z=30,
-       diameter=10, through_all=True, direction=-1,
-       counterbore_diameter=16, counterbore_depth=4)
-
-r = b.build(keep_open=False)
-assert r.ok, r.error
-print(r.mass_kg, r.volume_mm3)   # 从 SolidWorks 读回来的真实值
+result = (PartBuilder(r"F:\out\plate.SLDPRT", material="Q235")
+          .box("plate", 0, 120, 0, 80, 0, 20)
+          .build(keep_open=False))
+print(result.ok)
 ```
 
----
+使用新输出路径并保留原模型。批处理时注意打开的SW文档数量，默认上限8份。
 
-## 先验一下环境
+## 社区版与后续高级模块
 
-```bash
-swforge selftest
-```
+**本仓库及PyPI的Community版为MIT开源，允许商业使用。** 包含建模、材料配色、装配、标注、BOM、图册、批处理、基础GB模板与校验、结果回读和文档保护。
 
-在你自己的机器上实机跑一遍，逐项打印通过与否。
+高级GB条文审查、栅格/整套一致性审图及工艺规则编排实现，本次不包含在GitHub、源码包或wheel中，保留本地待拆分。未来高级模块是否发布及其许可将单独说明；当前没有把它们作为已上线商业功能出售。此前已MIT公开的版本继续遵循原许可。
 
----
+基础GB功能也有覆盖范围：配合表为有限代号和尺寸段；字体尚未认证精确长仿宋；图纸检查不是完整GB认证、制造批准或强度认证。几何公差现有五类接口，本轮保存重开实测为平面度。详见[社区版范围](COMMUNITY_SCOPE.json)和[验证说明](docs/validation-community.md)。
 
-## 做不到的
+MCP用户升级注意：1.7使用`sw_discover`、`sw_describe`、`sw_invoke`、`sw_status`四个入口。先发现操作，再按需查看和调用；Python和CLI继续保留社区版操作。见[迁移说明](docs/community-migration.md)。
 
-- **形位公差**未实现
-- **完整孔系标注**（孔位置、深度、孔表）未实现，目前只有圆边直径标注
-- **焊件 / 切割清单**、**渐开线齿轮**未实现
-- 图纸检查里的文字重叠是**近似提示**
-- 只在 SolidWorks 2025 SP5.0 上实测过
+## 致谢与反馈
 
-细节见 [已知限制](https://github.com/mwdandoms/swforge/blob/main/docs/limitations.md) 与 [问题日志](https://github.com/mwdandoms/swforge/blob/main/docs/issue-log.md)（含未修复的问题）。
-
----
-
-## 文档
-
-[快速开始](https://github.com/mwdandoms/swforge/blob/main/docs/quickstart.md) ·
-[功能矩阵](https://github.com/mwdandoms/swforge/blob/main/docs/features.md) ·
-[文档站](https://mwdandoms.github.io/swforge/)
-
----
-
-## 许可
-
-MIT。
+保留原项目及依赖许可。感谢[AssetMate MechDog](https://github.com/wudahua/Solidworks_AssetMate_MechDog)等开源项目提供的工程图能力与经验。问题反馈请附SW版本、最小示例和回读结果，避免附带企业敏感模型。

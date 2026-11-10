@@ -134,6 +134,24 @@ def add_section_view(drawing_path: str | None = None,
     cx = (o[0] + o[2]) / 2.0
     cy = (o[1] + o[3]) / 2.0
 
+    # ---- 坐标系换算（v1.6.0 修复：真实剖切）
+    #
+    # IView::GetOutline 返回的是【图纸坐标】——实测 outline 中心 == view.Position。
+    # 但 ActivateView 之后开的草图是【视图局部坐标】，原点就在视图 Position 上
+    # （实测 ISketch::ModelToSketchTransform 的平移分量正好等于 -Position）。
+    #
+    # 把图纸坐标直接塞进 CreateLine，剖切线会整体偏移一个视图位置：
+    # 实测偏 131mm，而被剖视图只有 138mm×138mm（半宽 69mm），
+    # 剖切线直接落到视图外面 —— CreateSectionView 照样返回视图对象，
+    # 但什么都没切到，表现为 GetFaceHatchCount()=0。
+    #
+    # 所以：画线用【减去 Position 的草图坐标】；新视图定位仍用图纸坐标。
+    vpos = [float(x) for x in (_value(src, "Position") or [0.0, 0.0])]
+    vx, vy = vpos[0], vpos[1]
+    sx0, sy0 = o[0] - vx, o[1] - vy
+    sx2, sy2 = o[2] - vx, o[3] - vy
+    scx, scy = cx - vx, cy - vy
+
     try:
         # 草图必须画在激活的视图里
         md.ActivateView(src_name)
@@ -141,9 +159,9 @@ def add_section_view(drawing_path: str | None = None,
         md.SketchManager.InsertSketch(True)
 
         if direction == SECTION_HORIZONTAL:
-            md.SketchManager.CreateLine(o[0] - 0.008, cy, 0, o[2] + 0.008, cy, 0)
+            md.SketchManager.CreateLine(sx0 - 0.008, scy, 0, sx2 + 0.008, scy, 0)
         else:
-            md.SketchManager.CreateLine(cx, o[1] - 0.008, 0, cx, o[3] + 0.008, 0)
+            md.SketchManager.CreateLine(scx, sy0 - 0.008, 0, scx, sy2 + 0.008, 0)
 
         md.SketchManager.InsertSketch(True)
         # 注意：退出草图后**不要**再 ClearSelection2。

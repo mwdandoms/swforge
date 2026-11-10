@@ -4,9 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "swforge"
-version = "1.4.1"
-description = "SolidWorks automation toolkit: early-binding geometry builder, GB material library, assembly mates, exact interference, and GB-standard drawings — with readback verification at every step."
-readme = "README.md"
+dynamic = ["version"]
+description = "SolidWorks workflows for parts, materials, assemblies, drawings and BOMs | 零件、材料、装配、工程图与BOM自动化"
+readme = "PACKAGE_README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "MWD" }]
@@ -46,6 +46,10 @@ pdf = ["pypdfium2>=4"]
 swforge = "swforge.cli:main"
 solidworks-swforge = "swforge.server:main"
 
+[tool.setuptools.package-data]
+# agent skill 随包分发：用户 pip 装完后执行 swforge install-skill 即可注册
+swforge = ["skill/*.md", "skill/references/*.md", "assets/templates/*", "capabilities.yaml"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
@@ -55,3 +59,11 @@ markers = [
     "sw: 需要 SolidWorks 正在运行（CI 用 -m 'not sw' 跳过）",
 ]
 testpaths = ["tests"]
+
+[tool.setuptools.dynamic]
+version = {attr = "swforge.version.__version__"}
+
+[project.urls]
+Homepage = "https://github.com/mwdandoms/swforge"
+Documentation = "https://mwdandoms.github.io/swforge/"
+Issues = "https://github.com/mwdandoms/swforge/issues"

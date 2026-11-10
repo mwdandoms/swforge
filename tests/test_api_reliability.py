@@ -157,6 +157,6 @@ def test_mcp_validation_does_not_connect_solidworks(tmp_path, monkeypatch):
     from swforge.modeling import PartBuilder
     monkeypatch.setattr(PartBuilder, "build", lambda **kwargs: pytest.fail("must not build"))
     # Direct pure-tool call avoids creating a Windows event loop in restricted CI.
-    tool = mcp._tool_manager.get_tool("sw_validate_part")
-    result = tool.fn(out_path=str(tmp_path / "part.SLDPRT"), spec={"boxes": [_box()]})
+    tool = mcp._gateway.registry["sw_validate_part"]
+    result = tool['fn'](out_path=str(tmp_path / "part.SLDPRT"), spec={"boxes": [_box()]})
     assert result["ok"] and result["validated"]

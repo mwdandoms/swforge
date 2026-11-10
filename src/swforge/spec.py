@@ -10,7 +10,7 @@ from .modeling import PartBuilder
 
 __all__ = ["builder_from_spec"]
 
-_SECTIONS = ("boxes", "tubes", "cylinders", "revolves", "fillets", "chamfers")
+_SECTIONS = ("boxes", "tubes", "cylinders", "revolves", "cuts", "holes", "hole_grids", "fillets", "chamfers")
 
 
 def _finite_json(value, location="spec"):
@@ -27,8 +27,8 @@ def _finite_json(value, location="spec"):
 def builder_from_spec(out_path: str, spec: dict) -> PartBuilder:
     """完整校验并构造 DSL，成功返回后调用方才可执行 build()。
 
-    支持 boxes / tubes / cylinders / revolves / fillets / chamfers。
-    几何先按上述顺序建立，圆角和倒角最后执行，tag 指向源形体。
+    支持 boxes/tubes/cylinders/revolves/cuts/holes/hole_grids/fillets/chamfers。
+    基础体先建，切除与孔系其次，圆角和倒角最后执行，target 指向明确的实体。
     """
     if not isinstance(spec, dict):
         raise ValueError("spec 必须是 JSON 对象")
@@ -68,13 +68,14 @@ def builder_from_spec(out_path: str, spec: dict) -> PartBuilder:
                 method = getattr(builder, {
                     "cylinders": "cylinder", "revolves": "revolve",
                     "fillets": "fillet", "chamfers": "chamfer",
+                    "cuts": "cut_box", "holes": "hole", "hole_grids": "hole_grid",
                 }[section])
             try:
                 inspect.signature(method).bind(**params)
                 method(**params)
             except (TypeError, ValueError) as exc:
                 raise ValueError(f"{location}: {exc}") from exc
-            if section not in ("fillets", "chamfers"):
+            if section in ("boxes", "tubes", "cylinders", "revolves"):
                 shape_count += 1
     if not shape_count:
         raise ValueError("spec 没有任何形体")

@@ -564,6 +564,29 @@ def _chk_explicit_mate(work):
         _close_created(work,'st_explicit_')
 
 
+def _chk_native_cut(work):
+    from .modeling import PartBuilder
+    import math
+    path=os.path.join(work,'st_v15_cut.SLDPRT')
+    b=PartBuilder(path).box('base',0,100,0,20,0,60)
+    b.hole('hole','base',axis='y',x=30,y=20,z=30,diameter=10,through_all=True,direction=-1,
+           counterbore_diameter=16,counterbore_depth=4)
+    r=b.build(keep_open=False)
+    expected=120000-math.pi*5**2*20-math.pi*(8**2-5**2)*4
+    return r.ok and abs(r.volume_mm3-expected)<.01, f'cut volume={r.volume_mm3:.3f}, expected={expected:.3f}; {r.error}'
+
+
+def _chk_part_variant(work):
+    from .modeling import PartBuilder
+    from .variants import create_variant
+    source=os.path.join(work,'st_v15_source.SLDPRT');output=os.path.join(work,'st_v15_variant.SLDPRT')
+    built=PartBuilder(source).box('base',0,100,0,20,0,60).build(keep_open=False)
+    if not built.ok:return False,built.error
+    result=create_variant(source,output,{'D1@SWFORGE_base':30},material='6061-T6')
+    return (result.get('ok',False) and result.get('source_unchanged',False)
+            and abs(result.get('volume_mm3',0)-180000)<.01 and abs(result.get('density_kg_m3',0)-2700)<1),str(result)
+
+
 CHECKS = [
     Check("connect", "连接与版本", _chk_connect,
           "同类项目最常见的第一道坎（vespo92 #1）"),
@@ -591,6 +614,8 @@ CHECKS = [
           '偏差按毫米输入、米写入，名义值不能改变'),
     Check('explicit_mate','显式配合面与几何回读',_chk_explicit_mate,
           '半径不同的孔轴也可同心，必须核对原生配合面身份与装配坐标'),
+    Check('native_cut','真实通孔与沉孔体积回读',_chk_native_cut,'切除方向错误或空特征不能算成功'),
+    Check('part_variant','另存变型、源文件保护和材质密度',_chk_part_variant,'尺寸回读与质量/体积反算需同时通过'),
 ]
 
 

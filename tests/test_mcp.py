@@ -71,7 +71,7 @@ def test_all_tools_have_descriptions():
     if mcp is None:
         pytest.skip("mcp 未安装")
     tools = asyncio.run(mcp.list_tools())
-    assert len(tools) >= 20, f"工具太少：{len(tools)}"
+    assert {t.name for t in tools} == {'sw_discover','sw_describe','sw_invoke','sw_status'}
 
     for t in tools:
         assert t.description and len(t.description.strip()) >= 8, \
@@ -93,13 +93,13 @@ def test_write_tools_document_destructive_defaults():
 
     if mcp is None:
         pytest.skip("mcp 未安装")
-    tools = {t.name: t for t in asyncio.run(mcp.list_tools())}
+    tools = {t['name']: t for t in mcp._gateway.describe(['sw_purge_giant','sw_purge_small','sw_sweep_documents'])['operations']}
 
     for name in ("sw_purge_giant", "sw_purge_small", "sw_sweep_documents"):
         t = tools.get(name)
         assert t is not None, f"缺少 {name}"
-        desc = (t.description or "").lower()
-        assert ("默认只列" in t.description) or ("默认" in desc and "只" in desc), \
+        desc = (t['description'] or "").lower()
+        assert ("默认只列" in t['description']) or ("默认" in desc and "只" in desc), \
             f"{name} 没说明「默认只列不删」，Agent 会误判"
 
 
@@ -138,10 +138,9 @@ def test_stdio_handshake_and_list_tools():
 
     assert init.serverInfo.name == "swforge"
     assert init.capabilities.tools is not None, "服务器没声明 tools 能力"
-    assert len(tools.tools) >= 20
+    assert len(tools.tools) == 4
     names = {t.name for t in tools.tools}
-    assert "sw_validate_part" in names
-    assert "sw_build_part" in names
+    assert names == {'sw_discover','sw_describe','sw_invoke','sw_status'}
 
 
 def test_stdio_validate_part_returns_actionable_error():
@@ -163,10 +162,10 @@ def test_stdio_validate_part_returns_actionable_error():
         async with stdio_client(params) as (read, write):
             async with ClientSession(read, write) as session:
                 await session.initialize()
-                return await session.call_tool("sw_validate_part", {
+                return await session.call_tool("sw_invoke", {'name':'sw_validate_part','args':{
                     "out_path": "x.SLDPRT",
                     "spec": {"cylinders": [{"tag": "轴", "axis": "q", "r": 10, "h": 50}]},
-                })
+                }})
 
     r = asyncio.run(run())
     import json as _json

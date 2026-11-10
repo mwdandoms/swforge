@@ -167,6 +167,7 @@ class PartBuilder:
         self._boxes: list[_Box] = []
         self._shapes = []
         self._finishes = []
+        self._cuts = []
         self._tags = set()
 
     def _add(self, tag, kind, values, color):
@@ -249,6 +250,80 @@ class PartBuilder:
         """对源 tag 所属实体的全部边倒圆角。过大的半径构建失败，不保存半成品。"""
         return self._finish(tag, "Fillet", _number(r, "r", True),edges_rule)
 
+    def cut_box(self, tag, target, x0, x1, y0, y1, z0, z1, axis="y"):
+        """从明确指定的实体切除轴对齐长方体；范围和坐标均为 mm。"""
+        if target not in self._tags:
+            raise ValueError(f"找不到切除目标 tag: {target}")
+        if axis not in ('x', 'y', 'z'):
+            raise ValueError('cut_box.axis 必须为 x/y/z')
+        values=tuple(_number(v,n) for n,v in zip(('x0','x1','y0','y1','z0','z1'),(x0,x1,y0,y1,z0,z1)))
+        if any(values[i+1]<=values[i] for i in (0,2,4)):
+            raise ValueError('切除范围三轴尺寸必须为正')
+        self._cut_add(tag, 'CutBox', (str(target), axis)+values)
+        return self
+
+    def _cut_add(self, tag, kind, values):
+        tag=str(tag)
+        if not tag.strip() or tag in self._tags:
+            raise ValueError(f'tag 必须非空且唯一: {tag!r}')
+        self._tags.add(tag)
+        self._cuts.append((kind,tag,values))
+
+    def hole(self, tag, target, *, axis='y', x=0, y=0, z=0, diameter=10,
+             depth=None, through_all=False, direction=1,
+             counterbore_diameter=None, counterbore_depth=None):
+        """真实圆孔；孔口(x,y,z)、轴与正负方向明确，通孔/盲孔/平底沉孔。
+
+        through_all=True 时不传 depth；否则 depth 为正 mm。只切 target 实体。
+        沉孔需同时给出直径和深度，二者均为明确设计参数。
+        """
+        if target not in self._tags:
+            raise ValueError(f'找不到孔目标 tag: {target}')
+        if axis not in ('x','y','z') or isinstance(direction,bool) or direction not in (-1,1):
+            raise ValueError('hole.axis 必须为 x/y/z，direction 必须为 1 或 -1')
+        if not isinstance(through_all,bool):
+            raise ValueError('through_all 必须为布尔值')
+        point=tuple(_number(v,n) for n,v in zip(('x','y','z'),(x,y,z)))
+        diameter=_number(diameter,'diameter',True)
+        if through_all and depth is not None or not through_all and depth is None:
+            raise ValueError('通孔只设 through_all=True；盲孔必须给 depth')
+        depth=0.0 if through_all else _number(depth,'depth',True)
+        if (counterbore_diameter is None)!=(counterbore_depth is None):
+            raise ValueError('沉孔必须同时指定 counterbore_diameter/depth')
+        cb=counterbore_diameter is not None
+        if cb:
+            counterbore_diameter=_number(counterbore_diameter,'counterbore_diameter',True)
+            counterbore_depth=_number(counterbore_depth,'counterbore_depth',True)
+            if counterbore_diameter<=diameter or not through_all and counterbore_depth>=depth:
+                raise ValueError('沉孔直径须大于主孔，沉孔深度须小于盲孔总深度')
+        tags=[str(tag)]+([str(tag)+'_counterbore'] if cb else [])
+        if any(not t.strip() or t in self._tags for t in tags):
+            raise ValueError('孔 tag 必须非空且唯一（含沉孔后缀）')
+        self._cut_add(tag,'Hole',(str(target),axis)+point+(diameter,depth,int(through_all),direction))
+        if cb:
+            self._cut_add(tags[1],'Hole',(str(target),axis)+point+(counterbore_diameter,counterbore_depth,0,direction))
+        return self
+
+    def hole_grid(self, tag, target, *, rows=1, columns=1, pitch_u=20, pitch_v=20, **hole):
+        """在轴法平面上按规则网格生成原生圆孔；X→YZ、Y→XZ、Z→XY。"""
+        if any(isinstance(n,bool) or not isinstance(n,int) or n<1 for n in (rows,columns)) or rows*columns>200:
+            raise ValueError('孔阵列行列必须为正整数，一次最多200孔')
+        pitch_u=_number(pitch_u,'pitch_u',True);pitch_v=_number(pitch_v,'pitch_v',True)
+        axis=hole.get('axis','y')
+        if axis not in ('x','y','z'):
+            raise ValueError('孔阵列 axis 必须为 x/y/z')
+        u,v={'x':('y','z'),'y':('x','z'),'z':('x','y')}[axis]
+        # 先在独立声明中验证整批，防止非法的后续孔留下半批规格。
+        check=PartBuilder(self.path);check._tags=set(self._tags)
+        for row in range(rows):
+            for col in range(columns):
+                args=dict(hole)
+                args[u]=_number(hole.get(u,0),u)+col*pitch_u
+                args[v]=_number(hole.get(v,0),v)+row*pitch_v
+                check.hole(f'{tag}_r{row+1}c{col+1}',target,**args)
+        self._tags=check._tags;self._cuts.extend(check._cuts)
+        return self
+
     def chamfer(self, tag, d, edges_rule=None):
         """对源 tag 所属实体的全部边作 d×45° 倒角。"""
         return self._finish(tag, "Chamfer", _number(d, "d", True),edges_rule)
@@ -311,7 +386,7 @@ class PartBuilder:
 
     @property
     def feature_count(self):
-        return len(self._shapes) + len(self._finishes)
+        return len(self._shapes) + len(self._cuts) + len(self._finishes)
 
     def render_cs(self, *, paint=True, _log_path=None, keep_open=True, max_documents=8):
         if isinstance(max_documents, bool) or not isinstance(max_documents, int) or max_documents < 0:
@@ -329,6 +404,9 @@ class PartBuilder:
             args.append("null" if rgb is None or not paint else
                         "new double[]{" + ",".join(_cs_num(v) for v in rgb) + "}")
             calls.append("        " + kind + "(" + ",".join(args) + ");")
+        for kind,tag,values in self._cuts:
+            args=[_cs_string(tag)]+[_cs_string(v) if isinstance(v,str) else _cs_num(v) for v in values]
+            calls.append('        '+kind+'('+','.join(args)+');')
         for kind, tag, size,rule in self._finishes:
             calls.append(f"        Finish({_cs_string(tag)},{_cs_num(size)},{str(kind == 'Fillet').lower()},"
                          f"{_cs_string(rule.get('axis',''))},{_cs_num(rule.get('min_length_mm',-1))},"
@@ -362,6 +440,8 @@ class PartBuilder:
             return BuildResult(False, self.path, error="没有任何形体")
         if os.path.splitext(self.path)[1].lower() != ".sldprt":
             return BuildResult(False, self.path, error="输出文件必须使用 .SLDPRT 扩展名")
+        if os.path.exists(self.path):
+            return BuildResult(False, self.path, error="输出文件已存在；请使用新路径，避免覆盖原模型")
         sw_dir = _find_sw_dir()
         if not sw_dir:
             return BuildResult(False, self.path, error="找不到 SolidWorks 安装目录")
@@ -371,7 +451,7 @@ class PartBuilder:
         log = ""
         code = -1
         try:
-            with tempfile.TemporaryDirectory(prefix="swforge_") as work:
+            with tempfile.TemporaryDirectory(prefix="swforge_", ignore_cleanup_errors=True) as work:
                 run_log = os.path.join(work,"result.log")
                 cs = self.render_cs(paint=paint, _log_path=run_log,
                                     keep_open=keep_open, max_documents=max_documents)
@@ -640,6 +720,80 @@ public class __CLASS__ {
         md.ClearSelection2(true);
     }
 
+    static double Volume(IBody2 body) {
+        double[] m=(double[])body.GetMassProperties(1.0);
+        if(m==null||m.Length<4||m[3]<=0)throw new Exception("实体体积读取失败");
+        return m[3];
+    }
+
+    static IFeature CutSketch(ISketch sketch,string axis,double start,double depth,bool through,int direction,IBody2 target) {
+        IMathVector normal=(IMathVector)math.CreateVector(new double[]{0,0,1});
+        normal=(IMathVector)normal.MultiplyTransform(sketch.ModelToSketchTransform.Inverse());
+        double sign=((double[])normal.ArrayData)[axis=="x"?0:axis=="y"?1:2];
+        if(Math.Abs(sign)<0.99)throw new Exception("切除轴与草图法向不符");
+        End(sketch);
+        md.SketchManager.AddToDB=false;
+        ISelectData select=(ISelectData)((ISelectionMgr)md.SelectionManager).CreateSelectData();
+        select.Mark=8;
+        if(!target.Select2(true,(SelectData)select))throw new Exception("切除目标实体选择失败");
+        // Dir 按草图法向与目标世界轴计算，不能把所有轴硬编码为 false。
+        IFeature f=(IFeature)md.FeatureManager.FeatureCut4(true,false,sign*direction>0,
+            through?1:0,0,(through?1:depth)*MM,0,false,false,false,false,0,0,
+            false,false,false,false,false,true,false,false,false,false,
+            Math.Abs(start)<1e-9?0:3,Math.Abs(start)*MM,start*sign<0,false);
+        md.SketchManager.AddToDB=true;
+        if(f==null)throw new Exception("原生切除返回空值；孔口/方向或切除范围未与目标相交");
+        return f;
+    }
+
+    static void RegisterCut(string tag,string target,IFeature f,double before) {
+        IBody2 result=BodyOf(f);
+        double after=Volume(result);
+        if(before-after<=Math.Max(1e-15,before*1e-10))throw new Exception("切除未产生可验证的体积减少");
+        bool warning=false;int error=f.GetErrorCode2(out warning);
+        if(error!=0)throw new Exception("切除特征包含原生错误: "+error);
+        f.Name="SWFORGE_"+tag;
+        result.Name=target;
+        sources[target]=f;sources[tag]=f;okN++;
+        L(String.Format(System.Globalization.CultureInfo.InvariantCulture,
+            "SWFORGE_CUT tag={0} target={1} before_mm3={2:R} after_mm3={3:R} removed_mm3={4:R}",
+            tag,target,before*1e9,after*1e9,(before-after)*1e9));
+        md.ClearSelection2(true);
+    }
+
+    static void CutBox(string tag,string target,string axis,double x0,double x1,double y0,double y1,double z0,double z1) {
+        IBody2 body=FindBody(target);double before=Volume(body);
+        ISketch sketch=Begin(axis,0);
+        double[] a=Local(sketch,axis=="x"?0:x0,axis=="y"?0:y0,axis=="z"?0:z0);
+        double[] b=Local(sketch,axis=="x"?0:x1,axis=="y"?0:y1,axis=="z"?0:z1);
+        md.SketchManager.CreateCornerRectangle(a[0],a[1],0,b[0],b[1],0);
+        double start=axis=="x"?x0:axis=="y"?y0:z0;
+        double depth=axis=="x"?x1-x0:axis=="y"?y1-y0:z1-z0;
+        RegisterCut(tag,target,CutSketch(sketch,axis,start,depth,false,1,body),before);
+    }
+
+    static void Hole(string tag,string target,string axis,double x,double y,double z,double diameter,double depth,double through,double direction) {
+        IBody2 body=FindBody(target);double before=Volume(body);
+        ISketch sketch=Begin(axis,0);
+        double[] p=Local(sketch,axis=="x"?0:x,axis=="y"?0:y,axis=="z"?0:z);
+        md.SketchManager.CreateCircleByRadius(p[0],p[1],0,diameter*MM/2);
+        double start=axis=="x"?x:axis=="y"?y:z;
+        IFeature feature=CutSketch(sketch,axis,start,depth,through>0,(int)direction,body);
+        // 独立核对新特征确实含指定位置与半径的圆柱面。
+        bool cylinder=false;
+        foreach(object item in (object[])feature.GetFaces()) {
+            ISurface surface=(ISurface)((IFace2)item).GetSurface();
+            if(!surface.IsCylinder())continue;
+            double[] c=(double[])surface.CylinderParams;
+            int k=axis=="x"?0:axis=="y"?1:2;
+            double[] center={x*MM,y*MM,z*MM};double delta=0;
+            for(int i=0;i<3;i++)if(i!=k)delta+=(c[i]-center[i])*(c[i]-center[i]);
+            if(Math.Abs(c[6]-diameter*MM/2)<1e-8&&Math.Sqrt(delta)<1e-8&&Math.Abs(c[3+k])>.999999)cylinder=true;
+        }
+        if(!cylinder)throw new Exception("新孔的圆柱面位置或直径回读不符");
+        RegisterCut(tag,target,feature,before);
+    }
+
     static void Paint(object[] bodies) {
         int total=0,requested=0,verified=0;
         if(bodies!=null) foreach(object item in bodies) {
@@ -734,6 +888,7 @@ public class __CLASS__ {
                 }
             }
             if(String.IsNullOrEmpty(tpl) || !System.IO.File.Exists(tpl)) throw new Exception("找不到零件模板");
+            if(System.IO.File.Exists(__OUT__))throw new Exception("输出文件已存在，拒绝覆盖");
             L("模板: "+tpl);
             md=(IModelDoc2)sw.NewDocument(tpl,0,0,0);
             if(md==null) throw new Exception("新建零件文档失败");
@@ -772,6 +927,7 @@ __BODY__
             md.ShowNamedView2("",(int)swStandardViews_e.swIsometricView);
             md.ViewZoomtofit2();
             md.GraphicsRedraw2();
+            if(System.IO.File.Exists(__OUT__))throw new Exception("输出路径被其他任务占用，拒绝覆盖");
             saved=md.Extension.SaveAs(__OUT__,0,1,null,ref err,ref warn);
             L("保存 "+saved+" err="+err+" warnings="+warn);
         } catch(Exception e) { badN++; L("ERROR "+e.ToString()); }

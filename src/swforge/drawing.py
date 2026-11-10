@@ -19,6 +19,7 @@ import os
 import json
 import math
 import tempfile
+from .core.ledger import track_output
 
 __all__ = ["have_mechdog", "produce", "export_pdf", "normalize_layout",
            "add_dimensions", "count_dimensions",
@@ -90,6 +91,34 @@ def _view_list(md):
     return out
 
 
+def _fit_new_template_notes(md):
+    """Fit tiny font-dependent template overhangs in a newly created drawing.
+
+    Only existing sheet notes within 1mm of paper are eligible; never use this
+    on user drawings, tables or displaced annotations. Keep a movement record.
+    """
+    sheet=_value(md,'GetCurrentSheet');props=_value(sheet,'GetProperties')
+    width,height=float(props[5]),float(props[6]);moved=[]
+    first=_wrap_view(_value(md,'GetFirstView'))
+    for raw in _value(first,'GetAnnotations') or []:
+        try:
+            ann=_wrap_view(raw);note=_wrap_view(_value(ann,'GetSpecificAnnotation'))
+            extent=list(_value(note,'GetExtent'))
+            if len(extent)!=6:continue
+            left,bottom=min(extent[0],extent[3]),min(extent[1],extent[4])
+            right,top=max(extent[0],extent[3]),max(extent[1],extent[4])
+            if left>=0 and bottom>=0 and right<=width and top<=height:continue
+            if min(left,bottom)<-.001 or right>width+.001 or top>height+.001:continue
+            pos=list(_value(ann,'GetPosition'))
+            dx=max(0,.0001-left)-max(0,right-width+.0001)
+            dy=max(0,.0001-bottom)-max(0,top-height+.0001)
+            if ann.SetPosition2(pos[0]+dx,pos[1]+dy,0):
+                moved.append({'text':str(_value(note,'GetText')),'delta_m':[dx,dy]})
+        except Exception:
+            continue
+    return moved
+
+
 def _ensure_mm_units(md) -> dict:
     """把工程图单位强制为毫米（+2 位小数）。返回改前/改后的单位值。"""
     # swUserPreferenceIntegerValue_e: swUnitsLinear=47, swUnitsLinearDecimalPlaces=49
@@ -134,7 +163,7 @@ def add_dimensions(drawing_path: str | None = None, all_views: bool = True,
                    holes: bool = True, center_marks: bool = False,
                    duplicate: bool = False, relayout: bool = True,
                    overall: bool = False, curated: bool = True,
-                   internal: int = 2) -> dict:
+                   internal: int | None = None) -> dict:
     """把模型里的驱动尺寸自动插进工程图（v0.6 新增）。
 
     这是「基础三视图只能看形状，不能制造」这个缺口的直接补法：
@@ -178,6 +207,10 @@ def add_dimensions(drawing_path: str | None = None, all_views: bool = True,
         from .dims import add_overall_dimensions
         md.ClearSelection2(True)
         overall_result = add_overall_dimensions(drawing_path, internal=internal)
+        from .circle_dimensions import add_curated_diameters
+        # Explicit internal=0 keeps mechanical-family drawings' exact diameter
+        # targets under their dedicated workflow; generic curated mode fills circles.
+        diameter_result = add_curated_diameters(drawing_path) if holes and internal!=0 else {'ok':True,'added':0,'results':[]}
         after = count_dimensions(drawing_path)
         layout = None
         if relayout:
@@ -186,8 +219,10 @@ def add_dimensions(drawing_path: str | None = None, all_views: bool = True,
             except Exception as exc_c:                  # noqa: BLE001
                 layout = {"ok": False, "error": str(exc_c)}
         return {
-            "ok": bool(overall_result.get("ok")),
-            "error": "" if overall_result.get("ok") else str(overall_result.get("error", "")),
+            "ok": bool(overall_result.get("ok")) and diameter_result['ok'] and (layout is None or layout.get('ok',False)),
+            "error": (str(overall_result.get('error','')) or
+                      ('' if diameter_result['ok'] else 'A diameter dimension failed; inspect results before retry') or
+                      ('' if layout is None or layout.get('ok') else str(layout.get('error',layout.get('errors','Layout failed'))))),
             "mode": "curated",
             "before": before["total"],
             "after": after["total"],
@@ -195,8 +230,9 @@ def add_dimensions(drawing_path: str | None = None, all_views: bool = True,
             "views": after["views"],
             "units": units,
             "overall": overall_result,
+            "diameters": diameter_result,
             "layout": layout,
-            "note": "受控标注：只标总尺寸与最大的几个内部跨度，跨视图去重；"
+            "note": "受控标注：双向内部跨度（自适应上限6）与可见完整圆直径；位置尺寸须显式指定几何基准。仍需核对关键尺寸；"
                     "公差与粗糙度可用 annotations 接口按明确要求补充。要旧的全量标注传 curated=False",
         }
 
@@ -312,13 +348,14 @@ def have_mechdog() -> bool:
 
 
 # ---------------------------------------------------------------------- 出图
+@track_output('out_path',lambda a:os.path.splitext(a['model_path'])[0]+'.SLDDRW')
 def produce(model_path: str, out_path: str | None = None, paper: str = "A3",
             views: list[str] | None = None, *, annotations=False, template=None,
             keep_open=True, max_documents=8) -> dict:
     """Create a native views-only drawing by default; annotation pipeline is opt-in."""
     from .resources import document_scope
-    if not annotations and os.path.splitext(model_path)[1].lower()!='.sldprt':
-        raise ValueError('基础三视图模式目前仅验证 .SLDPRT；装配图尚未纳入本版验收')
+    if not annotations and os.path.splitext(model_path)[1].lower() not in ('.sldprt','.sldasm'):
+        raise ValueError('基础视图模式需要 .SLDPRT 或 .SLDASM')
     target=os.path.abspath(out_path or os.path.splitext(model_path)[0]+"_AI出图.SLDDRW")
     if not target.lower().endswith(".slddrw"):
         raise ValueError("工程图输出必须使用 .SLDDRW 扩展名")
@@ -330,11 +367,7 @@ def produce(model_path: str, out_path: str | None = None, paper: str = "A3",
     # 无条件连会带来两个副作用：一是全新出图白连一次（拖慢启动），
     # 二是把纯逻辑的单元测试也拖进真实连接（CI 上没 SolidWorks 就会失败）。
     if os.path.isfile(target):
-        _close_open_document(target)
-        try:
-            os.remove(target)
-        except OSError:
-            pass
+        raise ValueError('输出工程图已存在，请使用新文件名；不会关闭或覆盖已有图纸')
     if template is not None and (not os.path.isfile(template) or not str(template).lower().endswith(".drwdot")):
         raise ValueError("template 必须是存在的 .drwdot 文件")
     with document_scope(target,keep_open=keep_open,max_documents=max_documents,
@@ -402,6 +435,8 @@ def _produce(model_path: str, out_path: str | None = None, paper: str = "A3",
                 "error": "未能创建完整三视图，未保存工程图"}
     _value(md, "EditRebuild3")
 
+    template_note_adjustments = _fit_new_template_notes(md)
+
     # 缩放到适合：不缩的话图纸会只显示一部分（尤其是 A3 以上幅面），
     # 录屏/截图/给人看的时候第一眼就是半个图框。
     try:
@@ -419,6 +454,7 @@ def _produce(model_path: str, out_path: str | None = None, paper: str = "A3",
         "degraded": False,
         "annotations_requested": False,
         "template": template,
+        "template_note_adjustments": template_note_adjustments,
         "note": "基础三视图；未自动拟定尺寸、公差或粗糙度，需设计审核",
         "first_view": str(view) if view else None,
     }
@@ -464,6 +500,9 @@ def _default_template(kind="drawing", paper="A3"):
 
     v0.7 把英文 ``GB.drwdot`` 排在最前，导致出的图是英寸且没有图框。
     """
+    if kind=='drawing':
+        from .gb_styles import gb_template_path
+        return gb_template_path(str(paper).upper())
     dirs = _template_dirs()
     if kind == "assembly":
         for d in dirs:
@@ -499,6 +538,7 @@ def template_warnings(template):
     return out
 
 
+@track_output('pdf_path',lambda a:os.path.splitext(a['drawing_path'])[0]+'.'+a['fmt'].lower())
 def export_pdf(drawing_path: str, pdf_path: str | None = None,
                fmt: str = "pdf") -> dict:
     """导出工程图到 PDF / DWG / DXF。"""
@@ -520,12 +560,18 @@ def export_pdf(drawing_path: str, pdf_path: str | None = None,
     fd, temporary = tempfile.mkstemp(prefix=".swforge_export_", suffix="." + fmt,
                                      dir=os.path.dirname(pdf_path))
     os.close(fd)
+    # SolidWorks export can write a valid PDF but return general save error when
+    # the destination is an already-created empty file. Reserve the unique name,
+    # then remove only our empty placeholder before the native call.
+    os.unlink(temporary)
     try:
         md.ClearSelection2(True)
         sw_ok, err, warn = _save_as(md, temporary)
         ok = sw_ok and os.path.isfile(temporary) and os.path.getsize(temporary) > 0
         validation=None
-        if fmt == "pdf" and os.path.getsize(temporary)>0:
+        # temporary 是先 mkstemp 再 unlink 掉的占位名：导出失败时它可能根本不存在。
+        # 不先判 isfile 就直接 getsize，会把「导出失败」变成 FileNotFoundError 崩出去。
+        if fmt == "pdf" and os.path.isfile(temporary) and os.path.getsize(temporary)>0:
             validation=_validate_pdf(temporary,len(_value(md,'GetSheetNames')))
             ok=ok and validation['ok']
         if ok:

@@ -1,3 +1,13 @@
+# 1.7.0 Community
+
+Breaking MCP change / MCP升级：four gateway entry points, original operations via sw_invoke.
+
+- Parts and assembly variants, mechanical families, drawing books and native BOM workflow updates.
+- Packaged A0–A4 templates, first-angle graphics/properties, explicit styles and limited numeric checks.
+- Execution records, document protection and deliverable freshness.
+- Community edition excludes advanced GB clause/raster/set review and process-rule orchestration implementations.
+- SW2025 SP5 native fixture testing only; engineering review remains required.
+
 **中文** | [English](CHANGELOG.en.md)
 
 # Changelog

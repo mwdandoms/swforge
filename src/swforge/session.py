@@ -103,7 +103,21 @@ class SWSession:
                     self.stale_drops += 1
                     # 断线：立刻重连（不重试旧句柄）
             if self._sw is None:
-                self._sw = win32com.client.Dispatch("SldWorks.Application")
+                try:
+                    self._sw = win32com.client.Dispatch("SldWorks.Application")
+                except Exception as exc:                 # noqa: BLE001
+                    # COM 自动激活失败（常见 CO_E_SERVER_EXEC_FAILURE 0x80080005：
+                    # 进程创建被沙箱/安全软件挡住）。退一步自己启动 exe 再连。
+                    self.connect_failures = getattr(self, "connect_failures", 0) + 1
+                    from .startup import ensure_running
+                    info = ensure_running()
+                    if not info.get("ok"):
+                        raise SWError(
+                            "连不上 SolidWorks，自动启动也失败："
+                            f"{info.get('error')}；exe={info.get('exe')}；"
+                            f"建议：{info.get('hint')}"
+                        ) from exc
+                    self._sw = win32com.client.Dispatch("SldWorks.Application")
                 self._last_probe = time.time()
                 if self.stale_drops:
                     self.reconnects += 1

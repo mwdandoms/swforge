@@ -79,10 +79,12 @@ def _position(md, x, y, view_name, offset_x, offset_y):
 
 def _surface_request(md, *, x=None, y=None, ra='3.2', symbol_type='machining',
                      prod_method='', lay=0, view_name=None, offset_x=.008, offset_y=0.,
-                     edge_index=None, edge_fraction=.5, leader=False):
+                     edge_index=None, edge_fraction=.5, leader=False,strict=True):
     ra = str(ra).strip()
     if _number(ra, 'ra') <= 0:
         raise ValueError('ra 必须大于 0，单位 μm')
+    from .gb_standards import ra_series_valid
+    if strict and not ra_series_valid(ra):raise ValueError('Ra 不在已收录标准系列中；非标值须显式 strict=False')
     if symbol_type is None:
         symbol_type = 'machining'
     sym = SURFACE_TYPES.get(symbol_type, symbol_type) if isinstance(symbol_type, str) else symbol_type
@@ -191,7 +193,7 @@ def _insert_surface(sw, md, request):
 def add_surface_finish(drawing_path=None, x=None, y=None, ra='3.2',
                        symbol_type='machining', prod_method='', lay=0,
                        view_name=None, offset_x=.008, offset_y=0.,
-                       edge_index=None, edge_fraction=.5, leader=False) -> dict:
+                       edge_index=None, edge_fraction=.5, leader=False,strict=True) -> dict:
     """添加并回读粗糙度。x/y 和视图偏移用米，Ra 用 μm；省略坐标从视图右上角推算。
 
     只修改当前内存文档；确认结果后由调用方保存或导出。不跳过回读验证。
@@ -201,7 +203,7 @@ def add_surface_finish(drawing_path=None, x=None, y=None, ra='3.2',
         request = _surface_request(md, x=x, y=y, ra=ra, symbol_type=symbol_type,
                                    prod_method=prod_method, lay=lay, view_name=view_name,
                                    offset_x=offset_x, offset_y=offset_y, edge_index=edge_index,
-                                   edge_fraction=edge_fraction, leader=leader)
+                                   edge_fraction=edge_fraction, leader=leader,strict=strict)
         return _insert_surface(sw, md, request)
     except Exception as exc:
         return {'ok': False, 'created': False, 'error': f'{type(exc).__name__}: {exc}'}
@@ -331,6 +333,8 @@ def _tolerance_request(tol_type, upper, lower, fit):
         parts = str(fit).split('/') if fit is not None else []
         if len(parts) != 2 or not re.fullmatch(r'[A-Z]{1,2}\d{1,2}', parts[0]) or not re.fullmatch(r'[a-z]{1,2}\d{1,2}', parts[1]):
             raise ValueError('fit 必须是明确的孔/轴代号，例如 H7/g6')
+        from .gb_standards import fit_deviation
+        fit_deviation(fit,20) # Reject unsupported codes before any mutation; actual diameter checked below.
         return {'type': 7, 'hole': parts[0], 'shaft': parts[1]}
     if tol_type == 'none':
         return {'type': 0}
@@ -387,6 +391,9 @@ def set_tolerance(drawing_path=None, dim_name=None, dim_value=None,
         if len(matches) != 1:
             raise ValueError(f'尺寸匹配 {len(matches)} 项，必须唯一；请用 list_dimensions 返回的完整 name 和 view')
         row = matches[0]
+        if tol_type=='fit':
+            from .gb_standards import fit_deviation
+            request['standard_deviations']=fit_deviation(fit,float(row['value']))
         if row['dimension_type'] not in (1, 2, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15):
             raise ValueError('v1.4 仅支持线性尺寸公差，角度公差未验证')
         dim = row['dim_obj']

@@ -1,113 +1,59 @@
-[中文](https://github.com/mwdandoms/swforge/blob/main/README.md) | **English**
+[中文](README.md) | **English**
 
 # swforge
 
-**Drive your local SolidWorks from Python, CLI, or MCP — modeling, GB material assignment, assembly mates, interference checks, and GB-standard drawings, with every step verified by reading the result back.**
+**Less repetitive work in SolidWorks. More reusable engineering results.**
 
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
-[![SolidWorks](https://img.shields.io/badge/SolidWorks-2025%20SP5%20tested-red)]()
-[![PyPI](https://img.shields.io/pypi/v/swforge)](https://pypi.org/project/swforge/)
-[![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/mwdandoms/swforge/blob/main/LICENSE)
-[![docs](https://img.shields.io/badge/docs-mwdandoms.github.io-blue)](https://mwdandoms.github.io/swforge/)
+Build parameterized parts, apply materials and colors, prepare assemblies and drawings, and deliver BOMs and PDFs through repeatable workflows—with readback checks where supported.
 
-[![swforge demo: driving SolidWorks from code](https://raw.githubusercontent.com/mwdandoms/swforge/main/demo/poster.png)](https://github.com/mwdandoms/swforge/releases/download/v1.4.1/swforge-demo-2m21s-1080p60.mp4)
+[![PyPI](https://img.shields.io/pypi/v/swforge)](https://pypi.org/project/swforge/) [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-> ▶ **Click the image to watch the 2 min 21 s demo** (6.7 MB) — starting from a
-> closed SolidWorks: modeling → GB materials → GB drawing → dimensions →
-> surface finish → tolerances → PDF → assembly → mates → interference,
-> **with no manual operation at any point**.
+## What you can do
 
----
-
-## Why use it
-
-| Other tools | swforge |
+| Work | Community features |
 |---|---|
-| A call that returns without error is treated as success | Reads the real result back and stops on mismatch |
-| Default density is water, mass off by 7.85× | Built-in GB material library, density re-derived and checked |
-| Drawing frame and title block don't match local practice | GB frame, title block, surface finish, dimensional tolerances |
-| Interference reported as yes / no | Exact volume, e.g. 4000.0 mm³ |
+| Repeated part designs | Plates, tubes, cylinders, revolved bodies, cuts, holes, fillets, chamfers and copy-only variants |
+| Materials and appearance | GB-designated materials, rule-based colors and readback |
+| Assemblies | Components, mates, interference checks, variants and native BOM tables |
+| Drawings | Standard views, sections, details, explicit dimensions, tolerances and surface-finish symbols |
+| Consistent presentation | A0–A4 GB-oriented templates, first-angle projection, title fields and basic font/line-weight checks |
+| Deliverables | Batch drawings, multi-sheet books, PDF/DWG/DXF export and artifact freshness records |
+| AI-assisted work | MCP access, alongside Python and command-line interfaces |
 
----
+Checks expose their coverage and limitations. Generated drawings still require engineering review.
 
-## What it does
+## How it compares
 
-**Modeling** — boxes, plates, rectangular tubes (all three axes), cylinders, revolves, fillets, chamfers
+| Approach | Published focus | Where swforge fits |
+|---|---|---|
+| Project-specific macros | Replaying a particular sequence; capabilities depend on implementation | Reusable workflows spanning modeling, variants, drawings and delivery |
+| [CAD+ Toolset](https://cadplus.xarial.com/) | Properties, batch processing, export, BOM and desktop/PDM utilities | Parameterized engineering tasks accessible through scripts, CLI and AI assistants |
+| [AssetMate MechDog](https://github.com/wudahua/Solidworks_AssetMate_MechDog) | SolidWorks MCP, drawing annotations, feature ledgers and delivery checks | Parameterized geometry/mechanical families, variants, basic GB-oriented drawings and multi-sheet delivery; optional drawing enhancements can work with MechDog |
 
-**Machining features** — rectangular cut on a named body, through / blind / counterbored holes on any axis and direction, hole grids
-
-**Assembly** — component placement, coincident / concentric / distance / angle / lock mates, explicit persistent-face mates, interference checking
-
-**Drawings** — GB three views, section and detail views, automatic dimensions, diameter dimensions, surface finish symbols, dimensional tolerances, export to PDF / DWG / DXF
-
-**Drawing review** — views outside the sheet, view overlap, dangling annotations, missing properties, model-to-drawing consistency
-
-**Also** — BOM tables, batch drawing generation, document-count guard
-
----
+This is a positioning comparison based on official descriptions, not a shared-task benchmark or a claim that competing products lack particular features. Only SW2025 SP5 has been tested locally; no speed multiplier or cross-version guarantee is claimed.
 
 ## Install
 
-```bash
-pip install swforge              # library only
-pip install "swforge[mcp,pdf]"   # with the MCP server and PDF preview
-```
-
-Requires Windows, a full SolidWorks installation, and Python 3.10+.
-**Start SolidWorks yourself first, then call the library.**
-
-Verified on SolidWorks 2025 SP5.0 / Windows 11 / Python 3.14. Other SW versions are untested.
-
----
-
-## Thirty-second example
-
-```python
-from swforge import PartBuilder
-
-b = PartBuilder(r"F:\out\plate.SLDPRT", material="Q235")
-b.box("plate", 0, 100, 0, 20, 0, 60)
-b.hole("mount", "plate", axis="y", x=30, y=20, z=30,
-       diameter=10, through_all=True, direction=-1,
-       counterbore_diameter=16, counterbore_depth=4)
-
-r = b.build(keep_open=False)
-assert r.ok, r.error
-print(r.mass_kg, r.volume_mm3)   # real values read back from SolidWorks
-```
-
----
-
-## Check your environment first
+Windows, Python 3.10+ and your own licensed SolidWorks installation are required.
 
 ```bash
-swforge selftest
+pip install swforge
+pip install "swforge[mcp,pdf]"
+swforge --help
 ```
 
-Runs live on your own machine and prints pass/fail for each check.
+Keep source models and use new output paths. The default open-document limit is eight.
 
----
+## Open-source boundary
 
-## Not implemented
+The GitHub repository and PyPI Community distributions are MIT-licensed, including commercial use. They include modeling, materials/colors, assemblies, annotations, BOMs, drawing books, batch APIs, basic GB templates/checks, readback and document protection.
 
-- **Geometric tolerancing (GD&T)**
-- **Complete hole callouts** (position, depth, hole tables) — only diameter dimensions on circular edges for now
-- **Weldments / cut lists**, **involute gears**
-- Text overlap in drawing review is an **approximation**
-- Live-verified only on SolidWorks 2025 SP5.0
+Advanced GB clause review, raster/drawing-set review and process-rule orchestration implementations are withheld from this release, including the sdist and wheel. They remain local pending a separate module and licensing decision. They are not advertised as an available paid product. Earlier MIT releases retain their original license.
 
-See [limitations](https://github.com/mwdandoms/swforge/blob/main/docs/limitations.en.md) and the [issue log](https://github.com/mwdandoms/swforge/blob/main/docs/issue-log.md), which includes the unfixed ones.
+Basic GB coverage is finite: limited fit codes/size ranges, no certified exact long-FangSong font coverage, and no complete GB/manufacturing/strength certification. Five GD&T characteristics have interfaces; saved-and-reopened flatness was the native fixture tested this round. See [scope](COMMUNITY_SCOPE.json) and [validation](docs/validation-community.md).
 
----
+MCP migration: use `sw_discover`, `sw_describe`, `sw_invoke` and `sw_status`; original operation names are invoked through the gateway. Community Python and CLI operations remain available. See [migration](docs/community-migration.md).
 
-## Docs
+## Acknowledgements
 
-[Quickstart](https://github.com/mwdandoms/swforge/blob/main/docs/quickstart.md) ·
-[Feature matrix](https://github.com/mwdandoms/swforge/blob/main/docs/features.md) ·
-[Docs site](https://mwdandoms.github.io/swforge/)
-
----
-
-## License
-
-MIT.
+Original and dependency license notices are preserved. Thanks to [AssetMate MechDog](https://github.com/wudahua/Solidworks_AssetMate_MechDog) and other open-source projects. Report issues with your SW version and a minimal example; omit confidential models.

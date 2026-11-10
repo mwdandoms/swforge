@@ -1,0 +1,9 @@
+{
+  "version": "1.7.0",
+  "edition": "Community",
+  "sw_tested": [
+    "2025 SP5"
+  ],
+  "full_gb_certification": false,
+  "advanced_gb_included": false
+}

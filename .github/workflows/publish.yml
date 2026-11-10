@@ -8,7 +8,7 @@ on:
   push:
     tags:
       - "v*"
-  workflow_dispatch:        # 也允许手动触发，便于演练
+
 
 jobs:
   build:
@@ -21,10 +21,18 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Community regression before upload
+        run: |
+          python -m pip install pytest tomli ".[mcp,pdf]"
+          python -m pytest tests -q -m "not sw"
+
       - name: Build sdist and wheel
         run: |
           python -m pip install --upgrade pip build
           python -m build --sdist --wheel --outdir dist
+
+      - name: Check Community distribution boundary
+        run: python tools/release_boundary.py
 
       - name: Sanity check before publishing
         shell: bash
@@ -169,3 +177,22 @@ jobs:
 #
 # 全程不需要在仓库里存任何 token。
 # ============================================================================
+
+  github-release:
+    name: GitHub Community release
+    needs: [build, pypi]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Publish Community release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git archive --format=zip --prefix=swforge/ --output=dist/swforge.zip HEAD
+          gh release create "${GITHUB_REF_NAME}" dist/* --title "${GITHUB_REF_NAME} Community | 社区版" --notes-file RELEASE_NOTES.md

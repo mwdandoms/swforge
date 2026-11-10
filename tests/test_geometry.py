@@ -54,7 +54,7 @@ def test_tube_wall_validation_is_atomic(tmp_path):
     assert b.box_count == b.shape_count == 0
 
 
-def _mock_build(monkeypatch, tmp_path, *, log="", returncode=0, timeout=False):
+def _mock_build(monkeypatch, tmp_path, *, log="", returncode=0, timeout=False, output_path=None):
     import swforge.modeling as module
     monkeypatch.setattr(module, "_find_sw_dir", lambda: str(tmp_path))
     def run(args, **kwargs):
@@ -64,6 +64,8 @@ def _mock_build(monkeypatch, tmp_path, *, log="", returncode=0, timeout=False):
                 fh.write(log)
         if timeout:
             raise subprocess.TimeoutExpired(args, 1)
+        if output_path is not None:
+            output_path.write_bytes(b'saved')
         return SimpleNamespace(returncode=returncode,stdout="",stderr="")
     monkeypatch.setattr(module.subprocess,"run",run)
 
@@ -98,10 +100,9 @@ def test_build_requires_all_features_and_confirmed_save(monkeypatch,tmp_path,mac
 
 def test_result_uses_true_body_count_and_verified_color_count(monkeypatch,tmp_path):
     path=tmp_path / "merged.SLDPRT"
-    path.write_bytes(b"saved")
     b=PartBuilder(path,merge=True).box("a",0,10,0,10,0,10).box("b",5,15,0,10,0,10)
     _mock_build(monkeypatch,tmp_path,log="SWFORGE_COLOR total=8 requested=8 verified=7\n"
-                "SWFORGE_RESULT ok=2 failed=0 bodies=1 saved=True errors=0")
+                "SWFORGE_RESULT ok=2 failed=0 bodies=1 saved=True errors=0",output_path=path)
     r=b.build()
     assert r.ok
     assert r.bodies == 1 and r.features_ok == 2
@@ -111,8 +112,10 @@ def test_result_uses_true_body_count_and_verified_color_count(monkeypatch,tmp_pa
 def test_timeout_returns_failure_with_preserved_existing_model(monkeypatch,tmp_path):
     path=tmp_path / "old.SLDPRT"
     path.write_bytes(b"old")
-    b=PartBuilder(path).cylinder("shaft")
+    target=tmp_path/'new.SLDPRT'
+    b=PartBuilder(target).cylinder("shaft")
     _mock_build(monkeypatch,tmp_path,timeout=True)
     r=b.build(timeout_s=1)
     assert not r.ok and "超过" in r.error
     assert path.read_bytes() == b"old"
+    assert not target.exists()

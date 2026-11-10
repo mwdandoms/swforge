@@ -1,13 +1,7 @@
-include LICENSE
-include README.md
-include README.en.md
-include CHANGELOG.md
-include CHANGELOG.en.md
-include .gitignore
-recursive-include docs *.md *.json *.log
+include LICENSE PACKAGE_README.md README.md README.en.md CHANGELOG.md CHANGELOG.en.md BUILDINFO.json COMMUNITY_SCOPE.json
+recursive-include src/swforge *.yaml *.md *.drwdot *.DRWDOT *.slddrt *.json
+recursive-include docs *.md
 recursive-include demo *.py
-recursive-include examples *.py *.json
 recursive-include tests *.py
-global-exclude __pycache__
-global-exclude *.py[cod]
-global-exclude *.SLDPRT *.SLDDRW *.SLDASM *.pdf
+global-exclude __pycache__ *.py[cod]
+recursive-include tools *.py

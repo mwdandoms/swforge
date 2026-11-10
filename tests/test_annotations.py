@@ -169,7 +169,8 @@ def test_mcp_annotation_tools_have_explicit_units():
     from swforge.server import mcp
     if mcp is None:
         pytest.skip('mcp 未安装')
-    tools = {t.name: t for t in asyncio.run(mcp.list_tools())}
+    from types import SimpleNamespace
+    tools = {n:SimpleNamespace(description=r['description']) for n,r in mcp._gateway.registry.items()}
     assert 'sw_add_surface_finishes' in tools and 'sw_list_dimensions' in tools
     assert '米' in tools['sw_add_surface_finish'].description
     assert 'mm' in tools['sw_set_tolerance'].description

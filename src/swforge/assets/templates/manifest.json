@@ -1,0 +1,17 @@
+{
+  "version": "1.7.0",
+  "host": "SW2025 SP5",
+  "certified": false,
+  "files": {
+    "gb_a0.DRWDOT": "a9039fe913efe84ef6c7a6c508c51c1a7b33bb92831e03254b1b908909d3bdf9",
+    "gb_a0.slddrt": "57979cd40ddc8eb2d14461996d2d3fd5bdfad78b09f7c50457a1442e881716d9",
+    "gb_a1.DRWDOT": "83506a68595b878f4ed7093ff81481d1938879b4ef971083e14393ed25e1b5c6",
+    "gb_a1.slddrt": "92fc0685cc7a5a98d0b82719ce6c39f9ef0633b82fa1112f307e22f739af699f",
+    "gb_a2.DRWDOT": "662c39fc809f512f40a9b5afe58ce43db4ed30c0d19b6aa01fc0605b5f702435",
+    "gb_a2.slddrt": "8a352fd197ea384da258a0b65af04387791d5faa8d42cae73e099ebd3cfe08a3",
+    "gb_a3.DRWDOT": "73638ed88c924c3a7b6e69e32da9e0528e542d82486dea1fbc4b701957c0f60c",
+    "gb_a3.slddrt": "02639f8c0303d1f5d5c55f7f70f950a4523a26e6fab0d470a5dc5d55b2fddb13",
+    "gb_a4.DRWDOT": "512c2496f8acbac0334e5e3dd0c157a65f71d5cea3b68ad08ab0c8799e9f28e5",
+    "gb_a4.slddrt": "479ce4c58ca63bdb3cf5d29bbbe1331542410add19ac178a473b2312eceaa8f2"
+  }
+}

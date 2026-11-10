@@ -90,7 +90,7 @@ def _run(command, timeout_s=120):
     if not directory:
         return {'ok': False, 'error': '找不到 SolidWorks Interop DLL，请设置 SW_INSTALL_DIR'}
     start = time.monotonic()
-    with tempfile.TemporaryDirectory(prefix='swforge_face_mate_') as work:
+    with tempfile.TemporaryDirectory(prefix='swforge_face_mate_', ignore_cleanup_errors=True) as work:
         root = Path(work)
         name = 'ExplicitMate_' + uuid.uuid4().hex
         source = root/'bridge.cs'

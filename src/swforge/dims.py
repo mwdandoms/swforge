@@ -80,6 +80,10 @@ public class __CLASS__ {
             IModelDoc2 md = (IModelDoc2)sw.ActiveDoc;
             if (md == null || md.GetType() != (int)swDocumentTypes_e.swDocDRAWING)
                 throw new Exception("当前文档不是工程图");
+            if(sw.GetProcessID()!=__PID__||!String.Equals(md.GetPathName(),__PATH__,StringComparison.OrdinalIgnoreCase))
+                throw new Exception("Active drawing/process changed before dimensioning");
+            if(typeof(ISldWorks).Assembly.GetName().Version.Major!=Int32.Parse(sw.RevisionNumber().Split('.')[0]))
+                throw new Exception("Interop version differs from running SolidWorks");
 
             double gap = __GAP__ / 1000.0;          // 尺寸线离视图轮廓的距离（米）
             int done = 0, tried = 0;
@@ -108,21 +112,7 @@ public class __CLASS__ {
                 // 之前直接用模型 X/Y 找极值，导致右视图标出 114（应为 100）。
                 string orientName = "";
                 try { orientName = v.GetOrientationName() ?? ""; } catch { }
-                int axH = 0, axV = 1;              // 0=X 1=Y 2=Z
-                bool flipH = false, flipV = false;
-                if (orientName.Contains("上视") || orientName.Contains("下视")
-                    || orientName.Contains("Top") || orientName.Contains("Bottom")) {
-                    axH = 0; axV = 2;
-                    if (orientName.Contains("下视") || orientName.Contains("Bottom")) flipV = true;
-                } else if (orientName.Contains("左视") || orientName.Contains("右视")
-                    || orientName.Contains("Left") || orientName.Contains("Right")) {
-                    axH = 2; axV = 1;
-                    if (orientName.Contains("左视") || orientName.Contains("Left")) flipH = true;
-                } else if (orientName.Contains("后视") || orientName.Contains("Back")) {
-                    axH = 0; axV = 1; flipH = true;
-                }
-
-
+                double[] transform=(double[])((IMathTransform)v.ModelToViewTransform).ArrayData;
                 System.Collections.Generic.List<V> pts = new System.Collections.Generic.List<V>();
                 string via = "vertex";
 
@@ -139,9 +129,8 @@ public class __CLASS__ {
                             double[] p = (double[])vt.GetPoint();
                             V item = new V();
                             item.ent = ent; item.x = p[0]; item.y = p[1]; item.z = p[2];
-                            double[] pa3 = new double[] { p[0], p[1], p[2] };
-                            item.vx = (flipH ? -1 : 1) * pa3[axH];
-                            item.vy = (flipV ? -1 : 1) * pa3[axV];
+                            item.vx = p[0]*transform[0]+p[1]*transform[3]+p[2]*transform[6];
+                            item.vy = p[0]*transform[1]+p[1]*transform[4]+p[2]*transform[7];
                             pts.Add(item);
                         } catch { }
                     }
@@ -164,15 +153,15 @@ public class __CLASS__ {
                                 if (sv != null) {
                                     double[] ps = (double[])sv.GetPoint();
                                     V a = new V(); a.ent = ent; a.x = ps[0]; a.y = ps[1]; a.z = ps[2];
-                                    a.vx = (flipH ? -1 : 1) * ps[axH];
-                                    a.vy = (flipV ? -1 : 1) * ps[axV];
+                                    a.vx = ps[0]*transform[0]+ps[1]*transform[3]+ps[2]*transform[6];
+                                    a.vy = ps[0]*transform[1]+ps[1]*transform[4]+ps[2]*transform[7];
                                     pts.Add(a);
                                 }
                                 if (ev != null) {
                                     double[] pe = (double[])ev.GetPoint();
                                     V b2 = new V(); b2.ent = ent; b2.x = pe[0]; b2.y = pe[1]; b2.z = pe[2];
-                                    b2.vx = (flipH ? -1 : 1) * pe[axH];
-                                    b2.vy = (flipV ? -1 : 1) * pe[axV];
+                                    b2.vx = pe[0]*transform[0]+pe[1]*transform[3]+pe[2]*transform[6];
+                                    b2.vy = pe[0]*transform[1]+pe[1]*transform[4]+pe[2]*transform[7];
                                     pts.Add(b2);
                                 }
                             } catch { }
@@ -280,69 +269,47 @@ public class __CLASS__ {
                     md.ClearSelection2(true);
                 }
 
-                // ---- 内部特征尺寸（只在 curated 模式，且数量上限）
-                // 为什么要挑着标：实测 InsertModelAnnotations4 会插 22 个尺寸，
-                // 而且全堆在视图同一边互相重叠，图直接不可用。
-                // 这里改成"只标值得标的"：取最大的几个跨度，且数值不与已标的重复。
-                int internalQuota = __INTERNAL__;   // 用局部变量承接，避免常量条件被判不可达
-                if (internalQuota > 0) {
-                    double span = maxX.vx - minX.vx;
-                    if (span > 1e-9) {
-                        // 收集不重复的 X 坐标
-                        System.Collections.Generic.List<double> xs = new System.Collections.Generic.List<double>();
-                        foreach (V q in pts) {
-                            bool dup = false;
-                            foreach (double x in xs) { if (Math.Abs(x - q.vx) < 1e-4) { dup = true; break; } }
-                            if (!dup) xs.Add(q.vx);
+
+                // Both projected axes; quota is shared by this view. Include thin
+                // walls down to 0.5mm instead of filtering everything below 15%.
+                int internalQuota = __INTERNAL__;
+                int placed2=0;
+                for(int axis=0;axis<2;axis++) {
+                    double span=axis==0?maxX.vx-minX.vx:maxY.vy-minY.vy;
+                    if(span<1e-9)continue;
+                    var coords=new System.Collections.Generic.List<double>();
+                    foreach(V q in pts){double a=axis==0?q.vx:q.vy;if(!coords.Exists(x=>Math.Abs(x-a)<1e-7))coords.Add(a);}
+                    coords.Sort();var spans=new System.Collections.Generic.List<double[]>();
+                    for(int i=1;i<coords.Count;i++){double g=coords[i]-coords[i-1];if(g>=.0005&&g/span>=__MINGAP__)spans.Add(new double[]{g,coords[i-1],coords[i]});}
+                    spans.Sort((a,b)=>b[0].CompareTo(a[0]));
+                    int axisPlaced=0;
+                    foreach(double[] sp in spans){
+                        if(placed2>=internalQuota)break;
+                        double val=sp[0]*1000;
+                        if(usedVals.Exists(x=>Math.Abs(x-val)<1e-4))continue;
+                        V a=null,b=null;double best=Double.MaxValue;
+                        foreach(V u in pts)foreach(V w in pts){
+                            double ua=axis==0?u.vx:u.vy,wa=axis==0?w.vx:w.vy;
+                            if(Math.Abs(ua-sp[1])>1e-7||Math.Abs(wa-sp[2])>1e-7)continue;
+                            double off=Math.Abs(axis==0?u.vy-w.vy:u.vx-w.vx);
+                            if(off<best){a=u;b=w;best=off;}
                         }
-                        xs.Sort();
-
-                        // 相邻跨度，从大到小
-                        System.Collections.Generic.List<double[]> spans = new System.Collections.Generic.List<double[]>();
-                        for (int i = 1; i < xs.Count; i++) {
-                            double g = xs[i] - xs[i - 1];
-                            if (g / span >= __MINGAP__) spans.Add(new double[] { g, xs[i - 1], xs[i] });
-                        }
-                        spans.Sort((a, b) => b[0].CompareTo(a[0]));
-
-                        int placed2 = 0;
-                        double offset = gap;   // 从总尺寸外面再往外一层
-                        foreach (double[] sp in spans) {
-                            if (placed2 >= internalQuota) break;
-                            double val = sp[0] * 1000.0;
-                            // 去重：和总长相同、或已标过的长度就跳过
-                            double overall = span * 1000.0;
-                            if (Math.Abs(val - overall) < 0.5) continue;
-                            bool dupVal = false;
-                            foreach (double seen in usedVals) { if (Math.Abs(seen - val) < 0.5) { dupVal = true; break; } }
-                            if (dupVal) continue;
-
-                            V a = null, b2 = null;
-                            foreach (V q in pts) {
-                                if (a == null && Math.Abs(q.vx - sp[1]) < 1e-4) a = q;
-                                if (b2 == null && Math.Abs(q.vx - sp[2]) < 1e-4) b2 = q;
+                        if(a==null||b==null)continue;
+                        tried++;md.ClearSelection2(true);
+                        if(!v.SelectEntity(a.ent,false)||!v.SelectEntity(b.ent,true))continue;
+                        double lane=gap+(.006*(axisPlaced+1));
+                        try{
+                            object raw=axis==0?md.AddHorizontalDimension2(cx,o[1]-lane,0):md.AddVerticalDimension2(o[0]-lane,cy,0);
+                            var display=raw as IDisplayDimension;
+                            if(display!=null){
+                                var dim=(IDimension)display.GetDimension2(0);var ann=(IAnnotation)display.GetAnnotation();double actual=dim.SystemValue*1000;
+                                if(Math.Abs(actual-val)>1e-4||ann.IsDangling()){
+                                    md.ClearSelection2(true);ann.Select3(false,null);md.Extension.DeleteSelection2(0);
+                                    L("SWFORGE_DIM view="+vname+" internal=rejected expected="+val+" actual="+actual);
+                                }else{done++;placed2++;axisPlaced++;usedVals.Add(val);L("SWFORGE_DIM view="+vname+" via="+via+" internal=ok axis="+(axis==0?"horizontal":"vertical")+" value="+actual.ToString("F4",System.Globalization.CultureInfo.InvariantCulture));}
                             }
-                            if (a == null || b2 == null) continue;
-
-                            tried++;
-                            md.ClearSelection2(true);
-                            bool sa = a.ent.Select4(true, null);
-                            bool sb = b2.ent.Select4(true, null);
-                            if (sa && sb) {
-                                try {
-                                    offset += gap;
-                                    object d2 = md.AddHorizontalDimension2(cx, o[1] - offset, 0);
-                                    if (d2 != null) {
-                                        done++; placed2++;
-                                        usedVals.Add(val);
-                                        L("SWFORGE_DIM view=" + vname + " via=" + via + " internal=ok value=" + val.ToString("F2"));
-                                    }
-                                } catch (Exception ex2) {
-                                    L("SWFORGE_DIM view=" + vname + " internal=exc " + ex2.Message);
-                                }
-                            }
-                            md.ClearSelection2(true);
-                        }
+                        }catch(Exception ex){L("SWFORGE_DIM view="+vname+" internal=exc "+ex.Message);}
+                        md.ClearSelection2(true);
                     }
                 }
 
@@ -370,8 +337,8 @@ Write-Output ([{cls}]::Run())
 
 def add_overall_dimensions(drawing_path: str | None = None,
                            gap_mm: float = 12.0,
-                           internal: int = 0,
-                           min_gap_ratio: float = 0.15,
+                           internal: int | None = 0,
+                           min_gap_ratio: float = 0.015,
                            timeout_s: int = 300) -> dict:
     """给工程图补总长/总高尺寸。
 
@@ -380,10 +347,10 @@ def add_overall_dimensions(drawing_path: str | None = None,
 
     参数
     ----
-    internal       额外标几个「内部特征尺寸」（最大的几个跨度），默认 0 不标。
+    internal       每视图内部跨度上限 0~6；None 自适应（上限6），默认0。
                    实测 SolidWorks 的 InsertModelAnnotations4 会插 22 个尺寸并
                    全堆在一侧互相重叠，所以这里改成受控标注。
-    min_gap_ratio  内部跨度至少占总长的多少才标，默认 0.15（低于此的碎尺寸一律不标）
+    min_gap_ratio  内部跨度/该方向总跨度，默认0.015；另设0.5mm最小跨度。
     gap_mm         尺寸线与视图轮廓的距离，也是内部尺寸逐层外推的步距
 
     跨视图去重：同一数值（比如板厚 20）在三个视图里都会出现，只标第一次。
@@ -394,9 +361,18 @@ def add_overall_dimensions(drawing_path: str | None = None,
     from .drawing import _drawing_document
     from .modeling import _find_sw_dir
 
+    import math
+    if internal is not None and (isinstance(internal,bool) or not isinstance(internal,int) or not 0<=internal<=6):
+        raise ValueError("internal must be None (adaptive) or an integer 0..6")
+    if not math.isfinite(float(min_gap_ratio)) or not 0<=min_gap_ratio<=1:
+        raise ValueError("min_gap_ratio must be 0..1")
     sw = get_session().sw()
     if drawing_path:
         _drawing_document(sw, drawing_path)
+    md=_drawing_document(sw)
+    active_path=str(_value(md,'GetPathName'))
+    if not active_path:
+        return {'ok':False,'done':0,'tried':0,'error':'Save drawing before guarded dimensioning'}
 
     sw_dir = _find_sw_dir()
     if not sw_dir:
@@ -404,9 +380,12 @@ def add_overall_dimensions(drawing_path: str | None = None,
 
     work = tempfile.mkdtemp(prefix="swforge_dim_")
     cls = "Dim_" + uuid.uuid4().hex[:12]
+    import json
     src = (_CS.replace("__CLASS__", cls)
+              .replace('__PID__',str(int(_value(sw,'GetProcessID'))))
+              .replace('__PATH__',json.dumps(active_path,ensure_ascii=True))
               .replace("__GAP__", str(float(gap_mm)))
-              .replace("__INTERNAL__", str(int(internal)))
+              .replace("__INTERNAL__", str(6 if internal is None else internal))
               .replace("__MINGAP__", repr(float(min_gap_ratio))))
     cs_path = os.path.join(work, "dims.cs")
     with open(cs_path, "w", encoding="utf-8") as fh:
@@ -455,6 +434,6 @@ def add_overall_dimensions(drawing_path: str | None = None,
     except OSError:
         pass
 
-    return {"ok": done > 0, "done": done, "tried": tried, "dims": dims,
+    return {"ok": done > 0, "error":'' if done>0 else out[-6000:],"done": done, "tried": tried, "dims": dims,
             "elapsed_s": round(elapsed, 2),
             "raw": out if done == 0 else ""}
