@@ -1,820 +1,779 @@
 {
-  "version": "1.7.0",
+  "version": "2.0.0",
+  "edition": "Community",
   "host_scope": [
+    "2019 SP5",
     "2025 SP5"
   ],
-  "cross_version": "excluded_by_user",
+  "cross_version": "limited_native_validation",
   "capabilities": [
     {
       "id": "sw_create_weldment_frame",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_check_gb_drawing",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_add_tech_requirements",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_fill_title_block",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_add_curated_dimensions",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_list_position_targets",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_add_position_dimension",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
+    },
+    {
+      "id": "sw_create_spring",
+      "semantic": "exact",
+      "backend": "swforge",
+      "status": "verified",
+      "sw_versions": [
+        "2019",
+        "2025"
+      ],
+      "blocked_versions": [],
+      "evidence": [
+        "docs/validation-community.md",
+        "docs/validation-community.json"
+      ],
+      "note": "Selected Community acceptance scenarios on 2019 SP5 and 2025 SP5; not every parameter combination. Live backend/gateway checks; stdio protocol separately tested offline."
+    },
+    {
+      "id": "sw_create_auger_flight",
+      "semantic": "exact",
+      "backend": "swforge",
+      "status": "verified",
+      "sw_versions": [
+        "2019",
+        "2025"
+      ],
+      "blocked_versions": [],
+      "evidence": [
+        "docs/validation-community.md",
+        "docs/validation-community.json"
+      ],
+      "note": "Selected Community acceptance scenarios on 2019 SP5 and 2025 SP5; not every parameter combination. Live backend/gateway checks; stdio protocol separately tested offline."
     },
     {
       "id": "sw_create_hole_plate",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_inspect_hole_plate",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_hole_plate_drawing",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_check_gdt",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_add_gdt",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
-      "status": "verified",
-      "evidence": [
-        "docs/validation-community.md"
-      ],
-      "note": "SW2025 SP5 bounded fixture acceptance; see validation matrix for limits"
+      "status": "unverified",
+      "evidence": [],
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_inspect_assembly",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_assembly_bom",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_plan_assembly_variant",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_create_assembly_variant",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_insert_assembly_bom",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
-      "status": "verified",
-      "evidence": [
-        "docs/validation-community.md"
-      ],
-      "note": "SW2025 SP5 bounded fixture acceptance; see validation matrix for limits"
+      "status": "unverified",
+      "evidence": [],
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_drawing_book_snapshot",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_review_drawing_book",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_stamp_drawing_book",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
-      "status": "verified",
-      "evidence": [
-        "docs/validation-community.md"
-      ],
-      "note": "SW2025 SP5 bounded fixture acceptance; see validation matrix for limits"
+      "status": "unverified",
+      "evidence": [],
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_create_drawing_book",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
-      "status": "verified",
-      "evidence": [
-        "docs/validation-community.md"
-      ],
-      "note": "SW2025 SP5 bounded fixture acceptance; see validation matrix for limits"
+      "status": "unverified",
+      "evidence": [],
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_layout_drawing_book",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
-      "status": "verified",
-      "evidence": [
-        "docs/validation-community.md"
-      ],
-      "note": "SW2025 SP5 bounded fixture acceptance; see validation matrix for limits"
+      "status": "unverified",
+      "evidence": [],
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_create_spur_gear",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_inspect_mechanical",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_mechanical_drawing",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_mechanical_variant",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_model_parameters",
       "semantic": "exact",
       "backend": "existing_swforge",
       "sw_versions": [
+        "2019",
         "2025"
       ],
       "blocked_versions": [],
-      "status": "unverified",
-      "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "status": "verified",
+      "evidence": [
+        "docs/validation-community.md",
+        "docs/validation-community.json"
+      ],
+      "note": "Selected Community acceptance scenarios on 2019 SP5 and 2025 SP5; not every parameter combination. Live backend/gateway checks; stdio protocol separately tested offline."
     },
     {
       "id": "sw_drawing_circles",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_add_diameter_dimension",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_create_variant",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_audit_drawing",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_suggest_drawing_layout",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_add_surface_finish",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_list_surface_edges",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_add_surface_finishes",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_list_dimensions",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_set_tolerance",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_list_mate_faces",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_apply_face_mates",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_inspect_face_mates",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_ping",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_capabilities",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_close_all",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_validate_part",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_build_part",
       "semantic": "exact",
       "backend": "existing_swforge",
       "sw_versions": [
+        "2019",
         "2025"
       ],
       "blocked_versions": [],
-      "status": "unverified",
-      "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "status": "verified",
+      "evidence": [
+        "docs/validation-community.md",
+        "docs/validation-community.json"
+      ],
+      "note": "Selected Community acceptance scenarios on 2019 SP5 and 2025 SP5; not every parameter combination. Live backend/gateway checks; stdio protocol separately tested offline."
     },
     {
       "id": "sw_list_colors",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_apply_colors",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_read_colors",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_survey",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_purge_giant",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_purge_small",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_produce_drawing",
       "semantic": "exact",
       "backend": "existing_swforge",
       "sw_versions": [
+        "2019",
         "2025"
       ],
       "blocked_versions": [],
       "status": "verified",
       "evidence": [
-        "docs/validation-community.md"
+        "docs/validation-community.md",
+        "docs/validation-community.json"
       ],
-      "note": "SW2025 SP5 bounded fixture acceptance; see validation matrix for limits"
+      "note": "Selected Community acceptance scenarios on 2019 SP5 and 2025 SP5; not every parameter combination. Live backend/gateway checks; stdio protocol separately tested offline."
     },
     {
       "id": "sw_layout_views",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_export_pdf",
       "semantic": "exact",
       "backend": "existing_swforge",
       "sw_versions": [
+        "2019",
         "2025"
       ],
       "blocked_versions": [],
       "status": "verified",
       "evidence": [
-        "docs/validation-community.md"
+        "docs/validation-community.md",
+        "docs/validation-community.json"
       ],
-      "note": "SW2025 SP5 bounded fixture acceptance; see validation matrix for limits"
+      "note": "Selected Community acceptance scenarios on 2019 SP5 and 2025 SP5; not every parameter combination. Live backend/gateway checks; stdio protocol separately tested offline."
     },
     {
       "id": "sw_make_atlas",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_delivery_check",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_resources",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_list_materials",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_ensure_material_library",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_resource_status",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_sweep_documents",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_preview_edges",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_validate_template",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
-      "status": "verified",
-      "evidence": [
-        "docs/validation-community.md"
-      ],
-      "note": "SW2025 SP5 bounded fixture acceptance; see validation matrix for limits"
+      "status": "unverified",
+      "evidence": [],
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_apply_gb_styles",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_read_gb_styles",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
-      "status": "verified",
-      "evidence": [
-        "docs/validation-community.md"
-      ],
-      "note": "SW2025 SP5 bounded fixture acceptance; see validation matrix for limits"
+      "status": "unverified",
+      "evidence": [],
+      "note": "See Community 2.0 operation-specific acceptance coverage."
     },
     {
       "id": "sw_check_drawing_completeness",
       "semantic": "exact",
       "backend": "existing_swforge",
-      "sw_versions": [
-        "2025"
-      ],
+      "sw_versions": [],
       "blocked_versions": [],
       "status": "unverified",
       "evidence": [],
-      "note": "Tool available; see VALIDATION_MATRIX for operation-specific native evidence"
+      "note": "See Community 2.0 operation-specific acceptance coverage."
+    },
+    {
+      "id": "sw_inspect_feature_tree",
+      "semantic": "exact",
+      "backend": "swforge",
+      "status": "verified",
+      "sw_versions": [
+        "2019",
+        "2025"
+      ],
+      "blocked_versions": [],
+      "evidence": [
+        "docs/validation-community.md",
+        "docs/validation-community.json"
+      ],
+      "note": "Selected Community acceptance scenarios on 2019 SP5 and 2025 SP5; not every parameter combination. Live backend/gateway checks; stdio protocol separately tested offline."
+    },
+    {
+      "id": "sw_resolve_design",
+      "semantic": "exact",
+      "backend": "swforge",
+      "status": "unverified",
+      "sw_versions": [],
+      "blocked_versions": [],
+      "evidence": [],
+      "note": "See Community 2.0 operation-specific acceptance coverage."
+    },
+    {
+      "id": "sw_create_design_variant",
+      "semantic": "exact",
+      "backend": "swforge",
+      "status": "unverified",
+      "sw_versions": [],
+      "blocked_versions": [],
+      "evidence": [],
+      "note": "See Community 2.0 operation-specific acceptance coverage."
+    },
+    {
+      "id": "sw_check_clearance",
+      "semantic": "exact",
+      "backend": "swforge",
+      "status": "verified",
+      "sw_versions": [
+        "2019",
+        "2025"
+      ],
+      "blocked_versions": [],
+      "evidence": [
+        "docs/validation-community.md",
+        "docs/validation-community.json"
+      ],
+      "note": "Selected Community acceptance scenarios on 2019 SP5 and 2025 SP5; not every parameter combination. Live backend/gateway checks; stdio protocol separately tested offline."
     }
-  ],
-  "edition": "Community"
+  ]
 }

@@ -10,3 +10,5 @@
 *.SLDPRT binary
 *.SLDASM binary
 *.SLDDRW binary
+# Preserve reviewed package bytes across Windows/Linux checkout for SHA-256 gates.
+src/swforge/** -text

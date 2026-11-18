@@ -47,7 +47,7 @@ public class __CLASS__ {
     static ISldWorks Connect() {
         string e1 = "", e2 = "";
         try {
-            ISldWorks s = (ISldWorks)Marshal.GetActiveObject("SldWorks.Application");
+            ISldWorks s = SwforgeConnection.Active();
             if (Usable(s)) return s;
             e1 = "空壳";
         } catch (Exception ex) { e1 = ex.GetType().Name; }

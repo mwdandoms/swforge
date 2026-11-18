@@ -10,7 +10,9 @@ from .modeling import PartBuilder
 
 __all__ = ["builder_from_spec"]
 
-_SECTIONS = ("boxes", "tubes", "cylinders", "revolves", "cuts", "holes", "hole_grids", "fillets", "chamfers")
+_SHAPES = ("boxes", "tubes", "cylinders", "revolves", "stepped_shafts", "lofts", "springs", "auger_flights")
+_SECTIONS = _SHAPES + ("cuts", "holes", "hole_grids", "fillets", "chamfers",
+                      "linear_patterns", "circular_patterns", "mirrors", "shells", "ribs", "cosmetic_threads")
 
 
 def _finite_json(value, location="spec"):
@@ -27,12 +29,18 @@ def _finite_json(value, location="spec"):
 def builder_from_spec(out_path: str, spec: dict) -> PartBuilder:
     """完整校验并构造 DSL，成功返回后调用方才可执行 build()。
 
-    支持 boxes/tubes/cylinders/revolves/cuts/holes/hole_grids/fillets/chamfers。
-    基础体先建，切除与孔系其次，圆角和倒角最后执行，target 指向明确的实体。
+    基础体与放样先建，然后是切除、圆角和倒角，最后执行原生派生特征。
+    seed/target 引用同一描述中的 tag。
     """
     if not isinstance(spec, dict):
         raise ValueError("spec 必须是 JSON 对象")
-    unknown = set(spec) - {*_SECTIONS, "material", "merge"}
+    design=None
+    if 'parameters' in spec or 'requirements' in spec:
+        import copy
+        from .design import resolve_design
+        design=copy.deepcopy(spec)
+        spec=resolve_design(spec)['spec']
+    unknown = set(spec) - {*_SECTIONS, "material", "merge", "feature_strategy"}
     if unknown:
         raise ValueError(f"未知 spec 字段: {', '.join(sorted(unknown))}")
     if not isinstance(out_path, str) or not out_path.strip() or not out_path.lower().endswith(".sldprt"):
@@ -44,7 +52,9 @@ def builder_from_spec(out_path: str, spec: dict) -> PartBuilder:
     merge = spec.get("merge", False)
     if not isinstance(merge, bool):
         raise ValueError("merge 必须是布尔值")
-    builder = PartBuilder(os.path.abspath(out_path), material=material, merge=merge)
+    builder = PartBuilder(os.path.abspath(out_path), material=material, merge=merge,
+                          feature_strategy=spec.get('feature_strategy','compact'))
+    builder.design_spec=design
     shape_count = 0
     for section in _SECTIONS:
         items = spec.get(section, [])
@@ -67,15 +77,19 @@ def builder_from_spec(out_path: str, spec: dict) -> PartBuilder:
             else:
                 method = getattr(builder, {
                     "cylinders": "cylinder", "revolves": "revolve",
+                    "stepped_shafts": "stepped_shaft",
                     "fillets": "fillet", "chamfers": "chamfer",
                     "cuts": "cut_box", "holes": "hole", "hole_grids": "hole_grid",
+                    "lofts": "loft", "springs": "helix_spring", "auger_flights": "auger_flight", "linear_patterns": "linear_pattern",
+                    "circular_patterns": "circular_pattern", "mirrors": "mirror",
+                    "shells": "shell", "ribs": "rib", "cosmetic_threads": "cosmetic_thread",
                 }[section])
             try:
                 inspect.signature(method).bind(**params)
                 method(**params)
             except (TypeError, ValueError) as exc:
                 raise ValueError(f"{location}: {exc}") from exc
-            if section in ("boxes", "tubes", "cylinders", "revolves"):
+            if section in _SHAPES:
                 shape_count += 1
     if not shape_count:
         raise ValueError("spec 没有任何形体")

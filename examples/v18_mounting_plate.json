@@ -1,0 +1,12 @@
+{
+  "parameters": {
+    "length": 120, "width": 100, "thickness": 12,
+    "columns": 4, "rows": 3, "pitch_u": 25, "pitch_v": 30, "hole_diameter": 8,
+    "start_x": "=(length-(columns-1)*pitch_u)/2",
+    "start_z": "=(width-(rows-1)*pitch_v)/2"
+  },
+  "requirements": ["=start_x>hole_diameter/2", "=start_z>hole_diameter/2"],
+  "material": "Q235",
+  "boxes": [{"tag":"plate","x0":0,"x1":"=length","y0":0,"y1":"=thickness","z0":0,"z1":"=width"}],
+  "hole_grids": [{"tag":"mounting","target":"plate","axis":"y","x":"=start_x","y":0,"z":"=start_z","rows":"=rows","columns":"=columns","pitch_u":"=pitch_u","pitch_v":"=pitch_v","diameter":"=hole_diameter","through_all":true}]
+}

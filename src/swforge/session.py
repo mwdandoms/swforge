@@ -69,7 +69,9 @@ class SWSession:
     def __init__(self) -> None:
         self._lock = threading.RLock()
         self._sw = None                    # 后期绑定对象
+        self._sw_year = None
         self._sw_type = None               # 早期绑定类型（Type）
+        self._sw_type_year = None
         self._last_probe = 0.0
         self.reconnects = 0
         self.stale_drops = 0
@@ -88,8 +90,14 @@ class SWSession:
         """返回 `ISldWorks` 后期绑定对象，必要时探活/重连。"""
         import win32com.client  # 延迟导入，便于无 SW 环境跑单测
 
+        from .sw_target import active_sw, selected_year
+
         with self._lock:
             self._check_thread()
+            year = selected_year()
+            if year != self._sw_year:
+                self._sw = None
+                self._sw_year = year
             now = time.time()
             need_probe = force or (now - self._last_probe) >= LIVENESS_INTERVAL_S
             if self._sw is not None and need_probe:
@@ -102,9 +110,16 @@ class SWSession:
                     self._sw = None
                     self.stale_drops += 1
                     # 断线：立刻重连（不重试旧句柄）
+            if self._sw is None and year:
+                try:
+                    self._sw = active_sw(year)
+                except RuntimeError as exc:
+                    raise SWError(str(exc)) from exc
+                self._last_probe = time.time()
             if self._sw is None:
                 try:
-                    self._sw = win32com.client.Dispatch("SldWorks.Application")
+                    from .sw_target import dynamic_sw
+                    self._sw = dynamic_sw(win32com.client.Dispatch("SldWorks.Application"))
                 except Exception as exc:                 # noqa: BLE001
                     # COM 自动激活失败（常见 CO_E_SERVER_EXEC_FAILURE 0x80080005：
                     # 进程创建被沙箱/安全软件挡住）。退一步自己启动 exe 再连。
@@ -117,7 +132,8 @@ class SWSession:
                             f"{info.get('error')}；exe={info.get('exe')}；"
                             f"建议：{info.get('hint')}"
                         ) from exc
-                    self._sw = win32com.client.Dispatch("SldWorks.Application")
+                    from .sw_target import dynamic_sw
+                    self._sw = dynamic_sw(win32com.client.Dispatch("SldWorks.Application"))
                 self._last_probe = time.time()
                 if self.stale_drops:
                     self.reconnects += 1
@@ -130,10 +146,14 @@ class SWSession:
         需要 .NET Framework（Windows 自带）与 Interop DLL。
         找不到 DLL 时抛 `SWError`，调用方回退到 `sw()`。
         """
+        from .sw_target import selected_year
+
         with self._lock:
             self._check_thread()
-            if self._sw_type is None:
+            year = selected_year()
+            if self._sw_type is None or self._sw_type_year != year:
                 self._sw_type = _load_interop_type()
+                self._sw_type_year = year
             if self._sw_type is None:
                 raise SWError("找不到 SolidWorks Interop DLL，请改用后期绑定接口")
             return _dispatch_typed(self._sw_type)
@@ -193,8 +213,8 @@ class SWSession:
         for d in docs:
             try:
                 if not hasattr(d, "GetPathName"):
-                    import win32com.client
-                    d = win32com.client.Dispatch(d)
+                    from .sw_target import dynamic_sw
+                    d = dynamic_sw(d)
                 path = _value(d, "GetPathName")
                 if not discard_unsaved:
                     # 读不到保存状态时同样保留文档，避免 CloseDoc 静默丢失更改。
@@ -288,55 +308,20 @@ class STAWorker:
 
 
 # ---------------------------------------------------------------------- 早期绑定工具
+from .sw_target import install_candidates as _sw_install_dirs
+
 _INTEROP_CACHE: dict = {}
-
-
-def _sw_install_dirs() -> list[str]:
-    """候选 SolidWorks 安装目录（Interop DLL 所在地）。"""
-    dirs: list[str] = []
-    for env in ("SW_INSTALL_DIR", "SOLIDWORKS_DIR"):
-        v = os.environ.get(env)
-        if v:
-            dirs.append(v)
-    try:
-        import winreg
-
-        for hive in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
-            for key in (
-                r"SOFTWARE\SolidWorks\SOLIDWORKS 2025\Setup",
-                r"SOFTWARE\SolidWorks\SOLIDWORKS 2024\Setup",
-                r"SOFTWARE\SolidWorks\SOLIDWORKS 2023\Setup",
-                r"SOFTWARE\SolidWorks\SOLIDWORKS 2022\Setup",
-            ):
-                try:
-                    with winreg.OpenKey(hive, key) as k:
-                        p, _ = winreg.QueryValueEx(k, "SolidWorks Folder")
-                        if p:
-                            dirs.append(p)
-                except OSError:
-                    continue
-    except Exception:                                    # noqa: BLE001
-        pass
-    for letter in ("C", "D", "E", "F"):
-        dirs.append(f"{letter}:\\SW2025\\SOLIDWORKS")
-        dirs.append(f"{letter}:\\Program Files\\SOLIDWORKS Corp\\SOLIDWORKS")
-    return dirs
 
 
 def _load_interop_type():
     """加载 `SolidWorks.Interop.sldworks.ISldWorks` 的 .NET 类型。"""
-    if "type" in _INTEROP_CACHE:
-        return _INTEROP_CACHE["type"]
+    from .sw_target import install_dir
 
-    found = None
-    for d in _sw_install_dirs():
-        cand = os.path.join(d, "SolidWorks.Interop.sldworks.dll")
-        if os.path.isfile(cand):
-            found = d
-            break
+    found = install_dir()
     if not found:
-        _INTEROP_CACHE["type"] = None
         return None
+    if found in _INTEROP_CACHE:
+        return _INTEROP_CACHE[found]
 
     sldworks_dll = os.path.join(found, "SolidWorks.Interop.sldworks.dll")
     swconst_dll = os.path.join(found, "SolidWorks.Interop.swconst.dll")
@@ -357,7 +342,7 @@ def _load_interop_type():
         name = ""
 
     if not name:
-        _INTEROP_CACHE["type"] = None
+        _INTEROP_CACHE[found] = None
         return None
 
     # 用 pythonnet 打通 .NET；未安装则早期绑定不可用
@@ -369,23 +354,28 @@ def _load_interop_type():
         import System
 
         t = System.Type.GetType(name)
-        _INTEROP_CACHE["type"] = t
+        _INTEROP_CACHE[found] = t
         return t
     except Exception:                                    # noqa: BLE001
-        _INTEROP_CACHE["type"] = None
+        _INTEROP_CACHE[found] = None
         return None
 
 
 def _dispatch_typed(interop_type):
     """从运行中的 SW 实例取得早期绑定代理。"""
     try:
-        import System
         from System.Runtime.InteropServices import Marshal
+        from .sw_target import progid, selected_year, verify_revision
 
-        progid = System.Type.GetTypeFromProgID("SldWorks.Application")
-        obj = Marshal.GetActiveObject("SldWorks.Application")
-        return Marshal.GetTypedObjectForIUnknown(
-            Marshal.GetIUnknownForObject(obj), interop_type
-        )
+        year = selected_year()
+        obj = Marshal.GetActiveObject(progid(year))
+        interop_year = int(interop_type.Assembly.GetName().Version.Major) + 1992
+        if year and interop_year != year:
+            raise SWError(f"Interop 对应 SolidWorks {interop_year}，目标为 {year}")
+        ptr = Marshal.GetIUnknownForObject(obj)
+        try:
+            return verify_revision(Marshal.GetTypedObjectForIUnknown(ptr, interop_type), interop_year)
+        finally:
+            Marshal.Release(ptr)
     except Exception as exc:                             # noqa: BLE001
         raise SWError(f"早期绑定代理获取失败（需 pythonnet）：{exc}") from exc

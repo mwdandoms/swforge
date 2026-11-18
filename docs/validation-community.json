@@ -1,0 +1,196 @@
+{
+  "version": "2.0.0",
+  "edition": "Community",
+  "date": "2026-11-18",
+  "published": false,
+  "offline": {
+    "passed": 397,
+    "sw_marked_deselected": 33,
+    "python": "3.14.3"
+  },
+  "versions": {
+    "2019": {
+      "revision": "27.5.0",
+      "groups": {
+        "geometry": {
+          "passed": 6,
+          "cases": [
+            "spring_right",
+            "spring_left",
+            "auger_right",
+            "auger_left",
+            "mixed",
+            "editable"
+          ],
+          "report": "2019_final/report.json",
+          "sha256": "e5fa2bebd44699f810e6f7407e63a0668d04d6fbe6e50cbd4812237f574f74d8",
+          "raw_report_overall_passed": false
+        },
+        "native_features": {
+          "passed": 10,
+          "cases": [
+            "linear_pattern",
+            "circular_pattern",
+            "mirror",
+            "shell",
+            "rib",
+            "loft",
+            "cosmetic_thread",
+            "linear_reverse",
+            "linear_z",
+            "circular_partial"
+          ],
+          "report": "2019_native_release/report.json",
+          "sha256": "e749135afcf3ee2bb2560972bc249a1d72b4bb3193fdd52d9790da049cf45fc8",
+          "raw_report_overall_passed": true
+        },
+        "drawing_pdf": {
+          "passed": 1,
+          "cases": [
+            "drawing"
+          ],
+          "report": "2019_drawing_final/report.json",
+          "sha256": "ebe280211251f0975a7d8561eb904e72535d5da1967d923e799843783423c21c",
+          "raw_report_overall_passed": true
+        },
+        "clearance": {
+          "passed": 3,
+          "cases": [
+            "gap",
+            "touch",
+            "overlap"
+          ],
+          "report": "2019_clearance_verified/report.json",
+          "sha256": "d36d48ad24689acbc5319b4fccc7ce3b09b78da2bb2a2dbf1de77da2edac8c7c",
+          "raw_report_overall_passed": true
+        },
+        "gateway": {
+          "passed": 3,
+          "cases": [
+            "sw_create_spring",
+            "sw_create_auger_flight",
+            "sw_build_part"
+          ],
+          "report": "2019_gateway/report.json",
+          "sha256": "8ca2cead0858cb2fda6cd0c7e28d4da5a7694e18875ff72caff19844447dddb5",
+          "raw_report_overall_passed": true
+        }
+      },
+      "square_independent_dimension_edit": true,
+      "clearance_readback": {
+        "gap": {
+          "clearance_mm": 10,
+          "interference_volume_mm3": 0,
+          "verdict": "clear"
+        },
+        "touch": {
+          "clearance_mm": 0,
+          "interference_volume_mm3": 0,
+          "verdict": "touch"
+        },
+        "overlap": {
+          "clearance_mm": 0,
+          "interference_volume_mm3": 2000,
+          "verdict": "interference"
+        }
+      },
+      "interop_compilation": {
+        "passed": 17,
+        "report": "compile_2019_release/report.json",
+        "sha256": "1bcc69e6ac6d45c732921adb980e92cab05da58d1a26545aa7a937eef708f18c"
+      }
+    },
+    "2025": {
+      "revision": "33.5.0",
+      "groups": {
+        "geometry": {
+          "passed": 6,
+          "cases": [
+            "spring_right",
+            "spring_left",
+            "auger_right",
+            "auger_left",
+            "mixed",
+            "editable"
+          ],
+          "report": "2025_geometry/report.json",
+          "sha256": "ca81bac28561a3505294419d5eed03214f8d7d8e67a9992822f67c2921e2288d",
+          "raw_report_overall_passed": true
+        },
+        "native_features": {
+          "passed": 10,
+          "cases": [
+            "linear_pattern",
+            "circular_pattern",
+            "mirror",
+            "shell",
+            "rib",
+            "loft",
+            "cosmetic_thread",
+            "linear_reverse",
+            "linear_z",
+            "circular_partial"
+          ],
+          "report": "2025_native_release/report.json",
+          "sha256": "bfffc862842faa13d6ee7bd279a910ac20a748ed45b84fdbf53922903fecdd99",
+          "raw_report_overall_passed": true
+        },
+        "drawing_pdf": {
+          "passed": 1,
+          "cases": [
+            "drawing"
+          ],
+          "report": "2025_rect_final/report.json",
+          "sha256": "f41354a1d98ed1ef8924da21bbfdb8984218ebeb3539623867ce576fd98e6b4e",
+          "raw_report_overall_passed": true
+        },
+        "clearance": {
+          "passed": 3,
+          "cases": [
+            "gap",
+            "touch",
+            "overlap"
+          ],
+          "report": "2025_clearance_verified/report.json",
+          "sha256": "aca486dd4592d0f05e9c9e50ebc222708492e51e220666a98a41dd8dfc5b0636",
+          "raw_report_overall_passed": true
+        },
+        "gateway": {
+          "passed": 3,
+          "cases": [
+            "sw_create_spring",
+            "sw_create_auger_flight",
+            "sw_build_part"
+          ],
+          "report": "2025_gateway/report.json",
+          "sha256": "7dd0efa53a614eceeccea035b08fd38bd2eba8bc3e47025511b23ba39944aa6c",
+          "raw_report_overall_passed": true
+        }
+      },
+      "square_independent_dimension_edit": true,
+      "clearance_readback": {
+        "gap": {
+          "clearance_mm": 10,
+          "interference_volume_mm3": 0,
+          "verdict": "clear"
+        },
+        "touch": {
+          "clearance_mm": 0,
+          "interference_volume_mm3": 0,
+          "verdict": "touch"
+        },
+        "overlap": {
+          "clearance_mm": 0,
+          "interference_volume_mm3": 2000,
+          "verdict": "interference"
+        }
+      },
+      "interop_compilation": {
+        "passed": 17,
+        "report": "compile_2025_release/report.json",
+        "sha256": "1a455b5521794f8e9fa24c82bde2377efbf5cdbcba09c85f0f2ad644a26a0ccd"
+      }
+    }
+  },
+  "passed": true
+}

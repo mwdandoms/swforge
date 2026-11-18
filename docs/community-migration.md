@@ -1,7 +1,7 @@
-# Community 1.7 migration / 社区版迁移
+# 升级到 2.0 Community
 
-MCP: only sw_discover, sw_describe, sw_invoke and sw_status are public.
-Call sw_invoke(name="sw_validate_part", args={...}) instead of directly calling sw_validate_part.
-社区版包含66个内部操作；高级GB审查、栅格审图、整套一致性与工艺规则编排不包含在本次分发。
-Advanced GB review and rule orchestration are not included in this distribution.
-Existing Community Python/CLI entry points remain. Admin operations are disabled by default; destructive actions require explicit approval.
+保留公开 1.7 的操作名和四个 MCP 入口：`sw_discover`、`sw_describe`、`sw_invoke`、`sw_status`。新增弹簧、绞龙、净距、特征树、显式配方解析与另存配方变型；具体数量由 `sw_discover` 和能力矩阵给出。
+
+基础轮廓默认生成驱动尺寸。螺旋输出为无建模历史实体，含螺旋的混合构建也按整体实体交付。旧模型不会被自动转换。
+
+设置 `SWFORGE_SW_YEAR=2019` 或 `2025` 后重新启动 Python/CLI/MCP；目标 SW 应已打开。社区工程图等功能保持公开 1.7 范围。2.0 后仍会推进 SolidWorks 2018–2026 兼容适配，兼顾缺陷与安全维护；兼容进展以实测结果为准。

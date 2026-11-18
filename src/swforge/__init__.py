@@ -54,3 +54,13 @@ __all__ = ['validate_gb_template', 'apply_gb_styles', 'read_gb_styles', 'gb_temp
 from .startup import ensure_running, find_exe as find_sw_exe
 from .library import MaterialLibrary, default_library
 from .mechanical import create_standard_member, member_plan
+
+from .spring import SpringSpec, create_spring, validate as spring_validate
+from .auger import create_auger_flight
+from .clearance import check_clearance
+from .rebuild import set_parameters
+from .design import resolve_design, create_design_variant
+from .feature_tree import inspect_feature_tree
+__all__ += ['SpringSpec', 'create_spring', 'spring_validate', 'create_auger_flight',
+            'check_clearance', 'set_parameters', 'resolve_design',
+            'create_design_variant', 'inspect_feature_tree']

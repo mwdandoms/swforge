@@ -12,12 +12,9 @@ source: swforge
 provider: filesystem
 ---
 
-**停工交接：v1.6未完成整体验收。剖视重叠已修复，但真实中心切孔/剖面线未确认（GetFaceHatchCount=0）。当前安装仍1.5.1；未生成最终wheel/sdist、未安装1.6、未发布。以35号交接日志为准。**
-
-
 # swforge —— SolidWorks 驱动库（默认首选）
 
-v1.6 目前是未发布的本地候选：移植时安装本地 v1.6 wheel，并核对 `swforge.__version__` / `swforge.__file__`。直接 `pip install swforge` 获取公开版本，不能据此宣称已有本地1.6功能。新版本发布须用户明确确认。
+Community 2.0 侧重原生建模、可编辑尺寸和基础螺旋生成。运行前核对 `swforge.__version__` / `swforge.__file__`。工程图、GB、审图和批量功能保持公开 1.7 范围；螺旋输出为无建模历史实体，混合构建也整体转换为实体。以实际安装版本和回读结果为准。
 
 > **硬规则**：所有 SolidWorks 建模操作默认走 swforge。
 > `<工程模式根目录>\tools\sw_bridge.py` 只用于 swforge 不覆盖的能力：
@@ -46,6 +43,10 @@ swforge install-skill              # 把本 skill 装进 ~/.dsh/skills/
 }
 ```
 
+## 0a. 目标版本与 MCP
+
+并装时先设置 `SWFORGE_SW_YEAR=2019` 或 `2025`，打开对应 SolidWorks，再启动 Python/CLI/MCP。同一进程不要切换年份。先 `sw_discover` 检索操作，再 `sw_describe` 查看参数，最后 `sw_invoke` 执行；`sw_*` 业务名称是内部操作标识，不是独立注册的 MCP 工具。`sw_status` 只报告有证据的能力范围。
+
 ## 0b. 开工前三个动作
 
 ```python
@@ -71,7 +72,7 @@ baseline = document_inventory(sw)
 ## v1.6 焊件与齿轮
 
 优先使用 `create_weldment_frame` / `create_spur_gear`，或 MCP 的
-`sw_create_weldment_frame` / `sw_create_spur_gear`；不要用四块板冒充原生结构构件，也不要用普通星形多边形冒充渐开线。
+`sw_invoke` 中的 `sw_create_weldment_frame` / `sw_create_spur_gear` 操作；不要用四块板冒充原生结构构件，也不要用普通星形多边形冒充渐开线。
 输出路径必须全新；默认关闭本轮文档。参数变型用 `create_mechanical_variant` 重生成副本，保护源模型。详见包内 `docs/workflows-v1.6.md`。
 随 wheel 分发的完整调用说明见 [mechanical-v16.md](references/mechanical-v16.md)。
 

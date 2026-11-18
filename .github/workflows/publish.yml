@@ -32,7 +32,11 @@ jobs:
           python -m build --sdist --wheel --outdir dist
 
       - name: Check Community distribution boundary
-        run: python tools/release_boundary.py
+        run: |
+          python tools/release_boundary.py
+          python tools/verify_community_release.py
+          python -m pip install twine
+          python -m twine check --strict dist/swforge-2.0.0-py3-none-any.whl dist/swforge-2.0.0.tar.gz
 
       - name: Sanity check before publishing
         shell: bash

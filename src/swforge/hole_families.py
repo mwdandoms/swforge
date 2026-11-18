@@ -48,7 +48,7 @@ public class __CLASS__{
 static Dictionary<string,object> R(params object[] p){var r=new Dictionary<string,object>();for(int i=0;i<p.Length;i+=2)r[(string)p[i]]=p[i+1];return r;}
 static double N(Dictionary<string,object> c,string k,double d=0){return c.ContainsKey(k)?Convert.ToDouble(c[k]):d;}
 public static string Run(string req){var json=new JavaScriptSerializer(){MaxJsonLength=16777216};try{
-var c=json.Deserialize<Dictionary<string,object>>(File.ReadAllText(req));var sw=(ISldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));var md=(IModelDoc2)sw.ActiveDoc;
+var c=json.Deserialize<Dictionary<string,object>>(File.ReadAllText(req));var sw=SwforgeConnection.Connect();var md=(IModelDoc2)sw.ActiveDoc;
 if(md==null||md.GetType()!=1||sw.GetProcessID()!=Convert.ToInt32(c["process_id"])||!String.Equals(md.GetPathName(),(string)c["path"],StringComparison.OrdinalIgnoreCase))throw new Exception("Active part changed");
 var spec=(Dictionary<string,object>)c["spec"];var results=new List<object>();double t=N(spec,"thickness")/1000;
 if((string)c["mode"]=="create")foreach(Dictionary<string,object> h in (System.Collections.ArrayList)spec["holes"]){

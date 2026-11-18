@@ -1,9 +1,32 @@
 {
-  "version": "1.7.0",
+  "version": "2.0.0",
   "edition": "Community",
+  "status": "release_approved",
+  "published": false,
+  "based_on": "public 1.7.0 with selected 1.9.9 modeling and compatibility changes",
   "sw_tested": [
-    "2025 SP5"
+    "2019 SP5 (27.5.0)",
+    "2025 SP5 (33.5.0)"
   ],
+  "feature_frozen": true,
   "full_gb_certification": false,
-  "advanced_gb_included": false
+  "advanced_gb_included": false,
+  "validation": "docs/validation-community.json",
+  "offline_passed": 397,
+  "sw_marked_not_run": 33,
+  "python_tested": [
+    "3.14.3"
+  ],
+  "compatibility_roadmap": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+  ],
+  "release_approved_on": "2026-11-19"
 }

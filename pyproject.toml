@@ -48,7 +48,7 @@ solidworks-swforge = "swforge.server:main"
 
 [tool.setuptools.package-data]
 # agent skill 随包分发：用户 pip 装完后执行 swforge install-skill 即可注册
-swforge = ["skill/*.md", "skill/references/*.md", "assets/templates/*", "capabilities.yaml"]
+swforge = ["skill/*.md", "skill/references/*.md", "assets/templates/*", "capabilities.yaml", "THIRD_PARTY_NOTICES.md"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

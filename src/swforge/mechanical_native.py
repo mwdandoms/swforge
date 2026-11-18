@@ -4,7 +4,7 @@
 def engine():
     from .modeling import _CS_TEMPLATE
     helpers=_CS_TEMPLATE[_CS_TEMPLATE.index('    static IFeature Datum('):_CS_TEMPLATE.index('    static IBody2 BodyOf(')]
-    return _ENGINE.replace('__SKETCH_HELPERS__',helpers)
+    return _ENGINE.replace('__SKETCH_HELPERS__',helpers.replace('ISldWorks app=application;', 'ISldWorks app=sw;'))
 
 
 _ENGINE=r'''
@@ -255,7 +255,7 @@ public class __CLASS__ {
   bool progressChanged=false,previousProgress=false;
   try{
    cmd=json.Deserialize<Dictionary<string,object>>(File.ReadAllText(request));
-   sw=(ISldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
+   sw=SwforgeConnection.Connect();
    if(sw.GetProcessID()!=Convert.ToInt32(cmd["process_id"]))throw new Exception("SW process changed");
    if(typeof(ISldWorks).Assembly.GetName().Version.Major!=Int32.Parse(sw.RevisionNumber().Split('.')[0]))throw new Exception("Interop version mismatch");
    previousProgress=sw.CommandInProgress;sw.CommandInProgress=true;progressChanged=true;

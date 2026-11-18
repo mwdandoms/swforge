@@ -43,7 +43,8 @@ def test_builder_counts():
     b.box("底", 0, 100, 0, 10, 0, 100)
     b.tube_y("柱", 10, 500, 0, 0, 50, 50, wall=5)     # 4 块板
     b.tube_x("梁", -100, 100, 500, 0, 60, 60, wall=5)  # 4 块板
-    assert b.box_count == 1 + 4 + 4
+    assert b.box_count == 1
+    assert b.feature_count == 3
 
 
 def test_codegen_contains_calls():

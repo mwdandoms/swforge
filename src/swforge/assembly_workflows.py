@@ -26,7 +26,7 @@ static object Snapshot(){components.Clear();mates.Clear();objects.Clear();var ro
  var pack=(IPackAndGo)md.Extension.GetPackAndGo();pack.IncludeSuppressed=true;pack.IncludeDrawings=false;object docs;pack.GetDocumentNames(out docs);
  return R("ok",true,"path",md.GetPathName(),"modified",md.GetSaveFlag(),"configuration",md.ConfigurationManager.ActiveConfiguration.Name,"components",components,"mates",mates,"dependencies",docs);
 }
-public static string Run(string request){try{var c=json.Deserialize<Dictionary<string,object>>(File.ReadAllText(request));sw=(ISldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));md=(IModelDoc2)sw.ActiveDoc;
+public static string Run(string request){try{var c=json.Deserialize<Dictionary<string,object>>(File.ReadAllText(request));sw=SwforgeConnection.Connect();md=(IModelDoc2)sw.ActiveDoc;
 if(sw.GetProcessID()!=Convert.ToInt32(c["process_id"])||md==null||md.GetType()!=2||!String.Equals(md.GetPathName(),S(c,"path"),StringComparison.OrdinalIgnoreCase))throw new Exception("Active assembly changed");
 if(typeof(ISldWorks).Assembly.GetName().Version.Major!=Int32.Parse(sw.RevisionNumber().Split('.')[0]))throw new Exception("Interop mismatch");
 string mode=S(c,"mode");if(mode=="snapshot")return json.Serialize(Snapshot());

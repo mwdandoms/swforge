@@ -56,6 +56,10 @@ def _json_arg(value, default=None):
             return _json.load(fh)
     return _json.loads(value)
 
+def _result(obj) -> int:
+    _p(obj)
+    return 1 if isinstance(obj, dict) and obj.get('ok') is False else 0
+
 def _main(argv: list[str] | None=None) -> int:
     _make_output_safe()
     ap = argparse.ArgumentParser(prog='swforge', description='SolidWorks 自动化工具箱')
@@ -352,7 +356,72 @@ def _main(argv: list[str] | None=None) -> int:
     p = sub.add_parser('approve-apply', help='Issue one-use TTL token after explicit confirmation of the preview')
     p.add_argument('preview')
     p.add_argument('--confirmed', action='store_true')
+    p = sub.add_parser('feature-tree', help='回读特征树、实体、孔几何与错误')
+    p.add_argument('part')
+    p = sub.add_parser('design-resolve', help='离线解析设计参数与关联表达式')
+    p.add_argument('spec')
+    p.add_argument('--parameters', default=None)
+    p = sub.add_parser('design-variant', help='按设计参数生成新副本；不保留原特征引用身份')
+    p.add_argument('source')
+    p.add_argument('output')
+    p.add_argument('--parameters', required=True)
+    p = sub.add_parser('spring', help='建圆柱螺旋压缩弹簧（等螺距/开放端/圆线）')
+    p.add_argument('out', help='输出 .sldprt 路径')
+    p.add_argument('--wire', type=float, required=True, help='线径 d (mm)')
+    p.add_argument('--mean', type=float, required=True, help='中径 D (mm)')
+    p.add_argument('--height', type=float, required=True, help='中心线轴向高度 H (mm)，不是自由高度')
+    p.add_argument('--turns', type=float, required=True, help='圈数 n')
+    p.add_argument('--left-hand', action='store_true', help='左旋（默认右旋）')
+    p.add_argument('--material', default='65Mn', help='材料牌号，默认 65Mn 弹簧钢')
+    p.add_argument('--json', action='store_true')
+    p = sub.add_parser('auger-flight', help='建等螺距绞龙叶片（社区版无历史实体）')
+    p.add_argument('out', help='输出 .sldprt 路径')
+    for name in ('inner-diameter', 'outer-diameter', 'pitch', 'turns', 'thickness'):
+        p.add_argument('--' + name, type=float, required=True)
+    p.add_argument('--left-hand', action='store_true')
+    p.add_argument('--material', default='Q235')
+    p.add_argument('--keep-open', action='store_true')
+    p = sub.add_parser('clearance', help='量装配最小净距（SW 原生间隙验证）；门限给大才量得到实际距离')
+    p.add_argument('assembly')
+    p.add_argument('--minimum', type=float, default=1.0, help='报告门限 mm，低于它的配对才列出')
+    p.add_argument('--components', default=None, help='逗号分隔的 1~2 个组件名')
+    p = sub.add_parser('set-parameters', help='原地改精确尺寸并原生重建；默认改完还原，--save 才落盘')
+    p.add_argument('part')
+    p.add_argument('--parameters', required=True, help='参数 JSON：{"D3@特征@零件.Part": 75.0}')
+    p.add_argument('--save', action='store_true', help='落盘（默认只在内存里量完再还原）')
+    p.add_argument('--no-backup', action='store_true', help='--save 时不写 .bak 备份')
+    p.add_argument('--expect-volume', type=float, default=None, help='期望体积 mm³，用于偏差校验')
+    p.add_argument('--tolerance', type=float, default=0.5, help='期望体积偏差门限 %%，默认 0.5')
+    p.add_argument('--material', default=None, help='顺带改材料牌号（GB 牌号，默认不改）')
     args = ap.parse_args(argv)
+    if args.cmd == 'feature-tree':
+        from .feature_tree import inspect_feature_tree
+        return _result(inspect_feature_tree(args.part))
+    if args.cmd == 'design-resolve':
+        from .design import resolve_design
+        return _result(resolve_design(_json_arg(args.spec), _json_arg(args.parameters)))
+    if args.cmd == 'design-variant':
+        from .design import create_design_variant
+        return _result(create_design_variant(args.source, args.output, _json_arg(args.parameters)))
+    if args.cmd == 'auger-flight':
+        from .auger import create_auger_flight
+        return _result(create_auger_flight(args.out, inner_diameter=args.inner_diameter, outer_diameter=args.outer_diameter, pitch=args.pitch, turns=args.turns, thickness=args.thickness, clockwise=not args.left_hand, material=args.material, keep_open=args.keep_open))
+    if args.cmd == 'clearance':
+        from .clearance import check_clearance
+        picks = [x.strip() for x in args.components.split(',')] if args.components else None
+        try:
+            return _result(check_clearance(args.assembly, minimum_mm=args.minimum, components=picks))
+        except ValueError as exc:
+            return _result({'ok': False, 'error': str(exc)})
+    if args.cmd == 'set-parameters':
+        from .rebuild import set_parameters
+        try:
+            return _result(set_parameters(args.part, _json_arg(args.parameters, {}), save=args.save, material=args.material, expect_volume_mm3=args.expect_volume, tolerance_pct=args.tolerance, backup=not args.no_backup))
+        except ValueError as exc:
+            return _result({'ok': False, 'error': str(exc)})
+    if args.cmd == 'spring':
+        from .spring import create_spring
+        return _result(create_spring(args.out, wire_diameter=args.wire, mean_diameter=args.mean, height=args.height, turns=args.turns, clockwise=not args.left_hand, material=args.material))
     if args.cmd == 'capability-matrix':
         from .capability_matrix import host_status
         return _result(host_status(args.connect))

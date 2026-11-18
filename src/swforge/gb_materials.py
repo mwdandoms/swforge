@@ -111,8 +111,11 @@ def _sw_user_material_dirs() -> list[str]:
 
     out: list[str] = []
     base = os.environ.get("PROGRAMDATA") or r"C:\ProgramData"
-    for pattern in (os.path.join(base, "SOLIDWORKS", "SOLIDWORKS *"),
-                    os.path.join(base, "SolidWorks", "SOLIDWORKS *")):
+    from .sw_target import effective_year
+
+    year = effective_year()
+    version_dir = f"SOLIDWORKS {year}" if year else "SOLIDWORKS *"
+    for pattern in (os.path.join(base, "SOLIDWORKS", version_dir),):
         for root in glob.glob(pattern):
             if not os.path.isdir(root):
                 continue
@@ -153,7 +156,13 @@ def _find_sw_library() -> str | None:
     """找 SW 自带材质库；用它当模板，保证生成的库符合 SW 的 schema。"""
     import glob
 
-    roots = []
+    from .sw_target import effective_year, install_dir
+
+    install = install_dir()
+    roots = sorted(glob.glob(os.path.join(install, "lang", "*", "sldmaterials"))) if install else []
+    if effective_year():
+        return next((os.path.join(d, "solidworks materials.sldmat") for d in roots
+                     if os.path.isfile(os.path.join(d, "solidworks materials.sldmat"))), None)
     for env in ("SW_INSTALL_DIR", "SOLIDWORKS_DIR"):
         val = os.environ.get(env)
         if val:

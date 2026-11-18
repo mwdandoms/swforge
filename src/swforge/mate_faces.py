@@ -12,6 +12,7 @@ import time
 import uuid
 
 from .session import get_session, _value
+from ._compat import temp_dir
 
 __all__ = ['list_mate_faces', 'apply_face_mates', 'inspect_face_mates']
 
@@ -86,15 +87,16 @@ def _target(path):
 
 def _run(command, timeout_s=120):
     from .modeling import _find_sw_dir
+    from .sw_target import native_source
     directory = _find_sw_dir()
     if not directory:
         return {'ok': False, 'error': '找不到 SolidWorks Interop DLL，请设置 SW_INSTALL_DIR'}
     start = time.monotonic()
-    with tempfile.TemporaryDirectory(prefix='swforge_face_mate_', ignore_cleanup_errors=True) as work:
+    with temp_dir('swforge_face_mate_') as work:
         root = Path(work)
         name = 'ExplicitMate_' + uuid.uuid4().hex
         source = root/'bridge.cs'
-        source.write_text(_ENGINE.replace('__CLASS__', name), encoding='utf8')
+        source.write_text(native_source(_ENGINE.replace('__CLASS__', name)), encoding='utf8')
         data = root/'command.json'
         data.write_text(json.dumps(command, ensure_ascii=False), encoding='utf8')
         quote = lambda value: str(value).replace("'", "''")
@@ -273,7 +275,7 @@ public class __CLASS__ {
   var created=new List<IFeature>();var transforms=new Dictionary<string,double[]>();var targetComponents=new Dictionary<string,IComponent2>();int baselineCount=-1;
   try{
    cmd=json.Deserialize<Dictionary<string,object>>(File.ReadAllText(path,System.Text.Encoding.UTF8));
-   sw=(ISldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
+   sw=SwforgeConnection.Connect();
    if(sw.GetProcessID()!=Convert.ToInt32(cmd["process_id"]))throw new Exception("COM连接到不同SolidWorks进程");
    if(int.Parse(sw.RevisionNumber().Split('.')[0])!=typeof(ISldWorks).Assembly.GetName().Version.Major)throw new Exception("Interop DLL与运行的SolidWorks版本不一致");
    md=(IModelDoc2)sw.ActiveDoc;if(md==null||md.GetType()!=2)throw new Exception("当前文档不是装配体");ad=(IAssemblyDoc)md;math=(IMathUtility)sw.GetMathUtility();EnsureTarget();

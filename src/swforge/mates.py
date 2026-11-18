@@ -57,17 +57,14 @@ public class __CLASS__ {
     static ISldWorks Connect() {
         string e1 = "", e2 = "";
         try {
-            ISldWorks s = (ISldWorks)Marshal.GetActiveObject("SldWorks.Application");
+            ISldWorks s = SwforgeConnection.Active();
             if (Usable(s)) return s;
             e1 = "空壳";
         } catch (Exception ex) { e1 = ex.GetType().Name; }
         try {
-            Type t = Type.GetTypeFromProgID("SldWorks.Application");
-            if (t != null) {
-                ISldWorks s = (ISldWorks)Activator.CreateInstance(t);
-                if (Usable(s)) return s;
-                e2 = "空壳";
-            }
+            ISldWorks s = SwforgeConnection.Connect();
+            if (Usable(s)) return s;
+            e2 = "空壳";
         } catch (Exception ex) { e2 = ex.GetType().Name; }
         throw new Exception("无法连接 SolidWorks（" + e1 + " / " + e2 + "）");
     }
@@ -398,7 +395,8 @@ class MateBuilder:
                .replace("__SPECSCOUNT__", str(len(self._specs))))
         cs_path = os.path.join(work, "mate.cs")
         with open(cs_path, "w", encoding="utf-8") as fh:
-            fh.write(src)
+            from .sw_target import native_source
+            fh.write(native_source(src))
         ps = _PS.format(cs=cs_path.replace("'", "''"),
                         dll=os.path.join(sw_dir, "SolidWorks.Interop.sldworks.dll").replace("'", "''"),
                         cst=os.path.join(sw_dir, "SolidWorks.Interop.swconst.dll").replace("'", "''"),

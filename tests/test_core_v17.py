@@ -37,11 +37,11 @@ def test_stale_and_unverified_block_delivery(tmp_path):
     p=tmp_path/'file';p.write_text('old')
     c=capture_artifact(p)
     row=finalize_artifact(c,tool_success=True,verified=True)
-    assert row['produced_this_run']=='stale'
+    assert row['produced_this_run'] is False
     assert delivery_manifest([row])['delivery']=='blocked'
     p.write_text('new')
     row=finalize_artifact(c,tool_success=True,verified=False)
-    assert row['produced_this_run']=='unverified'
+    assert row['produced_this_run'] is None
 
 
 def test_changed_after_verified_export_blocks_manifest(tmp_path):

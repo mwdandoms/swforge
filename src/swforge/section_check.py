@@ -5,7 +5,7 @@ _ENGINE = r'''
 using System;using System.IO;using System.Collections.Generic;using System.Web.Script.Serialization;using SolidWorks.Interop.sldworks;
 public class __CLASS__{
 static Dictionary<string,object> R(params object[] p){var r=new Dictionary<string,object>();for(int i=0;i<p.Length;i+=2)r[(string)p[i]]=p[i+1];return r;}
-public static string Run(string request){try{var json=new JavaScriptSerializer();var c=json.Deserialize<Dictionary<string,object>>(File.ReadAllText(request));var sw=(ISldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));var md=(IModelDoc2)sw.ActiveDoc;
+public static string Run(string request){try{var json=new JavaScriptSerializer();var c=json.Deserialize<Dictionary<string,object>>(File.ReadAllText(request));var sw=SwforgeConnection.Connect();var md=(IModelDoc2)sw.ActiveDoc;
 if(sw.GetProcessID()!=Convert.ToInt32(c["process_id"])||md==null||md.GetType()!=3||!String.Equals(md.GetPathName(),(string)c["path"],StringComparison.OrdinalIgnoreCase))throw new Exception("Active drawing changed");
 var dr=(IDrawingDoc)md;IView target=null;for(IView v=(IView)((IView)dr.GetFirstView()).GetNextView();v!=null;v=(IView)v.GetNextView())if(v.Name==(string)c["view"])target=v;
 if(target==null||target.Type!=2)throw new Exception("Section view missing");var faces=new List<object>();

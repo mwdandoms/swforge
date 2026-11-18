@@ -86,6 +86,29 @@ def build_mcp():
         return add_position_dimension(drawing_path, reference, datum_index, target_index, axis=axis, x=x, y=y)
 
     @tool()
+    def sw_create_spring(out_path: str, wire_diameter: float, mean_diameter: float, height: float, turns: float, clockwise: bool=True, material: str='65Mn') -> dict:
+        """Helical compression spring: equal pitch, open ends, round wire. mm.
+
+        height is the CENTERLINE axial height, not free length.
+        Limited geometry: 1<=turns<=20, 0.1<=wire<=50, mean<=500, mean>=4*wire,
+        1.25*wire<=pitch<=0.5*mean. Out-of-range specs are rejected, not approximated.
+        Verified by analytic volume (0.5%) and B-Rep extreme bounds (0.2%).
+        Community saves copied solid geometry without native helix/sweep history.
+        """
+        from .spring import create_spring
+        return create_spring(out_path, wire_diameter=wire_diameter, mean_diameter=mean_diameter, height=height, turns=turns, clockwise=clockwise, material=material)
+
+    @tool()
+    def sw_create_auger_flight(out_path: str, inner_diameter: float, outer_diameter: float, pitch: float, turns: float, thickness: float, clockwise: bool=True, material: str='Q235') -> dict:
+        """Create a constant-pitch geometry-only auger flight in a new SLDPRT. Dimensions in mm.
+        Inner and outer diameters are measured on the midsurface. Thickness is total
+        normal thickness. The Y axis runs through the bore. Includes native geometry
+        verification. This operation outputs a solid blade for 3D modeling.
+        """
+        from .auger import create_auger_flight
+        return create_auger_flight(out_path, inner_diameter=inner_diameter, outer_diameter=outer_diameter, pitch=pitch, turns=turns, thickness=thickness, clockwise=clockwise, material=material)
+
+    @tool()
     def sw_create_hole_plate(out_path: str, length: float=120, width: float=80, thickness: float=20, holes: list=None, material: str='Q235') -> dict:
         """Native Hole Wizard plate; explicit hole specs only, no inference. mm."""
         from .hole_families import create_hole_plate
@@ -564,10 +587,37 @@ def build_mcp():
         from .gb_check import check_gb_drawing
         return check_gb_drawing(drawing_path)
 
+    @tool()
+    def sw_inspect_feature_tree(part_path: str) -> dict:
+        """Read unique native tree nodes, modeling feature count, errors and cylinders. No tree mutation."""
+        from .feature_tree import inspect_feature_tree
+        return inspect_feature_tree(part_path)
+
+    @tool()
+    def sw_resolve_design(spec: dict, parameters: dict | None=None) -> dict:
+        """Offline parameter/requirement validation; + - * / relations. Recipe expressions are not native SW equations."""
+        from .design import resolve_design
+        return resolve_design(spec, parameters)
+
+    @tool()
+    def sw_create_design_variant(source_path: str, out_path: str, parameters: dict, keep_open: bool=False) -> dict:
+        """Regenerate a NEW part from fingerprinted recipe. New feature identities; no automatic assembly replacement."""
+        from .design import create_design_variant
+        return create_design_variant(source_path, out_path, parameters, keep_open=keep_open)
+
+    @tool()
+    def sw_check_clearance(assembly_path: str, minimum_mm: float=1.0, components: list[str] | None=None) -> dict:
+        """测量装配组件净距、干涉体积和是否达到净距下限。SolidWorks required."""
+        from .clearance import check_clearance
+        result = check_clearance(assembly_path, minimum_mm=minimum_mm, components=components)
+        if result.get('ok'):
+            result['verification_checks'] = [dict(id='minimum_clearance', status='pass' if result.get('meets_all') else 'fail', required=True)]
+        return result
+
     @mcp.tool()
-    def sw_discover(group: str | None=None) -> dict:
+    def sw_discover(group: str | None=None, query: str | None=None, limit: int | None=None) -> dict:
         """Discover registered operations by group; admin is disabled by default."""
-        return gateway.discover(group)
+        return gateway.discover(group, query=query, limit=limit)
 
     @mcp.tool()
     def sw_describe(names: list[str]) -> dict:

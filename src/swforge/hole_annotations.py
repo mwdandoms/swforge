@@ -8,7 +8,7 @@ _ENGINE=r'''
 using System;using System.IO;using System.Collections.Generic;using System.Web.Script.Serialization;using SolidWorks.Interop.sldworks;
 public class __CLASS__{
 static Dictionary<string,object> R(params object[] p){var r=new Dictionary<string,object>();for(int i=0;i<p.Length;i+=2)r[(string)p[i]]=p[i+1];return r;}
-public static string Run(string req){var json=new JavaScriptSerializer(){MaxJsonLength=16777216};try{var c=json.Deserialize<Dictionary<string,object>>(File.ReadAllText(req));var sw=(ISldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));var md=(IModelDoc2)sw.ActiveDoc;
+public static string Run(string req){var json=new JavaScriptSerializer(){MaxJsonLength=16777216};try{var c=json.Deserialize<Dictionary<string,object>>(File.ReadAllText(req));var sw=SwforgeConnection.Connect();var md=(IModelDoc2)sw.ActiveDoc;
 if(md==null||md.GetType()!=3||sw.GetProcessID()!=Convert.ToInt32(c["process_id"])||!String.Equals(md.GetPathName(),(string)c["path"],StringComparison.OrdinalIgnoreCase))throw new Exception("Active drawing changed");
 var dr=(IDrawingDoc)md;IView view=null;for(IView v=(IView)((IView)dr.GetFirstView()).GetNextView();v!=null;v=(IView)v.GetNextView())if(v.Name==(string)c["view"])view=v;if(view==null)throw new Exception("View missing");
 var spec=(Dictionary<string,object>)c["spec"];var edges=(object[])view.GetVisibleEntities2(null,1);var results=new List<object>();

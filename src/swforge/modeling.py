@@ -7,7 +7,13 @@ Python 描述经 C# Interop 早期绑定执行。v0.3 支持三轴圆柱、绕 Y
 """
 from __future__ import annotations
 
+import base64
 import json
+
+from ._compat import temp_dir
+from ._editable_dimensions import CS as _EDITABLE_CS, PROFILE_KINDS
+from ._helical_native import CS as _HELICAL_CS
+from ._native_features import CS as _NATIVE_FEATURES_CS, NativePartFeatures, evidence as _native_evidence
 import math
 import os
 import re
@@ -58,6 +64,12 @@ class BuildResult:
     material_error: str = ""
     mass_kg: float = 0.0
     volume_mm3: float = 0.0
+    # ---- 1.9.1：弹簧体积校验结果（tag -> verify() 返回）
+    spring_checks: object = None
+    auger_checks: object = None
+    native_features: object = None
+    output_semantics: str = "native_features"
+    native_history: bool = True
 
 
 @dataclass
@@ -153,11 +165,15 @@ def preview_edges(part_path,tag,edges_rule=None):
             'dry_run':True,'rule':rule}
 
 
-class PartBuilder:
+class PartBuilder(NativePartFeatures):
     """建模声明，不在添加形体时连接 SW。所有 tag 在单个构建器中唯一。"""
 
     def __init__(self, path: str, material: str = "Q235", merge: bool = False, material_db: str | None = None,
-                 log: str | None = None):
+                 log: str | None = None, feature_strategy: str = "compact", *, editable_dimensions: bool = True):
+        if feature_strategy not in ('compact', 'legacy'):
+            raise ValueError('feature_strategy 必须为 compact 或 legacy')
+        self.feature_strategy = feature_strategy
+        self.editable_dimensions = bool(editable_dimensions)
         self.path = os.path.abspath(path)
         self.material = material
         # 材质库路径：None 表示自动（GB 牌号用生成的库，其它交给 SW 默认库）
@@ -168,7 +184,10 @@ class PartBuilder:
         self._shapes = []
         self._finishes = []
         self._cuts = []
+        self._native_ops = []
         self._tags = set()
+        self._augers = {}
+        self._springs = {}          # tag -> (SpringSpec, 解析值)
 
     def _add(self, tag, kind, values, color):
         tag = str(tag)
@@ -178,6 +197,10 @@ class PartBuilder:
         self._tags.add(tag)
         self._shapes.append((kind, tag, values, rgb))
         return rgb
+
+    def _compact_tube(self,tag,axis,values,color):
+        values=tuple(_number(v,'tube coordinate/size') for v in values)
+        self._add(tag,'Tube',(axis,)+values,color)
 
     def box(self, tag, x0, x1, y0, y1, z0, z1, color="silver"):
         vals = tuple(_number(v, n) for n, v in zip(
@@ -200,6 +223,60 @@ class PartBuilder:
         vals = (axis,) + tuple(_number(v, n) for n, v in zip(("x", "y", "z"), (x, y, z)))
         vals += (_number(r, "r", True), _number(h, "h", True))
         self._add(tag, "Cylinder", vals, color)
+        return self
+
+    def helix_spring(self, tag, *, wire_diameter, mean_diameter, height, turns,
+                     clockwise=False, color="steel"):
+        """圆柱螺旋压缩弹簧（等螺距、开放端、圆线截面）。
+
+        参数
+        ----
+        wire_diameter : 线径 d (mm)
+        mean_diameter : 中径 D (mm)
+        height        : **中心线轴向高度** H (mm)，不是自由高度
+        turns         : 圈数 n
+        clockwise     : True=右旋，False=左旋
+
+        几何限制（超出直接抛 ValueError，不静默生成错误模型）：:
+
+            1 <= n <= 20      0.1 <= d <= 50 mm      D <= 500 mm      H <= 2000 mm
+            D >= 4d           1.25d <= 螺距 <= 0.5D
+
+        建完由 ``build()`` 用解析体积校验；体积验不出旋向，旋向在 C# 侧回读螺旋线定义。
+        """
+        from .spring import SpringSpec, validate
+
+        spec = SpringSpec(
+            wire_diameter_mm=wire_diameter,
+            mean_diameter_mm=mean_diameter,
+            height_mm=height,
+            turns=turns,
+            clockwise=clockwise,
+        )
+        calc = validate(spec)
+        tag = str(tag)
+        if tag in self._tags:
+            raise ValueError(f"tag 必须唯一：{tag!r}")
+        self._add(tag, "HelixSpring",
+                  (calc["mean_diameter_mm"], calc["wire_diameter_mm"],
+                   calc["height_mm"], calc["turns"], calc["clockwise"]), color)
+        spec = SpringSpec(calc["wire_diameter_mm"], calc["mean_diameter_mm"],
+                          calc["height_mm"], calc["turns"], calc["clockwise"])
+        self._springs[tag] = (spec, calc)
+        return calc
+
+    def auger_flight(self, tag, *, inner_diameter, outer_diameter, pitch, turns,
+                     thickness, clockwise=True, color="steel"):
+        """Add one native single-start flight. Diameters describe the midsurface."""
+        from .auger import flight_geometry
+
+        calc = flight_geometry(inner_diameter, outer_diameter, pitch, turns, thickness, clockwise)
+        values = tuple(calc[key] for key in (
+            "inner_diameter_mm", "outer_diameter_mm", "pitch_mm", "turns", "thickness_mm"))
+        radial, axial, _ = calc["spans_mm"]
+        self._add(tag, "AugerFlight", values+(1 if clockwise else -1, calc["area_mm2"],
+                  calc["volume_mm3"], radial, axial), color)
+        self._augers[str(tag)] = calc
         return self
 
     def revolve(self, tag, profile_pts, axis="y", angle=360, color="silver", x=0, y=0, z=0):
@@ -245,6 +322,20 @@ class PartBuilder:
         origin = tuple(_number(v, n) for n, v in zip(("x", "y", "z"), (x,y,z)))
         self._add(tag, "Revolve", (tuple(pts), axis, angle) + origin, color)
         return self
+
+    def stepped_shaft(self, tag, steps, axis='y', x=0, y=0, z=0, color='silver'):
+        """一个回转特征生成连续台阶轴；steps 按轴向给 length/diameter。"""
+        if not isinstance(steps,list) or not 1<=len(steps)<=50:
+            raise ValueError('steps 必须为 1~50 项 length/diameter 对象')
+        profile=[(0,0)];position=0
+        for step in steps:
+            if not isinstance(step,dict) or set(step)!={'length','diameter'}:
+                raise ValueError('每个台阶只接受 length/diameter')
+            length=_number(step['length'],'length',True);radius=_number(step['diameter'],'diameter',True)/2
+            if profile[-1] != (radius,position):profile.append((radius,position))
+            position+=length;profile.append((radius,position))
+        profile.append((0,position))
+        return self.revolve(tag,profile,axis=axis,x=x,y=y,z=z,color=color)
 
     def fillet(self, tag, r, edges_rule=None):
         """对源 tag 所属实体的全部边倒圆角。过大的半径构建失败，不保存半成品。"""
@@ -305,7 +396,10 @@ class PartBuilder:
         return self
 
     def hole_grid(self, tag, target, *, rows=1, columns=1, pitch_u=20, pitch_v=20, **hole):
-        """在轴法平面上按规则网格生成原生圆孔；X→YZ、Y→XZ、Z→XY。"""
+        """规则孔网格：compact 用原生草图阵列与单切除；X→YZ、Y→XZ、Z→XY。
+
+        单一组 tag；沉孔保留两个切除并关联阵列参数。legacy 保留逐孔 tag。
+        """
         if any(isinstance(n,bool) or not isinstance(n,int) or n<1 for n in (rows,columns)) or rows*columns>200:
             raise ValueError('孔阵列行列必须为正整数，一次最多200孔')
         pitch_u=_number(pitch_u,'pitch_u',True);pitch_v=_number(pitch_v,'pitch_v',True)
@@ -321,7 +415,22 @@ class PartBuilder:
                 args[u]=_number(hole.get(u,0),u)+col*pitch_u
                 args[v]=_number(hole.get(v,0),v)+row*pitch_v
                 check.hole(f'{tag}_r{row+1}c{col+1}',target,**args)
-        self._tags=check._tags;self._cuts.extend(check._cuts)
+        if self.feature_strategy == 'legacy':
+            self._tags=check._tags;self._cuts.extend(check._cuts)
+        else:
+            # One native sketch pattern and one cut per depth, not one cut per hole.
+            first=check._cuts[0][2]
+            max_diameter=max(c[2][5] for c in check._cuts)
+            if columns>1 and pitch_u<=max_diameter or rows>1 and pitch_v<=max_diameter:
+                raise ValueError('紧凑孔网格的孔不得相交或相切')
+            pending=[(str(tag), first)]
+            if hole.get('counterbore_diameter') is not None:
+                pending.append((str(tag)+'_counterbore',check._cuts[1][2]))
+            if any(not t.strip() or t in self._tags for t,_ in pending):
+                raise ValueError('孔组 tag 必须非空且唯一')
+            for group,values in pending:
+                self._cut_add(group,'HoleGrid',values+(rows,columns,pitch_u,pitch_v,
+                    str(tag) if group!=str(tag) else ''))
         return self
 
     def chamfer(self, tag, d, edges_rule=None):
@@ -351,6 +460,9 @@ class PartBuilder:
 
     def tube_y(self, tag, y0, y1, cx, cz, sx, sz, wall=6.3, color="yellow", inset=0.0):
         self._tube_check(y1-y0, sx, sz, wall, inset)
+        if self.feature_strategy == 'compact':
+            self._compact_tube(tag,'y',(cx,y0,cz,sx,sz,wall,y1-y0),color)
+            return self
         x0,x1,z0,z1 = cx-sx/2,cx+sx/2,cz-sz/2,cz+sz/2
         self.box(tag+"_前",x0,x1,y0,y1,z0,z0+wall,color)
         self.box(tag+"_后",x0,x1,y0,y1,z1-wall,z1,color)
@@ -360,6 +472,9 @@ class PartBuilder:
 
     def tube_z(self, tag, z0, z1, cx, cy, sx, sy, wall=6.3, color="yellow", inset=0.0):
         self._tube_check(z1-z0, sx, sy, wall, inset)
+        if self.feature_strategy == 'compact':
+            self._compact_tube(tag,'z',(cx,cy,z0,sx,sy,wall,z1-z0),color)
+            return self
         x0,x1,y0,y1 = cx-sx/2,cx+sx/2,cy-sy/2,cy+sy/2
         self.box(tag+"_下",x0,x1,y0,y0+wall,z0,z1,color)
         self.box(tag+"_上",x0,x1,y1-wall,y1,z0,z1,color)
@@ -369,6 +484,9 @@ class PartBuilder:
 
     def tube_x(self, tag, x0, x1, cy, cz, sy, sz, wall=6.3, color="yellow", inset=0.0):
         self._tube_check(x1-x0, sy, sz, wall, inset)
+        if self.feature_strategy == 'compact':
+            self._compact_tube(tag,'x',(x0,cy,cz,sy,sz,wall,x1-x0),color)
+            return self
         y0,y1,z0,z1 = cy-sy/2,cy+sy/2,cz-sz/2,cz+sz/2
         self.box(tag+"_下",x0,x1,y0,y0+wall,z0,z1,color)
         self.box(tag+"_上",x0,x1,y1-wall,y1,z0,z1,color)
@@ -386,7 +504,7 @@ class PartBuilder:
 
     @property
     def feature_count(self):
-        return len(self._shapes) + len(self._cuts) + len(self._finishes)
+        return len(self._shapes) + len(self._cuts) + len(self._finishes) + len(self._native_ops)
 
     def render_cs(self, *, paint=True, _log_path=None, keep_open=True, max_documents=8):
         if isinstance(max_documents, bool) or not isinstance(max_documents, int) or max_documents < 0:
@@ -394,7 +512,14 @@ class PartBuilder:
         calls = []
         for kind, tag, vals, rgb in self._shapes:
             args = [_cs_string(tag)]
-            if kind == "Revolve":
+            if kind == "HelixSpring":
+                mean, wire, hgt, turns, cw = vals
+                args.extend(_cs_num(v) for v in (mean, wire, hgt, turns))
+                args.append("true" if cw else "false")
+            elif kind == "LoftFeature":
+                axis, points = vals
+                args.extend((_cs_string(axis), "new double[]{" + ",".join(_cs_num(v) for v in points) + "}"))
+            elif kind == "Revolve":
                 pts, axis, angle, x, y, z = vals
                 args.append("new double[]{" + ",".join(_cs_num(v) for p in pts for v in p) + "}")
                 args.append(_cs_string(axis))
@@ -411,6 +536,21 @@ class PartBuilder:
             calls.append(f"        Finish({_cs_string(tag)},{_cs_num(size)},{str(kind == 'Fillet').lower()},"
                          f"{_cs_string(rule.get('axis',''))},{_cs_num(rule.get('min_length_mm',-1))},"
                          f"{_cs_num(rule.get('max_length_mm',-1))});")
+        if self._native_ops:
+            # API calls that use the current selection list require normal sketch mode.
+            calls.append("        md.SketchManager.AddToDB=false;")
+            for kind, tag, values in self._native_ops:
+                args = [_cs_string(tag)] + [_cs_string(v) if isinstance(v,str) else _cs_num(v) for v in values]
+                calls.append("        " + kind + "(" + ",".join(args) + ");")
+        profiles = [(tag, PROFILE_KINDS[kind])
+                    for kind, tag, *_ in self._shapes + self._cuts if kind in PROFILE_KINDS]
+        dimension_pass = ""
+        geometry_only = bool(self._springs or self._augers)
+        if self.editable_dimensions and profiles and not geometry_only:
+            tags, kinds = zip(*profiles)
+            cs_tags = ",".join(_cs_string(tag) for tag in tags)
+            cs_kinds = ",".join(_cs_string(kind) for kind in kinds)
+            dimension_pass = f"AddEditableDimensions(new string[]{{{cs_tags}}},new string[]{{{cs_kinds}}});"
         # v0.5：GB 牌号自动指向生成的材质库；库外牌号交给 SW 默认库（DB 传空）
         mat_db = self.material_db
         if mat_db is None:
@@ -428,11 +568,15 @@ class PartBuilder:
                         "__MAX_DOCUMENTS__": str(max_documents),
                         "__MATERIAL__": _cs_string(self.material),
                         "__MATERIAL_DB__": _cs_string(self.material_db or ""),
-                        "__BODY__": "\n".join(calls)}
-        src = _CS_TEMPLATE
+                        "__BODY__": "\n".join(calls),
+                        "__EDITABLE_PASS__": dimension_pass}
+        src = _CS_TEMPLATE.replace("__NATIVE_FEATURES__", _NATIVE_FEATURES_CS + _HELICAL_CS)
+        src = src.replace("__COMMUNITY_FLATTEN__", "FlattenCommunityGeometry(sw,tpl);" if geometry_only else "")
+        src = src.replace("__EDITABLE_HELPERS__", _EDITABLE_CS if dimension_pass else "")
         for token, value in replacements.items():
             src = src.replace(token,value)
-        return src
+        from .sw_target import native_source
+        return native_source(src)
 
     def build(self, timeout_s=900, paint=True, keep_open=True, max_documents=8):
         start = time.monotonic()
@@ -442,6 +586,8 @@ class PartBuilder:
             return BuildResult(False, self.path, error="输出文件必须使用 .SLDPRT 扩展名")
         if os.path.exists(self.path):
             return BuildResult(False, self.path, error="输出文件已存在；请使用新路径，避免覆盖原模型")
+        if getattr(self,'design_spec',None) is not None and os.path.exists(self.path+'.design.json'):
+            return BuildResult(False,self.path,error='设计参数日志已存在；请使用新路径')
         sw_dir = _find_sw_dir()
         if not sw_dir:
             return BuildResult(False, self.path, error="找不到 SolidWorks 安装目录")
@@ -451,7 +597,7 @@ class PartBuilder:
         log = ""
         code = -1
         try:
-            with tempfile.TemporaryDirectory(prefix="swforge_", ignore_cleanup_errors=True) as work:
+            with temp_dir("swforge_") as work:
                 run_log = os.path.join(work,"result.log")
                 cs = self.render_cs(paint=paint, _log_path=run_log,
                                     keep_open=keep_open, max_documents=max_documents)
@@ -495,6 +641,8 @@ class PartBuilder:
         # ---- v0.5 物理材料与质量属性
         mat = re.search(r"SWFORGE_MATERIAL requested=(\S*) got=(\S*)",log)
         mass = re.search(r"SWFORGE_MASS mass_kg=([\d.eE+-]+) volume_mm3=([\d.eE+-]+)",log)
+        result.output_semantics = "geometry_only" if self._springs or self._augers else "native_features"
+        result.native_history = not bool(self._springs or self._augers)
         result.material_requested = self.material
         if mat:
             result.material_applied = "" if mat[2] in ("", "got=") else mat[2]
@@ -507,6 +655,53 @@ class PartBuilder:
                 result.mass_kg = float(mass[1]); result.volume_mm3 = float(mass[2])
             except ValueError:
                 pass
+        # A helical body's geometry is checked in the native bridge before SaveAs.
+        if self._springs or self._augers:
+            measurements = {}
+            for line in log.splitlines():
+                if line.startswith(("SWFORGE_SPRING ", "SWFORGE_AUGER ")):
+                    kind, key, *values = line.split()
+                    tag = base64.b64decode(key).decode("utf8")
+                    measurements[(kind, tag)] = [float(value) for value in values]
+
+            if self._springs:
+                from .spring import describe, expected_bounds_mm, verify, verify_bounds
+                result.spring_checks = {}
+                for tag, (spec, calc) in self._springs.items():
+                    values = measurements.get(("SWFORGE_SPRING", tag))
+                    if values is None:
+                        result.spring_checks[tag] = {"ok": False, "reason": "No verified spring geometry"}
+                        continue
+                    volume, x, y, z, pitch, height, turns, clockwise = values
+                    check = verify(volume, calc)
+                    check.update(model=describe(spec), bounds=verify_bounds((x,y,z), expected_bounds_mm(calc)),
+                                 helix=dict(pitch_mm=pitch, height_mm=height, turns=turns, clockwise=bool(clockwise)))
+                    check["ok"] = check["ok"] and check["bounds"]["ok"]
+                    result.spring_checks[tag] = check
+
+            if self._augers:
+                result.auger_checks = {}
+                for tag, calc in self._augers.items():
+                    values = measurements.get(("SWFORGE_AUGER", tag))
+                    if values is None:
+                        result.auger_checks[tag] = {"ok": False, "reason": "No verified auger geometry"}
+                        continue
+                    volume, x, y, z, area, phase, angle, thickness = values
+                    result.auger_checks[tag] = dict(ok=True, expected=calc, volume_mm3=volume,
+                        spans_mm=[x,y,z], area_mm2=area, quarter_turn_error_mm=phase,
+                        twist_rad=angle, total_normal_thickness_mm=thickness)
+        result.native_features = _native_evidence(log)
+        if result.ok and getattr(self,'design_spec',None) is not None:
+            from .design import resolve_design
+            from .variants import file_sha256
+            from .version import __version__
+            try:
+                with open(self.path+'.design.json','x',encoding='utf8') as stream:
+                    json.dump({'schema':1,'version':__version__,'model_sha256':file_sha256(self.path),
+                        'design':self.design_spec,'resolved':resolve_design(self.design_spec),
+                        'feature_strategy':self.feature_strategy},stream,ensure_ascii=False,indent=2)
+            except OSError as exc:
+                result.ok=False;result.error='Model saved but design manifest failed: '+str(exc)
         from datetime import datetime,timezone
         before=re.search(r'SWFORGE_DOCUMENTS before=(\d+)',log)
         after=re.search(r'SWFORGE_DOCUMENTS after=(\d+)',log)
@@ -518,10 +713,11 @@ class PartBuilder:
                 'documents_after':int(after[1]) if after else None,
                 'working_set_bytes':int(memory[1]) if memory else None,
                 'keep_open':keep_open,'max_documents':max_documents,
-                'features_ok':good,'features_failed':bad,'bodies':bodies,
+                'features_ok':good,'features_failed':bad,'bodies':bodies,'native_features':result.native_features,
                 'material_requested':result.material_requested,'material_applied':result.material_applied,
                 'mass_kg':result.mass_kg,'volume_mm3':result.volume_mm3,
-                'paint_error':result.paint_error,'error':result.error},ensure_ascii=False)+'\n')
+                'paint_error':result.paint_error,'spring_checks':result.spring_checks,
+                'auger_checks':result.auger_checks,'error':result.error},ensure_ascii=False)+'\n')
         return result
 
 
@@ -530,6 +726,7 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Linq;
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 
@@ -537,6 +734,7 @@ public class __CLASS__ {
     const double MM = 0.001;
     const bool MERGE = __MERGE__;
     static IModelDoc2 md;
+    static ISldWorks application;
     static IMathUtility math;
     static int okN, badN;
     static StringBuilder log = new StringBuilder();
@@ -544,6 +742,8 @@ public class __CLASS__ {
     static Dictionary<string,IFeature> sources = new Dictionary<string,IFeature>();
     static void L(string s) { log.AppendLine(s); }
 
+__NATIVE_FEATURES__
+__EDITABLE_HELPERS__
     static IFeature Datum(string axis) {
         // 标准模板前三个 RefPlane 按 Front,Top,Right 排列；不依赖系统语言。
         int wanted = axis == "x" ? 2 : axis == "y" ? 1 : 0;
@@ -552,6 +752,42 @@ public class __CLASS__ {
             if (f.GetTypeName2()=="RefPlane" && i++ == wanted) return f;
         }
         throw new Exception("标准模板缺少 " + axis + " 轴基准面");
+    }
+
+    // ── 草图推理开关（2026-11-12 实测缺陷的根治点）─────────────────────────
+    // 现场：先建 8000 长的大方块，再在同一基准面上建 100 长的方块，
+    // 第二个轮廓的四条边被 SW 自动推理成与大块共边 → 拉伸出来是 8000 长的
+    // **重复体**（体积 800000 而不是 10000），而 features/bodies/配色回读全过，
+    // 属于"静默生成错误几何"。规范要求"读回来核对、对不上就停"，因此：
+    //   ① 生成轮廓期间显式关闭 swSketchInference，结束即恢复用户原设置；
+    //   ② Box 拉伸后回读包络，对不上直接抛异常（见 CheckBox）。
+    static bool inferenceWasOn=true, inferenceTouched=false;
+
+    static void InferenceOff() {
+        try {
+            // swSketchInference 是【系统选项】，必须通过 ISldWorks 设置；
+            // 在 IModelDoc2 上设无效（实测：设了仍然被推断吸附）。
+            ISldWorks app=application;
+            if(app!=null) {
+                inferenceWasOn=app.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swSketchInference);
+                app.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swSketchInference,false);
+            } else {
+                inferenceWasOn=md.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swSketchInference);
+                md.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swSketchInference,false);
+            }
+            inferenceTouched=true;
+        } catch (Exception) { inferenceTouched=false; }
+    }
+
+    static void InferenceRestore() {
+        if(!inferenceTouched) return;
+        try {
+            ISldWorks app=application;
+            if(app!=null) app.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swSketchInference,inferenceWasOn);
+            else md.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swSketchInference,inferenceWasOn);
+        }
+        catch (Exception) { }
+        inferenceTouched=false;
     }
 
     static ISketch Begin(string axis, double offset) {
@@ -564,9 +800,10 @@ public class __CLASS__ {
             md.ClearSelection2(true);
             if (!plane.Select2(false,0)) throw new Exception("选偏移基准面失败");
         }
+        InferenceOff();
         md.SketchManager.InsertSketch(true);
         ISketch sketch = (ISketch)md.SketchManager.ActiveSketch;
-        if (sketch==null) throw new Exception("进入草图失败");
+        if (sketch==null) { InferenceRestore(); throw new Exception("进入草图失败"); }
         return sketch;
     }
 
@@ -580,6 +817,7 @@ public class __CLASS__ {
 
     static IFeature End(ISketch sketch) {
         md.SketchManager.InsertSketch(true);
+        InferenceRestore();
         IFeature found=null;
         for(IFeature f=(IFeature)md.FirstFeature();f!=null;f=(IFeature)f.GetNextFeature())
             if(f.GetTypeName2()=="ProfileFeature") found=f;
@@ -618,12 +856,64 @@ public class __CLASS__ {
         L(tag+" -> True");
     }
 
+    static double[] ExactBounds(IBody2 body) {
+        // 用 B-Rep 极值点取精确三轴尺寸。GetBodyBox 是近似包围盒，
+        // 对螺旋这类曲面体在端部会有偏差，不能用来做 0.2% 级校验。
+        double[] dims=new double[3];
+        for(int axis=0;axis<3;axis++) {
+            double[] limits=new double[2];
+            for(int k=0;k<2;k++) {
+                double vx=0,vy=0,vz=0;
+                if(axis==0) vx=(k==0?-1.0:1.0);
+                else if(axis==1) vy=(k==0?-1.0:1.0);
+                else vz=(k==0?-1.0:1.0);
+                double xv=0,yv=0,zv=0;
+                if(!body.GetExtremePoint(vx,vy,vz,out xv,out yv,out zv))
+                    throw new Exception("无法读取实体极值点");
+                double coord = axis==0?xv:axis==1?yv:zv;
+                if(Double.IsNaN(coord)||Double.IsInfinity(coord))
+                    throw new Exception("实体极值点不是有限数值");
+                limits[k]=coord*1000;
+            }
+            dims[axis]=limits[1]-limits[0];
+        }
+        return dims;
+    }
+
+    // 盒子拉伸后的回读核对：包络必须与请求的三轴范围一致（0.05 mm 容差）。
+    // 不一致说明轮廓被草图推理/自动关系污染 —— 宁可报错，也不留错误几何。
+    // GetBodyBox 顺序为 (xmin,ymin,zmin,xmax,ymax,zmax)。
+    static void CheckBox(IBody2 body,string tag,double x0,double x1,double y0,double y1,double z0,double z1) {
+        double[] bb;
+        try { bb=(double[])body.GetBodyBox(); } catch(Exception) { return; }
+        double[] want={x0,y0,z0,x1,y1,z1};
+        for(int i=0;i<6;i++) {
+            double got=bb[i]*1000;
+            if(Math.Abs(got-want[i])>0.05)
+                throw new Exception(tag+" 几何回读不一致：期望 "+want[i].ToString("0.###")
+                    +" mm，实得 "+got.ToString("0.###")+" mm；判定为草图关系污染，拒绝生成错误模型");
+        }
+    }
+
+    // 当前实体数（用于判断本步拉伸是"新增独立体"还是"并入已有体"）
+    static int SolidBodyCount() {
+        try { object[] b=(object[])((IPartDoc)md).GetBodies2(0,false); return b==null?0:b.Length; }
+        catch(Exception) { return -1; }
+    }
+
     static void Box(string tag,double x0,double x1,double y0,double y1,double z0,double z1,double[] rgb) {
+        int bodiesBefore=SolidBodyCount();
         ISketch sketch=Begin("y",0);
         double[] a=Local(sketch,x0,0,z0), b=Local(sketch,x1,0,z1);
         md.SketchManager.CreateCornerRectangle(a[0],a[1],0,b[0],b[1],0);
         End(sketch);
-        Register(tag,Extrude(sketch,"y",y0,y1-y0),rgb);
+        IFeature feature=Extrude(sketch,"y",y0,y1-y0);
+        // 只有「新增独立实体」时，本步的包络才必须等于请求的三轴范围。
+        // merge=True 时这一步得到的是与已有体的并集，包络本来就该更大
+        // （test_merge_reports_actual_body_count 就是这种场景）。
+        if(bodiesBefore>=0 && SolidBodyCount()>bodiesBefore)
+            CheckBox(BodyOf(feature),tag,x0,x1,y0,y1,z0,z1);
+        Register(tag,feature,rgb);
     }
 
     static void Cylinder(string tag,string axis,double x,double y,double z,double r,double h,double[] rgb) {
@@ -631,6 +921,22 @@ public class __CLASS__ {
         double[] p=Local(sketch,axis=="x"?0:x,axis=="y"?0:y,axis=="z"?0:z);
         md.SketchManager.CreateCircleByRadius(p[0],p[1],0,r*MM);
         End(sketch);
+        Register(tag,Extrude(sketch,axis,axis=="x"?x:axis=="y"?y:z,h),rgb);
+    }
+
+    static void Tube(string tag,string axis,double x,double y,double z,double a,double b,double wall,double h,double[] rgb) {
+        ISketch sketch=Begin(axis,0);
+        double[] origin={axis=="x"?0:x,axis=="y"?0:y,axis=="z"?0:z};
+        int u=axis=="x"?1:0, v=axis=="z"?1:2;
+        for(int i=0;i<2;i++) {
+            double inset=i*wall;
+            double[] low=(double[])origin.Clone(),high=(double[])origin.Clone();
+            low[u]-=a/2-inset; high[u]+=a/2-inset;
+            low[v]-=b/2-inset; high[v]+=b/2-inset;
+            double[] p=Local(sketch,low[0],low[1],low[2]),q=Local(sketch,high[0],high[1],high[2]);
+            md.SketchManager.CreateCornerRectangle(p[0],p[1],0,q[0],q[1],0);
+        }
+        IFeature layout=End(sketch);layout.Name="SWFORGE_"+tag+"_section";
         Register(tag,Extrude(sketch,axis,axis=="x"?x:axis=="y"?y:z,h),rgb);
     }
 
@@ -794,6 +1100,86 @@ public class __CLASS__ {
         RegisterCut(tag,target,feature,before);
     }
 
+    static void HoleGrid(string tag,string target,string axis,double x,double y,double z,double diameter,double depth,double through,double direction,double rows,double columns,double pitchU,double pitchV,string parentGrid) {
+        IBody2 body=FindBody(target);double before=Volume(body);
+        ISketch sketch=Begin(axis,0);
+        double[] world={axis=="x"?0:x,axis=="y"?0:y,axis=="z"?0:z};
+        double[] p=Local(sketch,world[0],world[1],world[2]);
+        ISketchSegment seed=(ISketchSegment)md.SketchManager.CreateCircleByRadius(p[0],p[1],0,diameter*MM/2);
+        md.SketchManager.AddToDB=false;
+        md.ClearSelection2(true);
+        ISketchPoint center=(ISketchPoint)((ISketchArc)seed).GetCenterPoint2();
+        if(!center.Select4(false,null))throw new Exception("Cannot select hole seed center");
+        md.SketchAddConstraints("sgFIXED");
+        md.ClearSelection2(true);seed.Select4(false,null);
+        ISldWorks app=application;
+        bool inputDim=app.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swInputDimValOnCreate);
+        IDisplayDimension display;
+        try {
+            app.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swInputDimValOnCreate,false);
+            display=(IDisplayDimension)md.AddDiameterDimension2(p[0]+diameter*MM,p[1]+diameter*MM,0);
+        } finally { app.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swInputDimValOnCreate,inputDim); }
+        if(display==null)throw new Exception("Cannot dimension hole seed");
+        IDimension dimension=(IDimension)display.GetDimension2(0);dimension.Name="HoleDiameter";
+        if(rows*columns>1) {
+            int u=axis=="x"?1:0,v=axis=="z"?1:2;
+            double[] wu=(double[])world.Clone(),wv=(double[])world.Clone();wu[u]+=1;wv[v]+=1;
+            double[] pu=Local(sketch,wu[0],wu[1],wu[2]),pv=Local(sketch,wv[0],wv[1],wv[2]);
+            double au=Math.Atan2(pu[1]-p[1],pu[0]-p[0]),av=Math.Atan2(pv[1]-p[1],pv[0]-p[0]);
+            if(au<0)au+=2*Math.PI;if(av<0)av+=2*Math.PI;
+            md.ClearSelection2(true);seed.Select4(false,null);
+            if(!md.SketchManager.CreateLinearSketchStepAndRepeat((int)columns,(int)rows,pitchU*MM,pitchV*MM,au,av,"",columns>1,rows>1,true,columns>1,rows>1))
+                throw new Exception("Native sketch pattern failed; no expanded-hole fallback");
+        }
+        md.SketchManager.AddToDB=true;
+        IFeature feature=CutSketch(sketch,axis,axis=="x"?x:axis=="y"?y:z,depth,through>0,(int)direction,body);
+        // Check every expected cylinder, not just the aggregate volume or API result.
+        object[] faces=(object[])feature.GetFaces();int matched=0;
+        for(int r=0;r<(int)rows;r++)for(int c=0;c<(int)columns;c++) {
+            double[] expected={x*MM,y*MM,z*MM};int k=axis=="x"?0:axis=="y"?1:2;
+            expected[axis=="x"?1:0]+=c*pitchU*MM;expected[axis=="z"?1:2]+=r*pitchV*MM;
+            bool found=false;
+            foreach(object item in faces) {
+                ISurface surface=(ISurface)((IFace2)item).GetSurface();if(!surface.IsCylinder())continue;
+                double[] cp=(double[])surface.CylinderParams;double delta=0;
+                for(int i=0;i<3;i++)if(i!=k)delta+=(cp[i]-expected[i])*(cp[i]-expected[i]);
+                if(Math.Abs(cp[6]-diameter*MM/2)<1e-8&&Math.Sqrt(delta)<1e-8&&Math.Abs(cp[3+k])>.999999)found=true;
+            }
+            if(!found)throw new Exception("Hole grid cylinder readback mismatch: row="+r+" col="+c);matched++;
+        }
+        RegisterCut(tag,target,feature,before);
+        for(IFeature sub=(IFeature)feature.GetFirstSubFeature();sub!=null;sub=(IFeature)sub.GetNextSubFeature())
+            if(sub.GetTypeName2()=="ProfileFeature") {
+                sub.Name="SWFORGE_"+tag+"_layout";int linear=0,counts=0;
+                List<string> linked=new List<string>();
+                for(IDisplayDimension dd=(IDisplayDimension)sub.GetFirstDisplayDimension();dd!=null;dd=(IDisplayDimension)sub.GetNextDisplayDimension(dd)) {
+                    IDimension d=(IDimension)dd.GetDimension2(0);
+                    if(d.GetType()==2) {
+                        string countName=columns>1&&counts==0?"Columns":"Rows";
+                        double expectedCount=countName=="Columns"?columns:rows;
+                        if(Math.Abs(d.SystemValue-expectedCount)>1e-8)throw new Exception("Pattern count mapping mismatch");
+                        d.Name=countName;linked.Add(countName);counts++;continue;
+                    }
+                    if(d.GetType()!=0||d.Name=="HoleDiameter")continue;
+                    string name=columns>1&&linear==0?"PitchU":"PitchV";
+                    double expected=name=="PitchU"?pitchU:pitchV;
+                    if(Math.Abs(d.SystemValue-expected*MM)>1e-8)throw new Exception("Pattern dimension mapping mismatch");
+                    d.Name=name;linked.Add(name);linear++;
+                }
+                if(linear!=(columns>1?1:0)+(rows>1?1:0))throw new Exception("Missing native pattern spacing dimensions");
+                if(counts!=linear)throw new Exception("Missing native pattern count dimensions");
+                if(parentGrid!="") {
+                    IEquationMgr equations=(IEquationMgr)md.GetEquationMgr();
+                    foreach(string name in linked) {
+                        string equation="\""+name+"@"+sub.Name+"\" = \""+name+"@SWFORGE_"+parentGrid+"_layout\"";
+                        if(equations.Add2(-1,equation,true)<0)throw new Exception("Counterbore pattern link rejected: "+equation);
+                    }
+                    equations.EvaluateAll();
+                }
+            }
+        L("SWFORGE_GRID tag="+tag+" cylinders_verified="+matched+" strategy=native_sketch_pattern");
+    }
+
     static void Paint(object[] bodies) {
         int total=0,requested=0,verified=0;
         if(bodies!=null) foreach(object item in bodies) {
@@ -829,20 +1215,16 @@ public class __CLASS__ {
     static ISldWorks Connect() {
         string rotErr="", createErr="";
         try {
-            ISldWorks s=(ISldWorks)Marshal.GetActiveObject("SldWorks.Application");
+            ISldWorks s=SwforgeConnection.Active();
             if(IsUsable(s)) { L("SWFORGE_CONNECT via=GetActiveObject"); return s; }
             rotErr="对象不可用（返回空壳）";
         } catch(Exception e) { rotErr=e.GetType().Name+":"+e.Message; }
         L("SWFORGE_CONNECT rot_failed="+rotErr);
 
         try {
-            Type t=Type.GetTypeFromProgID("SldWorks.Application");
-            if(t==null) { createErr="ProgID 未注册（SolidWorks 未安装或未注册 COM）"; }
-            else {
-                ISldWorks s=(ISldWorks)Activator.CreateInstance(t);
-                if(IsUsable(s)) { L("SWFORGE_CONNECT via=CreateInstance"); return s; }
-                createErr="对象不可用（返回空壳，常见于 SW 尚未完成启动）";
-            }
+            ISldWorks s=SwforgeConnection.Connect();
+            if(IsUsable(s)) { L("SWFORGE_CONNECT via=Connect"); return s; }
+            createErr="SolidWorks 未就绪";
         } catch(Exception e) { createErr=e.GetType().Name+":"+e.Message; }
         L("SWFORGE_CONNECT create_failed="+createErr);
 
@@ -868,34 +1250,62 @@ public class __CLASS__ {
         } catch { return false; }
     }
 
+    static void GuardOutputName(ISldWorks sw,string output,IModelDoc2 owned=null) {
+        string name=System.IO.Path.GetFileName(output);
+        string stem=System.IO.Path.GetFileNameWithoutExtension(output);
+        foreach(object item in (object[])sw.GetDocuments()??new object[0]) {
+            IModelDoc2 doc=(IModelDoc2)item;
+            if(Object.ReferenceEquals(doc,owned)||doc.GetType()!=1)continue;
+            string path=doc.GetPathName();
+            string title=doc.GetTitle();
+            bool conflict=String.IsNullOrEmpty(path)
+                ? String.Equals(title,stem,StringComparison.OrdinalIgnoreCase) ||
+                  String.Equals(title,name,StringComparison.OrdinalIgnoreCase)
+                : String.Equals(System.IO.Path.GetFileName(path),name,StringComparison.OrdinalIgnoreCase);
+            if(conflict)throw new Exception("A same-named part is already open: "+(String.IsNullOrEmpty(path)?title:path));
+        }
+    }
+
     public static string Run() {
         int nb=0,err=0,warn=0;
         bool saved=false;
         ISldWorks sw=null;
         try {
-            sw=Connect();
+            sw=Connect();application=sw;
             int before=sw.GetDocumentCount();
             L("SWFORGE_DOCUMENTS before="+before+" limit="+__MAX_DOCUMENTS__);
             if(before>=__MAX_DOCUMENTS__) throw new Exception("SW 文档数量达到上限，未创建新文档");
             math=(IMathUtility)sw.GetMathUtility();
+            string year=(Int32.Parse(sw.RevisionNumber().Split('.')[0])+1992).ToString();
+            string dir=System.IO.Path.Combine(System.Environment.GetFolderPath(
+                System.Environment.SpecialFolder.CommonApplicationData),"SOLIDWORKS","SOLIDWORKS "+year,"templates");
             string tpl=sw.GetUserPreferenceStringValue((int)swUserPreferenceStringValue_e.swDefaultTemplatePart);
-            if(String.IsNullOrEmpty(tpl) || !System.IO.File.Exists(tpl)) {
-                foreach(string version in new string[]{"2026","2025","2024","2023","2022","2021","2020"}) {
-                    string dir=@"C:\ProgramData\SOLIDWORKS\SOLIDWORKS "+version+@"\templates";
-                    if(!System.IO.Directory.Exists(dir)) continue;
-                    string[] files=System.IO.Directory.GetFiles(dir,"*.prtdot");
-                    if(files.Length>0) { tpl=files[0]; break; }
-                }
+            string custom=System.Environment.GetEnvironmentVariable("SW_TEMPLATE_DIR");
+            if(!String.IsNullOrEmpty(custom)) {
+                string overridePath=System.IO.Path.Combine(custom,"gb_part.prtdot");
+                if(System.IO.File.Exists(overridePath)) tpl=overridePath;
+            } else if(!String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("SWFORGE_SW_YEAR"))) {
+                string local=System.IO.Path.Combine(dir,"gb_part.prtdot");
+                if(System.IO.File.Exists(local)) tpl=local;
+            }
+            if((String.IsNullOrEmpty(tpl) || !System.IO.File.Exists(tpl)) && System.IO.Directory.Exists(dir)) {
+                string[] files=System.IO.Directory.GetFiles(dir,"*.prtdot");
+                if(files.Length>0) tpl=files[0];
             }
             if(String.IsNullOrEmpty(tpl) || !System.IO.File.Exists(tpl)) throw new Exception("找不到零件模板");
             if(System.IO.File.Exists(__OUT__))throw new Exception("输出文件已存在，拒绝覆盖");
+            GuardOutputName(sw,__OUT__);
             L("模板: "+tpl);
             md=(IModelDoc2)sw.NewDocument(tpl,0,0,0);
             if(md==null) throw new Exception("新建零件文档失败");
             md.SketchManager.AddToDB=true;
 __BODY__
             md.SketchManager.AddToDB=false;
-            md.EditRebuild3();
+            bool rebuilt=md.EditRebuild3();
+            __EDITABLE_PASS__
+            if(verifiedNative.Count>0 && !rebuilt)throw new Exception("Final rebuild failed");
+            foreach(IFeature f in verifiedNative)CheckNative(f.Name,f);
+            __COMMUNITY_FLATTEN__
             md.ClearSelection2(true);
             object[] bodies=(object[])((IPartDoc)md).GetBodies2(0,false);
             nb=bodies==null?0:bodies.Length;
@@ -928,10 +1338,13 @@ __BODY__
             md.ViewZoomtofit2();
             md.GraphicsRedraw2();
             if(System.IO.File.Exists(__OUT__))throw new Exception("输出路径被其他任务占用，拒绝覆盖");
+            GuardOutputName(sw,__OUT__,md);
             saved=md.Extension.SaveAs(__OUT__,0,1,null,ref err,ref warn);
             L("保存 "+saved+" err="+err+" warnings="+warn);
         } catch(Exception e) { badN++; L("ERROR "+e.ToString()); }
         finally {
+            // 兜底恢复系统选项：任何中途异常都不许把用户的"草图推理"永久关掉
+            try { InferenceRestore(); } catch {}
             if(md!=null) { try { md.SketchManager.AddToDB=false; } catch {} }
             if(md!=null && (!saved || !__KEEP_OPEN__)) {
                 try { sw.CloseDoc(md.GetTitle()); L("SWFORGE_CLOSED owned_document=True"); }
@@ -954,7 +1367,7 @@ _PS_RUNNER = r"""$ErrorActionPreference='Stop'
 [System.Reflection.Assembly]::LoadFrom('{dll}') | Out-Null
 [System.Reflection.Assembly]::LoadFrom('{cst}') | Out-Null
 Add-Type -TypeDefinition ([System.IO.File]::ReadAllText('{cs}', [System.Text.Encoding]::UTF8)) `
-  -ReferencedAssemblies '{dll}','{cst}' -ErrorAction Stop
+  -ReferencedAssemblies '{dll}','{cst}','System.Core.dll' -ErrorAction Stop
 [Console]::OutputEncoding=[System.Text.Encoding]::UTF8
 Write-Output ([{cls}]::Run())
 """
@@ -966,20 +1379,5 @@ def _cls_name(src):
 
 
 def _find_sw_dir():
-    cands=[os.environ.get("SW_INSTALL_DIR", ""),os.environ.get("SOLIDWORKS_DIR", "")]
-    try:
-        import winreg
-        for hive in (winreg.HKEY_LOCAL_MACHINE,winreg.HKEY_CURRENT_USER):
-            for year in range(2026,2019,-1):
-                try:
-                    with winreg.OpenKey(hive,rf"SOFTWARE\SolidWorks\SOLIDWORKS {year}\Setup") as key:
-                        cands.append(winreg.QueryValueEx(key,"SolidWorks Folder")[0])
-                except OSError:
-                    pass
-    except ImportError:
-        pass
-    for letter in ("E","D","C","F"):
-        for year in range(2026,2019,-1):
-            cands.append(rf"{letter}:\SW{year}\SOLIDWORKS")
-        cands.append(rf"{letter}:\Program Files\SOLIDWORKS Corp\SOLIDWORKS")
-    return next((p for p in cands if p and os.path.isfile(os.path.join(p,"SolidWorks.Interop.sldworks.dll"))),None)
+    from .sw_target import install_dir
+    return install_dir()

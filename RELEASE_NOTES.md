@@ -1,21 +1,11 @@
-# swforge 1.7.0 Community / 社区版
+# swforge 2.0 Community
 
-从参数化零件、材料配色，到装配、工程图、BOM与PDF，让重复工程任务更容易复用和核对。
+**让 SolidWorks 少一点重复操作，多一点可复用成果。**
 
-- 新增零件/装配变型、机械家族、多页图册与原生BOM流程。
-- 随包A0–A4基础GB导向模板、第一角投影、标题字段与线宽检查。
-- 保留Python、命令行和MCP接入；新增执行记录与交付文件新鲜度检查。
-- 社区版MIT开源，允许商业使用；高级GB审图和工艺规则编排实现本次暂不发布。
+本次重点是原生建模、可编辑尺寸与基础螺旋生成：增加台阶轴、七项原生特征、常用轮廓驱动尺寸、显式参数关联、特征树回读和基础净距检查。弹簧与等螺距绞龙交付无建模历史实体，调整输入后可另存重新生成。
 
-**升级提醒**：MCP改为四入口，旧操作通过sw_invoke调用。仅SW2025 SP5实测，工程图仍需工程师审核，不声明完整GB认证。
+适配 SolidWorks 2019 SP5 / 2025 SP5，具体实测范围见验证说明。工程图、GB、审图和批量交付保留公开 1.7 范围，加入必要兼容与可靠性修复。Community 继续采用 MIT；2.0 为社区版最后一次计划内功能更新；后续仍将分阶段推进 SolidWorks 2018–2026 兼容适配，并维护缺陷与安全问题，已验证范围将持续公布。
 
-## English
+后续商业订阅侧重增强工程图、GB 规则更新、审图与批量任务管理，并逐步提供可编辑螺旋建模与下料复核；企业定制可提供图框规范、专用件库、产品生成及系统对接，具体交付另行说明。
 
-Repeatable SolidWorks workflows for parameterized parts, materials/colors, assemblies, drawings, BOMs and PDFs.
-
-- Part/assembly variants, mechanical families, drawing books and native BOM workflows.
-- Packaged A0–A4 GB-oriented templates, first-angle projection, title fields and line-weight checks.
-- Python, CLI and MCP access, execution records and artifact freshness checks.
-- MIT Community source including commercial use. Advanced GB review and process-rule implementations are withheld from this release.
-
-**Migration:** MCP now exposes four gateway entry points; invoke original operation names via sw_invoke. Native fixtures were tested on SW2025 SP5 only. Engineering review remains required; no full GB certification is claimed.
+所有生成结果仍需工程审核。后续兼容适配不增加已冻结的社区功能范围。

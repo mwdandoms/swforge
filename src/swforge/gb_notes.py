@@ -44,7 +44,7 @@ static JavaScriptSerializer json=new JavaScriptSerializer();
 static List<INote> Notes(IDrawingDoc dr){var notes=new List<INote>();for(IView v=(IView)dr.GetFirstView();v!=null;v=(IView)v.GetNextView())foreach(object o in (object[])v.GetAnnotations()??new object[0]){var n=((IAnnotation)o).GetSpecificAnnotation() as INote;if(n!=null)notes.Add(n);}return notes;}
 public static string Run(string request){try{
  var cmd=json.Deserialize<Dictionary<string,object>>(File.ReadAllText(request));
- var sw=(ISldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
+ var sw=SwforgeConnection.Connect();
  if(sw.GetProcessID()!=Convert.ToInt32(cmd["process_id"]))throw new Exception("Process changed");
  var md=(IModelDoc2)sw.ActiveDoc;
  if(md==null||md.GetType()!=3||!String.Equals(md.GetPathName(),(string)cmd["path"],StringComparison.OrdinalIgnoreCase))throw new Exception("Active drawing changed");

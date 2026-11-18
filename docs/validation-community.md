@@ -1,20 +1,36 @@
-# Community validation / 社区版验证
+# 2.0 Community 验证范围
 
-## Scope
+2026-11-18 在本机 Windows、Python 3.14.3、SolidWorks 2019 SP5（27.5.0）与 2025 SP5（33.5.0）进行验证。实际导入版本为 2.0.0，导入路径和原始报告在本地验收包内记录；本地候选版尚未发布。
 
-Community 1.7.0 contains 66 internal MCP operations behind four public gateways. Advanced GB review and rule orchestration implementations are absent; their tests are not counted as Community tests.
+| 专项 | 2019 SP5 | 2025 SP5 |
+|---|---|---|
+| 七类原生特征，加反向、Z 轴及部分角度阵列 | 10 个场景通过 | 10 个场景通过 |
+| 左右旋弹簧、左右旋绞龙、含螺旋混合体、普通改尺寸 | 6 个场景通过 | 6 个场景通过 |
+| A3 基础三视图、保存重开、PDF 导出及逐页解析渲染 | 通过 | 通过 |
+| 已知 10 mm 净距、相切、2,000 mm³ 重叠体积 | 3 个场景通过 | 3 个场景通过 |
+| 正方形轮廓独立改尺寸并保存重开 | 20→21 mm，体积 8,400 mm³ | 20→21 mm，体积 8,400 mm³ |
+| 实际 gateway 调用 JSON 建模、弹簧与绞龙操作 | 3 个入口通过 | 3 个入口通过 |
+| 对应版本 Interop 的原生引擎编译 | 17 个通过 | 17 个通过 |
 
-- Offline regression: 289 passed, 32 SW-marked tests deselected on the local Windows/Python 3.14 environment.
-- Independent native Community fixture: Q235 plate 120×80×20, packaged A3 template native frame/unit/projection/style readback, new PDF export and artifact freshness passed on SW2025 SP5.
-- That Community native run began and ended with zero open SW documents, PID unchanged.
-- The full local candidate additionally exercised A0–A4 templates, saved/reopened flatness, assembly variants/BOM and drawing books. These are bounded fixtures, not a full acceptance matrix for every input or machine.
+螺旋件先核对旋向、体积与精确外廓，再转换为实体；保存重开后检查实体数、特征错误、体积，以及不存在螺旋、扫掠、加厚、截面草图和驱动参数。普通轮廓检查原生尺寸改值、重建、体积及保存重开。
 
-## Boundaries / 边界
+离线回归 **397 项通过**，含真实 MCP stdio 子进程协议、目录注册和商业边界检查。33 项历史 `sw` 标记测试未全量执行；上表是本轮独立实机专项，不据此宣称所有 72 项操作均已验收。其他 Python 版本和其他 SW 年份/补丁未在本轮实测。
 
-仅SW2025 SP5实机，未验证其他SW版本。基础图框为GB导向配置，不是全条文认证。字体未认证精确长仿宋；配合表仅H6/H7/H8/h6/h7/h8/g6、3<D<=500mm，Ra为有限优先系列。不支持的代号表示库未覆盖，不代表其被标准禁止。
+各专项均从 0 份打开文档回到 0 份，仅关闭本轮文件。原始失败尝试保留在本地证据目录；2019 早期综合报告中出图失败，最终出图专项已通过，不把早期整份报告标成通过。源码及 wheel/sdist 商业边界另外按文件白名单和 SHA-256 核对。
 
-GD&T interfaces: flatness, parallelism, perpendicularity, position, circular_runout. Saved/reopened native fixture: flatness. No straightness interface is claimed.
+## 复现
 
-Document fingerprints/approval tokens protect local workflows; they are not certified electronic signatures. Drawing checks do not establish manufacturing readiness. Complex assemblies, numbering, font glyphs and final drawing content require engineering review.
+先打开对应 SW，并为每项指定全新输出目录：
 
-Public distribution checks reject withheld implementation files in source archives and wheels. See COMMUNITY_SCOPE.json.
+```powershell
+$env:SWFORGE_SW_YEAR='2019'  # 或 2025
+python tools/acceptance_v20.py --year 2019 --out '<新目录1>'
+python tools/validate_v191_features.py '<新目录2>'
+python tools/acceptance_v20_clearance.py --year 2019 --out '<新目录3>'
+python tools/acceptance_v20_gateway.py --year 2019 --out '<新目录4>'
+python tools/compile_community_engines.py --year 2019 --out '<新目录5>'
+python -m pytest -q -m 'not sw'
+python tools/verify_community_release.py
+```
+
+机器可读汇总见 [validation-community.json](validation-community.json)。基础图纸仍须设计审核；上述检查不构成完整 GB、强度或制造认证。

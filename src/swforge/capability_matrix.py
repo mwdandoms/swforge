@@ -1,4 +1,4 @@
-"""Single-host matrix. No inferred support for untested SW releases."""
+"""Native capabilities by tested SolidWorks release."""
 import json
 from pathlib import Path
 
@@ -24,7 +24,7 @@ def capability(name, sw_version=None):
         if version in row.get('blocked_versions',[]):
             row.update(status='blocked',reason=row.get('note','Explicitly blocked version'))
         elif version not in row.get('sw_versions',[]):
-            row.update(status='unverified',reason='Cross-version compatibility excluded from this iteration')
+            row.update(status='unverified',reason='No native acceptance for this operation and SolidWorks release')
     return row
 
 
@@ -42,4 +42,4 @@ def host_status(connect=False):
     return dict(ok=True,version=__version__,sw_version=version,connection_error=error,
                 capabilities_total=len(rows),verified=sum(r['status']=='verified' for r in rows),
                 blocked=[r for r in rows if r['status']=='blocked'],degraded=[r for r in rows if r['semantic']=='equivalent'],
-                cross_version='excluded',capabilities=rows)
+                cross_version=data['cross_version'],capabilities=rows)

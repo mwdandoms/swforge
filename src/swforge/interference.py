@@ -19,12 +19,14 @@
     body_interference(part_path, "A", "B")   # -> {"volume_mm3": 500.0, ...}
     check_all_pairs(part_path)               # -> 所有实体两两求交
 
-装配体的两个零件如果都要查，用 `assembly_to_part_bodies()` 把它们
-按各自位置塞进同一个零件再查（本版未实现，见 v0.8 计划）。
+装配体的两个零件如果都要查，用 `clearance.check_clearance()`（1.9.3 起）：
+它把组件体 `Copy2` + `ApplyTransform(Transform2)` 搬到装配坐标系再做
+`Operations2(SWBODYINTERSECT)`，既能给净距，也能给精确干涉体积。
 """
 
 from __future__ import annotations
 
+import math
 import pythoncom
 
 from .session import get_session, _value
@@ -75,8 +77,11 @@ def _body_volume_mm3(body) -> float:
     """用密度 1.0 取质量属性，第 4 项是体积（m³）。"""
     mp = body.GetMassProperties(1.0)
     if mp is None or len(mp) < 4:
-        return 0.0
-    return float(mp[3]) * 1e9
+        raise ValueError("Body volume unavailable")
+    volume = float(mp[3]) * 1e9
+    if not math.isfinite(volume) or volume <= 0:
+        raise ValueError("Invalid body volume")
+    return volume
 
 
 def _activate_part(part_path: str):
@@ -135,14 +140,20 @@ def body_interference(part_path: str | None = None,
                 "bodies": len(bodies)}
 
     def pick(name, fallback):
-        for b in bodies:
-            if str(_value(b, "Name")) == name:
-                return b
-        return bodies[fallback]
+        if name is None:
+            return bodies[fallback]
+        matches = [body for body in bodies if str(_value(body,"Name"))==name]
+        if len(matches)!=1:
+            raise ValueError("Body name must identify one solid: "+str(name))
+        return matches[0]
 
-    a = pick(tag_a, 0)
-    b = pick(tag_b, 1)
-    name_a, name_b = str(_value(a, "Name")), str(_value(b, "Name"))
+    try:
+        a, b = pick(tag_a,0),pick(tag_b,1)
+        name_a,name_b = str(_value(a,"Name")),str(_value(b,"Name"))
+        if name_a==name_b:
+            raise ValueError("Specify two distinct solids")
+    except ValueError as exc:
+        return {"ok":False,"status":"blocked","error_code":"INTERFERENCE_TARGET_UNAVAILABLE","error":str(exc)}
 
     # 包围盒先粗筛：不相交就不必做布尔运算
     try:
@@ -152,12 +163,12 @@ def body_interference(part_path: str | None = None,
     except Exception:                                    # noqa: BLE001
         overlap = True
 
-    vol_a = _body_volume_mm3(a)
-    vol_b = _body_volume_mm3(b)
+    try:
+        vol_a,vol_b = _body_volume_mm3(a),_body_volume_mm3(b)
+    except Exception as exc:
+        return {"ok":False,"status":"blocked","error_code":"INTERFERENCE_VOLUME_UNAVAILABLE",
+                "error":str(exc),"a":name_a,"b":name_b}
 
-    from win32com.client import VARIANT
-
-    err = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
     inter_vol = 0.0
     pieces = 0
     if overlap:
@@ -168,17 +179,19 @@ def body_interference(part_path: str | None = None,
             ta = _wrap(a.Copy2(False))
             tb = _wrap(b.Copy2(False))
             if not ta.IsTemporaryBody() or not tb.IsTemporaryBody():
-                return {"ok": False, "error": "Copy2 未产生临时体，无法求交",
+                return {"ok": False, "status":"blocked","error_code":"INTERFERENCE_COPY_FAILED",
+                        "error": "Copy2 未产生临时体，无法求交",
                         "a": name_a, "b": name_b}
             # out 参数必须传普通 int（传 VARIANT 会 TypeError）；
             # 返回值是 (结果数组, 错误码)
             res = ta.Operations2(SWBODYINTERSECT, tb, 0)
-            arr, code = (res if isinstance(res, tuple) and len(res) == 2
-                         else (res, 0))
-            if code not in (0, None):
-                return {"ok": False,
-                        "error": f"布尔求交错误码 {code}（{BODY_OP_ERRORS.get(code, '未知')}）",
-                        "a": name_a, "b": name_b}
+            if not isinstance(res,tuple) or len(res)!=2 or type(res[1]) is not int:
+                raise RuntimeError("No native boolean operation status returned")
+            arr,code = res
+            if code not in (0,5,1067) or (code!=0 and arr):
+                return {"ok":False,"status":"blocked","error_code":"INTERFERENCE_BOOLEAN_FAILED",
+                        "native_code":code,"error":f"布尔求交错误码 {code}（{BODY_OP_ERRORS.get(code,'未知')}）",
+                        "a":name_a,"b":name_b}
             if arr is not None:
                 items = list(arr) if isinstance(arr, (tuple, list)) else [arr]
                 for x in items:
@@ -187,7 +200,8 @@ def body_interference(part_path: str | None = None,
                     inter_vol += _body_volume_mm3(_wrap(x))
                 pieces = len(items)
         except Exception as exc:                         # noqa: BLE001
-            return {"ok": False, "error": f"布尔求交失败: {type(exc).__name__}: {exc}",
+            return {"ok": False, "status":"blocked","error_code":"INTERFERENCE_BOOLEAN_UNAVAILABLE",
+                    "error": f"布尔求交失败: {type(exc).__name__}: {exc}",
                     "a": name_a, "b": name_b}
 
     return {
@@ -212,11 +226,18 @@ def check_all_pairs(part_path: str | None = None) -> dict:
         return {"ok": False, "error": "当前文档不是零件"}
     bodies = [_wrap(b) for b in _bodies(md)]
     names = [str(_value(b, "Name")) for b in bodies]
-    pairs = []
+    pairs, blocked = [], []
     for i in range(len(names)):
         for j in range(i + 1, len(names)):
             r = body_interference(part_path, names[i], names[j])
-            if r.get("ok") and r.get("interfere"):
+            if not r.get("ok"):
+                blocked.append(dict(r,a=names[i],b=names[j]))
+            elif r.get("interfere"):
                 pairs.append(r)
-    return {"ok": True, "bodies": len(names), "names": names,
-            "interfering_pairs": pairs, "count": len(pairs)}
+    result = {"ok":not blocked,"bodies":len(names),"names":names,
+              "interfering_pairs":pairs,"count":None if blocked else len(pairs),
+              "blocked_pairs":blocked}
+    if blocked:
+        result.update(status="blocked",error_code="INTERFERENCE_INCOMPLETE",
+                      error="One or more solid pairs could not be measured")
+    return result

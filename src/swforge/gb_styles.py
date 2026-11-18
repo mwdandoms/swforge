@@ -1,4 +1,4 @@
-"""SW2025 native GB-oriented assets/styles; evidence is read from native objects."""
+"""Public 1.7 GB styles with target-version template selection and native readback."""
 from pathlib import Path
 from .native_bridge import run_native,target_document
 
@@ -10,6 +10,16 @@ ASSETS=Path(__file__).parent/'assets'/'templates'
 
 def gb_template_path(paper='A3'):
     if paper not in PAPERS:raise ValueError('A0..A4 required')
+    from .sw_target import effective_year, template_dirs
+
+    year = effective_year()
+    if year and year < 2025:
+        name = 'gb_' + {'A4': 'a4p', 'A4L': 'a4'}.get(paper, paper.lower()) + '.drwdot'
+        for directory in template_dirs(year):
+            candidate = directory / name
+            if candidate.is_file():
+                return str(candidate)
+        raise FileNotFoundError(f"SolidWorks {year} drawing template missing: {name}")
     p=ASSETS/('gb_'+paper.lower()+'.drwdot')
     if not p.is_file():raise FileNotFoundError('Packaged GB template not generated/accepted: '+str(p))
     return str(p)
@@ -92,7 +102,7 @@ static object Inspect(){
 }
 static IEnumerable<IFeature> Features(){var todo=new Queue<IFeature>();for(IFeature f=(IFeature)md.FirstFeature();f!=null;f=(IFeature)f.GetNextFeature())todo.Enqueue(f);int count=0;while(todo.Count>0&&count++<5000){var f=todo.Dequeue();yield return f;for(IFeature s=(IFeature)f.GetFirstSubFeature();s!=null;s=(IFeature)s.GetNextSubFeature())todo.Enqueue(s);}}
 public static string Run(string request){ISldWorks sw=null;bool owned=false;try{
- var c=json.Deserialize<Dictionary<string,object>>(File.ReadAllText(request));string mode=(string)c["mode"];sw=(ISldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));if(sw.GetProcessID()!=Convert.ToInt32(c["process_id"]))throw new Exception("SW process changed");
+ var c=json.Deserialize<Dictionary<string,object>>(File.ReadAllText(request));string mode=(string)c["mode"];sw=SwforgeConnection.Connect();if(sw.GetProcessID()!=Convert.ToInt32(c["process_id"]))throw new Exception("SW process changed");
  if(mode=="validate_template"){
   if(sw.GetDocumentCount()>=8)throw new Exception("Document limit");
   md=(IModelDoc2)sw.NewDocument((string)c["seed"],0,0,0);if(md==null)throw new Exception("Template cannot create drawing");owned=true;dr=(IDrawingDoc)md;return J(Inspect());

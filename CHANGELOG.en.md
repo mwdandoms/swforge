@@ -1,3 +1,7 @@
+# 2.0.0 Community — local candidate
+
+Native modeling and editable dimensions; geometry-only springs/flights; SW2019/2025 targeting. Drawing/GB/review/batch feature scope stays at public 1.7, with compatibility and safety fixes. Last planned Community feature update; not published.
+
 # 1.7.0 Community
 
 Breaking MCP change / MCP升级：four gateway entry points, original operations via sw_invoke.

@@ -1,0 +1,35 @@
+{
+  "material": "Q235",
+  "boxes": [
+    {
+      "tag": "plate",
+      "x0": -25,
+      "x1": 25,
+      "y0": 0,
+      "y1": 10,
+      "z0": -20,
+      "z1": 20
+    }
+  ],
+  "holes": [
+    {
+      "tag": "bore",
+      "target": "plate",
+      "axis": "y",
+      "x": -12,
+      "y": 0,
+      "z": 0,
+      "diameter": 4,
+      "through_all": true
+    }
+  ],
+  "linear_patterns": [
+    {
+      "tag": "row",
+      "seed": "bore",
+      "axis": "x",
+      "count": 3,
+      "spacing": 12
+    }
+  ]
+}

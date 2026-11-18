@@ -1,0 +1,114 @@
+{
+  "baseline_commit": "65d09ee930ae55edfe21157e998136795e6a9b7f",
+  "families": {
+    "drawing": {
+      "unchanged_except_line_endings": false,
+      "baseline_sha256": "92554d1a7a0d1ab1dcf3ddc36e012a7297bf6eb809208c1ff8c055d31d0b0553",
+      "community_sha256": "097d01a230a93541860cb5d0eb61523a760ec44f121de7fc825f182d41a04390"
+    },
+    "dims": {
+      "unchanged_except_line_endings": false,
+      "baseline_sha256": "ea0185f780a3caa78eaed87bf122b801101640e4f6322df1d88ad402c75631c3",
+      "community_sha256": "1f3ab48e332836fab4a21c6b7e672b0ad061359d89c485fe08dfaa968c576629"
+    },
+    "annotations": {
+      "unchanged_except_line_endings": true,
+      "baseline_sha256": "63cc907873aa7c38678c8db310dc6170427335a7ba82c431d0d56efabe3fa7bb",
+      "community_sha256": "63cc907873aa7c38678c8db310dc6170427335a7ba82c431d0d56efabe3fa7bb"
+    },
+    "gdandt": {
+      "unchanged_except_line_endings": true,
+      "baseline_sha256": "aca64c1732abd49567ead6e2444f964c20ba7e5f987e20e62b20a5606de57a7f",
+      "community_sha256": "aca64c1732abd49567ead6e2444f964c20ba7e5f987e20e62b20a5606de57a7f"
+    },
+    "gb_styles": {
+      "unchanged_except_line_endings": false,
+      "baseline_sha256": "7ea83487d819b0b0abf4eb89de9836090527bd2893e0fc56689a3b7d6afdfbeb",
+      "community_sha256": "6c63e926caf263593102a82ac77580a78eac1e18f1dc02b8e1c1e7586f0a3551"
+    },
+    "gb_notes": {
+      "unchanged_except_line_endings": false,
+      "baseline_sha256": "3105c5d7ac26237523bbafe6478f9d5ef280bc5a326b0ebc49d08cec29034aed",
+      "community_sha256": "0f22d614be0234a94b3903758d8df20856fe2ad1e624858d030052806b9bf80b"
+    },
+    "gb_check": {
+      "unchanged_except_line_endings": true,
+      "baseline_sha256": "792c6eab2db89090cfe569d19303a32f70277db225b26d17774d860e31de22a0",
+      "community_sha256": "792c6eab2db89090cfe569d19303a32f70277db225b26d17774d860e31de22a0"
+    },
+    "gb_standards": {
+      "unchanged_except_line_endings": true,
+      "baseline_sha256": "4d0cc052d64fc46ef02f4e5cd780e36c40a6fa813b6ab1186297db16da94883e",
+      "community_sha256": "4d0cc052d64fc46ef02f4e5cd780e36c40a6fa813b6ab1186297db16da94883e"
+    },
+    "drawing_review": {
+      "unchanged_except_line_endings": true,
+      "baseline_sha256": "ca21e177ee9120255b621ace4cfe5e92f7b98af8594d79200f6136654b37dc71",
+      "community_sha256": "ca21e177ee9120255b621ace4cfe5e92f7b98af8594d79200f6136654b37dc71"
+    },
+    "drawing_books": {
+      "unchanged_except_line_endings": true,
+      "baseline_sha256": "0c2b207e4be777c06c2719307d28038bcdf3fc64f38b1287a0c691e2f20bf75a",
+      "community_sha256": "0c2b207e4be777c06c2719307d28038bcdf3fc64f38b1287a0c691e2f20bf75a"
+    },
+    "batch": {
+      "unchanged_except_line_endings": true,
+      "baseline_sha256": "a706d10e0e645d9f97189f6b3310de06fdafe3f73680624acd7b197c3a27ece7",
+      "community_sha256": "a706d10e0e645d9f97189f6b3310de06fdafe3f73680624acd7b197c3a27ece7"
+    },
+    "circle_dimensions": {
+      "unchanged_except_line_endings": true,
+      "baseline_sha256": "0d01f45578460f1d0d9c6824577f6891670a59f9ddc0480cddc4bbc7a8b51c2d",
+      "community_sha256": "0d01f45578460f1d0d9c6824577f6891670a59f9ddc0480cddc4bbc7a8b51c2d"
+    },
+    "position_dimensions": {
+      "unchanged_except_line_endings": false,
+      "baseline_sha256": "6bb663a344ff1899d9357d1459fad01545f267f6bdd87dd61f909c9f2fa1b179",
+      "community_sha256": "906da70fdd00e78cfce3f48bf5f27edd4d1526932170cae3b7814cd95defa45e"
+    },
+    "section_check": {
+      "unchanged_except_line_endings": false,
+      "baseline_sha256": "6a98dceda6e1d672d25d66e81f9b8c4088e4160e40cce3bfa7c1e218df5bc819",
+      "community_sha256": "ef1a574660760039c7e8fbd2dc1b3e34a5eca927dfea6f5593c6d6499278b2e3"
+    },
+    "hole_annotations": {
+      "unchanged_except_line_endings": false,
+      "baseline_sha256": "551645d1d196b2829f6ab79295647cd81b12292868c8e7bbd238531b5d5134fa",
+      "community_sha256": "bb7c1d108a4e8fd8a568021b6207f2f8eee25542ba4e071d2a5c119b67220637"
+    },
+    "hole_families": {
+      "unchanged_except_line_endings": false,
+      "baseline_sha256": "988ce804d37919da50fb9c21402c096a21c4adb32e7ca1b047c1ac97740f2117",
+      "community_sha256": "6b20a75a231fe819f7ff3cf4553676a9efe1466328df8008b20911460a20a916"
+    },
+    "bom": {
+      "unchanged_except_line_endings": true,
+      "baseline_sha256": "8413f461f3849696041cfd0e3d11704191ad3624f4f4ff17d240e096d06fec3c",
+      "community_sha256": "8413f461f3849696041cfd0e3d11704191ad3624f4f4ff17d240e096d06fec3c"
+    },
+    "bom_format": {
+      "unchanged_except_line_endings": true,
+      "baseline_sha256": "ce23b457e4aab882502c1e23c29169219e174fd6afea1f6c150e350a7299923e",
+      "community_sha256": "ce23b457e4aab882502c1e23c29169219e174fd6afea1f6c150e350a7299923e"
+    },
+    "assembly_bom_table": {
+      "unchanged_except_line_endings": false,
+      "baseline_sha256": "aa6b4055638489648a9fd68419380bffd42179ddcfe0cbb9ab2f201d6151019d",
+      "community_sha256": "f93b0fd81323d0421bc82a4c81e1976def633ad7f71445f09ffff13104d2bf72"
+    },
+    "gb_materials": {
+      "unchanged_except_line_endings": false,
+      "baseline_sha256": "95d367534285cce9ae6efdce0c61a9e2fff033424775ebd112093bddcc119e1e",
+      "community_sha256": "e90929a650ccbf9dcb0c3dc428c1246e9ee3e6b78f1721c4f0be626af11275cb"
+    },
+    "views_extra": {
+      "unchanged_except_line_endings": true,
+      "baseline_sha256": "d77a410e0af5fd589711fab5715d7b60171e4cbae7781527e5691d70afb93731",
+      "community_sha256": "d77a410e0af5fd589711fab5715d7b60171e4cbae7781527e5691d70afb93731"
+    }
+  },
+  "notes": [
+    "No 1.9.x advanced drafting, rulepack or production batch implementations overlaid.",
+    "Changed frozen files limited to version-directed connection/templates, compatible BOM API and basic drawing reliability."
+  ]
+}

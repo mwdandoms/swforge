@@ -27,49 +27,45 @@ import os
 import subprocess
 import time
 
+from .sw_target import SW_YEARS, active_sw, registered_exe, selected_year
+
+
+def _common_paths() -> list[str]:
+    r"""常见安装位置（按优先级）。按年份生成，不写死 2025。
+
+    1.9.0 之前只有 ``E:\SW2025`` / ``D:\SW2025`` 两条，装 2024 或 2026 的机器
+    走不到兜底路径（注册表查询是首选，但注册表被清理时只能靠这里）。
+    """
+    out: list[str] = []
+    for year in SW_YEARS:
+        for letter in "EDCF":
+            out.append(rf"{letter}:\SW{year}\SOLIDWORKS\SLDWORKS.exe")
+    out += [
+        r"C:\Program Files\SOLIDWORKS Corp\SOLIDWORKS\SLDWORKS.exe",
+        r"D:\SOLIDWORKS\SLDWORKS.exe",
+    ]
+    return out
+
+
 # 常见安装位置（按优先级）
-COMMON_PATHS = [
-    r"E:\SW2025\SOLIDWORKS\SLDWORKS.exe",
-    r"D:\SW2025\SOLIDWORKS\SLDWORKS.exe",
-    r"C:\Program Files\SOLIDWORKS Corp\SOLIDWORKS\SLDWORKS.exe",
-    r"D:\SOLIDWORKS\SLDWORKS.exe",
-]
+COMMON_PATHS = _common_paths()
 
 # 启动后等待窗口/COM 就绪的轮询间隔
 POLL_S = 3.0
 
 
-def _registry_exe() -> str | None:
-    """从 COM 注册表读真实的可执行路径 —— 比猜安装目录可靠。"""
-    try:
-        import winreg
-    except ImportError:
-        return None
-    clsid_keys = [
-        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Classes\SldWorks.Application\CLSID"),
-        (winreg.HKEY_CURRENT_USER, r"SOFTWARE\Classes\SldWorks.Application\CLSID"),
-    ]
-    for hive, path in clsid_keys:
-        try:
-            with winreg.OpenKey(hive, path) as k:
-                clsid = winreg.QueryValueEx(k, "")[0]
-        except OSError:
-            continue
-        for chive, cpath in ((winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Classes\CLSID"),
-                             (winreg.HKEY_CURRENT_USER, r"SOFTWARE\Classes\CLSID")):
-            try:
-                with winreg.OpenKey(chive, rf"{cpath}\{clsid}\LocalServer32") as k:
-                    raw = winreg.QueryValueEx(k, "")[0]
-            except OSError:
-                continue
-            exe = raw.strip().strip('"').split('"')[0].strip()
-            if exe.lower().endswith(".exe") and os.path.isfile(exe):
-                return exe
-    return None
-
-
 def find_exe(explicit: str | None = None) -> tuple[str | None, str]:
     """找 SLDWORKS.exe。返回 (路径, 来源说明)。"""
+    year = selected_year()
+    if year:
+        target = registered_exe(year)
+        if not target:
+            return None, f"SolidWorks {year} COM 版本未注册"
+        requested = explicit or os.environ.get("SWFORGE_SW_EXE")
+        if requested and os.path.normcase(os.path.abspath(requested)) != os.path.normcase(str(target)):
+            return None, f"指定的程序与 SolidWorks {year} 注册路径不一致"
+        return str(target), f"SolidWorks {year} 注册表 LocalServer32"
+
     if explicit:
         p = os.path.expanduser(explicit)
         return (p, "参数指定") if os.path.isfile(p) else (None, f"参数指定的路径不存在：{p}")
@@ -86,9 +82,9 @@ def find_exe(explicit: str | None = None) -> tuple[str | None, str]:
     except Exception:                                          # noqa: BLE001
         pass
 
-    p = _registry_exe()
+    p = registered_exe()
     if p:
-        return p, "注册表 LocalServer32"
+        return str(p), "注册表 LocalServer32"
 
     for p in COMMON_PATHS:
         if os.path.isfile(p):
@@ -123,7 +119,8 @@ def com_reachable(timeout_s: float = 0) -> bool:
             import pythoncom
             import win32com.client
             pythoncom.CoInitialize()
-            sw = win32com.client.Dispatch("SldWorks.Application")
+            year = selected_year()
+            sw = active_sw(year) if year else win32com.client.GetActiveObject("SldWorks.Application")
             _ = sw.RevisionNumber
             return True
         except Exception:                                      # noqa: BLE001
@@ -169,6 +166,21 @@ def ensure_running(exe: str | None = None, wait_s: int = 180,
     info = {"ok": False, "via": None, "exe": None, "launched": False,
             "waited_s": 0.0, "visible": None, "error": None, "hint": None}
     t0 = time.time()
+    year = selected_year()
+    if year:
+        path, source = find_exe(exe)
+        info["exe"] = path
+        if not path:
+            info.update(error=source)
+            return info
+        if com_reachable():
+            info.update(ok=True, via="existing", waited_s=round(time.time()-t0, 1))
+            _finish_visible(info, visible)
+            return info
+        if process_running():
+            info.update(error=f"SolidWorks {year} 未就绪，已有 SolidWorks 进程",
+                        hint=f"请从 {path} 手动启动或等待 {year} 完成启动，再重试。")
+            return info
 
     # ---- 1) 进程已在跑：只确认 COM 是否就绪（不再触发 COM 自动启动）
     if process_running():
@@ -231,12 +243,18 @@ def _finish_visible(info: dict, visible: bool):
             import pythoncom
             import win32com.client
             pythoncom.CoInitialize()          # 主线程也要初始化，否则报"尚未调用 CoInitialize"
-            sw = win32com.client.Dispatch("SldWorks.Application")
+            year = selected_year()
+            sw = active_sw(year) if year else win32com.client.GetActiveObject("SldWorks.Application")
             sw.Visible = True
             info["visible"] = True
             return
         except Exception as exc:                               # noqa: BLE001
             last = exc
             time.sleep(2)
+        finally:
+            try:
+                pythoncom.CoUninitialize()
+            except Exception:
+                pass
     info["visible"] = False
     info["visible_error"] = f"{type(last).__name__}: {last}"

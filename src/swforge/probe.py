@@ -257,7 +257,7 @@ def _summarize(apis: dict, missing: list[str]) -> list[str]:
     lines.append(f"探测了 {total} 个风险 API，可用 {total - len(missing)} 个")
 
     if not missing:
-        lines.append("全部可用 —— 本机 SolidWorks 支持 swforge 的完整功能")
+        lines.append("列出的风险 API 全部存在，功能仍以各项实机验收为准")
         return lines
 
     lines.append(f"缺失 {len(missing)} 个：")

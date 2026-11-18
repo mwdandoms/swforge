@@ -32,12 +32,22 @@ def _abs(path: str) -> str:
 
 
 def _default_asm_template() -> str:
+    from .sw_target import effective_year, template_dirs
+    year = effective_year()
+    if year:
+        for directory in template_dirs(year):
+            for name in ("gb_assembly.asmdot", "Assembly.asmdot"):
+                candidate = directory / name
+                if candidate.is_file():
+                    return str(candidate)
+        raise RuntimeError(f"找不到 SolidWorks {year} 装配模板，请设置 SW_TEMPLATE_DIR")
+
     cands = []
     env = os.environ.get("SW_TEMPLATE_DIR")
     if env:
         cands.append(os.path.join(env, "Assembly.asmdot"))
     base = os.environ.get("PROGRAMDATA") or r"C:\ProgramData"
-    for year in range(2026, 2019, -1):
+    for year in range(2026, 2018, -1):
         for vendor in ("SOLIDWORKS", "SolidWorks"):
             cands.append(os.path.join(base, vendor, f"SOLIDWORKS {year}",
                                       "templates", "gb_assembly.asmdot"))
@@ -259,6 +269,11 @@ def check_interference(assembly_path: str | None = None,
     """跑干涉检查并返回干涉清单。
 
     读完后调用 `Done()` 释放管理器。
+
+    **读数警告**：返回的 `ok` 只表示「干涉检查跑完了」，不是「没有干涉」。
+    本机 SW2025 SP5 实测它对确定重叠 500 mm³ 的立方体返回 0 个干涉，
+    绞龙样件上又给出 0/2/1 条互不自洽的明细。要判净距或过盈，用
+    `clearance.check_clearance()`（量距离 + 布尔求交算体积），不要用本函数的计数。
     """
     sw = get_session().sw()
     md = sw.ActiveDoc

@@ -417,6 +417,13 @@ def _produce(model_path: str, out_path: str | None = None, paper: str = "A3",
     sw = sess.sw()
     if views and views != ["front", "top", "right"]:
         raise ValueError("内置出图仅支持 front/top/right；其他视图需 MechDog")
+    # Some releases do not resolve the model reliably from a cold drawing call.
+    # Open and verify the saved source explicitly; document_scope owns only newly
+    # opened related documents and never closes an existing user document.
+    from .native_bridge import target_document
+    _, source_model, _ = target_document(model_path, 2 if model_path.lower().endswith('.sldasm') else 1)
+    if bool(_value(source_model, 'GetSaveFlag')):
+        raise RuntimeError('源模型有未保存修改，请先明确保存后再出图')
     template = template or _default_template("drawing", paper)
     if not template:
         raise RuntimeError("找不到工程图模板，请设置 SW_TEMPLATE_DIR")
@@ -427,12 +434,14 @@ def _produce(model_path: str, out_path: str | None = None, paper: str = "A3",
         raise RuntimeError("新建工程图失败")
     if lease is not None:
         lease.own(md)
-    view = md.CreateDrawViewFromModelView3(model_path, "*前视", 0.18, 0.20, 0)
-    top = md.CreateDrawViewFromModelView3(model_path, "*上视", 0.18, 0.10, 0)
-    right = md.CreateDrawViewFromModelView3(model_path, "*右视", 0.36, 0.20, 0)
-    if view is None or top is None or right is None:
+    from .native_bridge import run_native
+    made_views = run_native(dict(process_id=int(_value(sw,'GetProcessID')),
+        title=str(_value(md,'GetTitle')),model_path=model_path),engine=_BASIC_VIEWS_ENGINE)
+    actual_views = _view_list(md)
+    if not made_views.get('ok') or len(actual_views)!=3:
         return {"ok": False, "engine": "builtin", "degraded": True,
-                "error": "未能创建完整三视图，未保存工程图"}
+                "error": "未能创建完整三视图，未保存工程图", "details":made_views}
+    view,top,right = (v for v,_ in actual_views)
     _value(md, "EditRebuild3")
 
     template_note_adjustments = _fit_new_template_notes(md)
@@ -462,32 +471,49 @@ def _produce(model_path: str, out_path: str | None = None, paper: str = "A3",
 
 _PAPER_SIZES = ("a0", "a1", "a2", "a3", "a4", "a4p")
 
+# Minimal early-bound compatibility bridge for the same three explicit views.
+# No newer arrangement, annotation style or automatic paper-selection algorithms.
+_BASIC_VIEWS_ENGINE = r'''
+using System;using System.IO;using System.Collections.Generic;using System.Web.Script.Serialization;
+using SolidWorks.Interop.sldworks;
+public class __CLASS__ {
+ public static string Run(string file) {
+  var json=new JavaScriptSerializer();
+  ISldWorks sw=null;bool restoreVisibility=false;
+  try {
+   var cmd=json.Deserialize<Dictionary<string,object>>(File.ReadAllText(file));
+   sw=SwforgeConnection.Connect();var md=(IModelDoc2)sw.ActiveDoc;
+   if(sw.GetProcessID()!=Convert.ToInt32(cmd["process_id"])||md==null||md.GetType()!=3||md.GetTitle()!=(string)cmd["title"])
+    throw new Exception("Active drawing changed");
+   // SW2019 cannot instantiate drawing views while its application is hidden.
+   // Restore the caller's visibility even if a native call fails.
+   if(!sw.Visible){sw.Visible=true;restoreVisibility=true;}
+   string path=(string)cmd["model_path"];
+   var dr=(IDrawingDoc)md;
+   var front=dr.CreateDrawViewFromModelView3(path,"*前视",.18,.20,0);
+   var top=dr.CreateDrawViewFromModelView3(path,"*上视",.18,.10,0);
+   var right=dr.CreateDrawViewFromModelView3(path,"*右视",.36,.20,0);
+   return json.Serialize(new {ok=front!=null&&top!=null&&right!=null,
+    front=front!=null,top=top!=null,right=right!=null});
+  }catch(Exception e){return json.Serialize(new {ok=false,error=e.ToString()});}
+  finally{if(restoreVisibility&&sw!=null)sw.Visible=false;}
+ }
+}
+'''
+
 
 def _template_dirs():
-    """按已装 SW 版本定位模板目录，不写死年份。"""
+    """Use target-version templates before any fallback directories."""
+    from .sw_target import effective_year, template_dirs
+    year=effective_year()
+    if year:
+        return [str(p) for p in template_dirs(year) if p.is_dir()]
     import glob
+    roots=[os.environ.get('SW_TEMPLATE_DIR','')]
+    base=os.environ.get('PROGRAMDATA') or r'C:\ProgramData'
+    roots.extend(sorted(glob.glob(os.path.join(base,'SOLIDWORKS','SOLIDWORKS *','templates')),reverse=True))
+    return list(dict.fromkeys(p for p in roots if p and os.path.isdir(p)))
 
-    out = []
-    env = os.environ.get("SW_TEMPLATE_DIR")
-    if env:
-        out.append(env)
-    base = os.environ.get("PROGRAMDATA") or r"C:\ProgramData"
-    for vendor in ("SOLIDWORKS", "SolidWorks"):
-        for d in sorted(glob.glob(os.path.join(base, vendor, "SOLIDWORKS *", "templates")),
-                        reverse=True):
-            out.append(d)
-    for letter in ("E", "D", "C", "F"):
-        out.append(letter + r":\SW2025\SOLIDWORKS\data\templates")
-        for d in sorted(glob.glob(letter + r":\SW*\SOLIDWORKS\data\templates"), reverse=True):
-            out.append(d)
-    out.append(r"C:\Program Files\SOLIDWORKS Corp\SOLIDWORKS\data\templates")
-    seen, uniq = set(), []
-    for d in out:
-        k = os.path.normcase(os.path.abspath(d))
-        if k not in seen and os.path.isdir(d):
-            seen.add(k)
-            uniq.append(d)
-    return uniq
 
 
 def _default_template(kind="drawing", paper="A3"):

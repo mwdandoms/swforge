@@ -4,7 +4,7 @@
 ═══════════════════════════════════════════════════════════════════════
 为什么要有这个模块
 ═══════════════════════════════════════════════════════════════════════
-本机装了 1299 个 GB 型材焊件轮廓（``F:\\sw基础材料库``，24 个分类）。
+用户本机装了 GB 型材焊件轮廓（位置自动探测，见 `_default_roots()`）。
 以前 ``create_weldment_frame`` 每次都现场生成一个矩形环轮廓，
 明明库里已经有 150×150×6.3 的方管，却还要重画一遍。
 
@@ -32,6 +32,7 @@
 """
 from __future__ import annotations
 
+import glob
 import os
 import re
 from dataclasses import dataclass, field
@@ -79,11 +80,65 @@ KIND_LABEL = {
     "rail": "钢轨", "u-bent": "U型折弯板",
 }
 
-#: 默认搜索根目录（按优先级）
-DEFAULT_ROOTS = [
-    r"F:\sw基础材料库",
-    r"C:\ProgramData\SOLIDWORKS\SOLIDWORKS 2025\weldment profiles\GB",
-]
+#: 素材库目录可能的命名（客户机器上不一定是同一个名字）
+LIBRARY_DIR_NAMES = ("sw基础材料库", "基础材料库", "GB型材库", "材料库", "型材库")
+
+
+def _default_roots() -> list[str]:
+    r"""自动探测素材库位置（1.6.1 有、1.7 起丢失，1.9.1 恢复）。
+
+    按优先级：
+      ① 环境变量 ``SWFORGE_LIBRARY`` / ``SWFORGE_MATERIAL_LIB``（``;`` 分隔多个）
+      ② 用户目录下的常见命名
+      ③ SolidWorks 自带的 GB 焊件轮廓目录（**按已装版本 glob，不写死年份**）
+      ④ 各盘符根目录下的常见命名（只查一层，不深扫）
+
+    ⚠️ 1.7.0 起这里退回成：写死某一个盘符下的素材库路径 + `SOLIDWORKS 2025`，
+    客户机器上没有这两个路径就索引到 0 个轮廓，标准型材全部回退现场建模。
+    """
+    roots: list[str] = []
+
+    # ① 环境变量优先
+    for var in ("SWFORGE_LIBRARY", "SWFORGE_MATERIAL_LIB"):
+        raw = os.environ.get(var)
+        if raw:
+            roots.extend(p.strip() for p in raw.split(os.pathsep) if p.strip())
+
+    # ② 用户目录
+    home = os.environ.get("USERPROFILE") or os.environ.get("HOME")
+    if home:
+        roots.extend(os.path.join(home, n) for n in LIBRARY_DIR_NAMES)
+
+    # ③ SolidWorks 自带焊件轮廓：扫 SOLIDWORKS * 版本目录，新版本优先
+    base = os.environ.get("PROGRAMDATA") or r"C:\ProgramData"
+    for d in sorted(glob.glob(os.path.join(base, "SOLIDWORKS", "SOLIDWORKS *",
+                                          "weldment profiles", "GB")), reverse=True):
+        roots.append(d)
+    roots.append(os.path.join(base, "SOLIDWORKS", "weldment profiles", "GB"))
+
+    # ④ 各盘符根下的常见目录名（有界扫描，只查一层）
+    for letter in "CDEFGH":
+        for name in LIBRARY_DIR_NAMES:
+            roots.append(f"{letter}:\\{name}")
+
+    # 去重保序，只留真实存在的
+    seen: set[str] = set()
+    out: list[str] = []
+    for r in roots:
+        try:
+            key = os.path.normcase(os.path.abspath(r))
+        except Exception:                                       # noqa: BLE001
+            continue
+        if key in seen:
+            continue
+        seen.add(key)
+        if os.path.isdir(r):
+            out.append(r)
+    return out
+
+
+#: 默认搜索根目录（导入时探测一次，约几毫秒）
+DEFAULT_ROOTS = _default_roots()
 
 _NUM = re.compile(r"\d+(?:\.\d+)?")
 

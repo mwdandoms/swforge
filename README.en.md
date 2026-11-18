@@ -1,59 +1,33 @@
-[中文](README.md) | **English**
+English | [中文](README.md)
 
 # swforge
 
 **Less repetitive work in SolidWorks. More reusable engineering results.**
 
-Build parameterized parts, apply materials and colors, prepare assemblies and drawings, and deliver BOMs and PDFs through repeatable workflows—with readback checks where supported.
+Build parameterized parts, apply materials and colors, prepare assemblies and drawings, and deliver BOMs and PDFs through repeatable local workflows with readback checks.
 
-[![PyPI](https://img.shields.io/pypi/v/swforge)](https://pypi.org/project/swforge/) [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+## Community 2.0 focus
 
-## What you can do
-
-| Work | Community features |
-|---|---|
-| Repeated part designs | Plates, tubes, cylinders, revolved bodies, cuts, holes, fillets, chamfers and copy-only variants |
-| Materials and appearance | GB-designated materials, rule-based colors and readback |
-| Assemblies | Components, mates, interference checks, variants and native BOM tables |
-| Drawings | Standard views, sections, details, explicit dimensions, tolerances and surface-finish symbols |
-| Consistent presentation | A0–A4 GB-oriented templates, first-angle projection, title fields and basic font/line-weight checks |
-| Deliverables | Batch drawings, multi-sheet books, PDF/DWG/DXF export and artifact freshness records |
-| AI-assisted work | MCP access, alongside Python and command-line interfaces |
-
-Checks expose their coverage and limitations. Generated drawings still require engineering review.
-
-## How it compares
-
-| Approach | Published focus | Where swforge fits |
-|---|---|---|
-| Project-specific macros | Replaying a particular sequence; capabilities depend on implementation | Reusable workflows spanning modeling, variants, drawings and delivery |
-| [CAD+ Toolset](https://cadplus.xarial.com/) | Properties, batch processing, export, BOM and desktop/PDM utilities | Parameterized engineering tasks accessible through scripts, CLI and AI assistants |
-| [AssetMate MechDog](https://github.com/wudahua/Solidworks_AssetMate_MechDog) | SolidWorks MCP, drawing annotations, feature ledgers and delivery checks | Parameterized geometry/mechanical families, variants, basic GB-oriented drawings and multi-sheet delivery; optional drawing enhancements can work with MechDog |
-
-This is a positioning comparison based on official descriptions, not a shared-task benchmark or a claim that competing products lack particular features. Only SW2025 SP5 has been tested locally; no speed multiplier or cross-version guarantee is claimed.
-
-## Install
-
-Windows, Python 3.10+ and your own licensed SolidWorks installation are required.
+- JSON modeling, stepped shafts and seven native feature operations: linear/circular patterns, mirrors, shells, ribs, circular-section lofts and cosmetic threads.
+- Native driving dimensions for common profiles, explicit recipe relations, rebuild readback and copy-only variants.
+- Constant-pitch round-wire springs and auger flights, delivered as geometry-only solids without native construction history. Change inputs to regenerate a new file.
+- Materials/colors, assembly and interference checks, basic clearance measurement and BOMs.
+- Public 1.7 drawing, GB, review and batch features retained with necessary compatibility and reliability fixes.
+- Python, CLI and MCP access. Windows, Python 3.10+ and your own SolidWorks license are required.
 
 ```bash
 pip install swforge
 pip install "swforge[mcp,pdf]"
-swforge --help
 ```
 
-Keep source models and use new output paths. The default open-document limit is eight.
+Set `SWFORGE_SW_YEAR=2019` or `2025` before starting the process and open the matching SolidWorks release. See [validation](docs/validation-community.md) for operation-specific SW2019 SP5 / SW2025 SP5 coverage. Generate 2019 native files in 2019.
 
-## Open-source boundary
+## Scope and maintenance
 
-The GitHub repository and PyPI Community distributions are MIT-licensed, including commercial use. They include modeling, materials/colors, assemblies, annotations, BOMs, drawing books, batch APIs, basic GB templates/checks, readback and document protection.
+Community remains MIT-licensed, including commercial use. 2.0 is the last planned Community feature update. Version compatibility work will continue, progressively targeting SolidWorks 2018–2026 alongside defect and safety maintenance; support claims will follow published validation results. Geometry-only helical parts can still be measured, assembled and directly edited; mixed parts containing helical geometry also lose construction history. Flight blank calculations, mechanical connection review and newer advanced drawing/review implementations are excluded. Recipe relations are not native cross-file equations. Outputs require engineering review and are not complete GB, strength or manufacturing certification.
 
-Advanced GB clause review, raster/drawing-set review and process-rule orchestration implementations are withheld from this release, including the sdist and wheel. They remain local pending a separate module and licensing decision. They are not advertised as an available paid product. Earlier MIT releases retain their original license.
+## Future subscriptions and enterprise customization
 
-Basic GB coverage is finite: limited fit codes/size ranges, no certified exact long-FangSong font coverage, and no complete GB/manufacturing/strength certification. Five GD&T characteristics have interfaces; saved-and-reopened flatness was the native fixture tested this round. See [scope](COMMUNITY_SCOPE.json) and [validation](docs/validation-community.md).
+Future subscriptions will focus on enhanced drawings, maintained GB rule packs, review and batch job management, with editable helical workflows and blank calculations planned. Enterprise work may include company templates, private libraries, product generators and PDM/ERP integration. Scope and delivery will be announced separately; existing MIT rights remain unchanged.
 
-MCP migration: use `sw_discover`, `sw_describe`, `sw_invoke` and `sw_status`; original operation names are invoked through the gateway. Community Python and CLI operations remain available. See [migration](docs/community-migration.md).
-
-## Acknowledgements
-
-Original and dependency license notices are preserved. Thanks to [AssetMate MechDog](https://github.com/wudahua/Solidworks_AssetMate_MechDog) and other open-source projects. Report issues with your SW version and a minimal example; omit confidential models.
+Original and dependency notices are preserved. Thanks to [AssetMate MechDog](https://github.com/wudahua/Solidworks_AssetMate_MechDog) and other open-source projects. Report your SW version and a minimal example without confidential models.

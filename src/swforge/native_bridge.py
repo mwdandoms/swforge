@@ -1,6 +1,8 @@
 """Small typed bridge for v1.5 inspections and copy-only parameter edits."""
 from __future__ import annotations
 import json
+
+from ._compat import temp_dir
 from pathlib import Path
 import subprocess
 import tempfile
@@ -11,13 +13,14 @@ def run_native(command, timeout_s=120, *, engine=None):
     from .core.trace import event
     event('native_started',mode=command.get('mode',command.get('operation','native')))
     from .modeling import _find_sw_dir
+    from .sw_target import native_source
     directory=_find_sw_dir()
     if not directory:
         return {'ok':False,'error':'SolidWorks Interop DLL not found'}
     quote=lambda s:str(s).replace("'","''")
-    with tempfile.TemporaryDirectory(prefix='swforge_native15_', ignore_cleanup_errors=True) as work:
+    with temp_dir('swforge_native15_') as work:
         root=Path(work);name='Workflow15_'+uuid.uuid4().hex
-        (root/'bridge.cs').write_text((engine or _ENGINE).replace('__CLASS__',name),encoding='utf8')
+        (root/'bridge.cs').write_text(native_source((engine or _ENGINE).replace('__CLASS__',name)),encoding='utf8')
         (root/'request.json').write_text(json.dumps(command,ensure_ascii=False),encoding='utf8')
         dll=Path(directory)/'SolidWorks.Interop.sldworks.dll'
         const=Path(directory)/'SolidWorks.Interop.swconst.dll'
@@ -50,13 +53,20 @@ def target_document(path, kind):
     """Activate exact saved document, checking capacity before opening."""
     import os
     from .session import get_session,_value
-    from .resources import ensure_capacity
+    from .resources import document_inventory,ensure_capacity
     path=os.path.abspath(os.fspath(path))
     if not os.path.isfile(path):
         raise ValueError('Document does not exist: '+path)
     sw=get_session().sw()
     document=sw.GetOpenDocumentByName(path)
+    if document is not None and os.path.normcase(str(_value(document,'GetPathName'))) != os.path.normcase(path):
+        raise RuntimeError('SolidWorks resolved another document with the same filename')
     if document is None:
+        name=os.path.normcase(os.path.basename(path))
+        for opened in document_inventory(sw)['documents']:
+            other=opened['path']
+            if other and os.path.normcase(os.path.basename(other))==name and os.path.normcase(other)!=os.path.normcase(path):
+                raise RuntimeError('A same-named document is already open: '+other)
         cap=ensure_capacity(2 if kind==3 else 1)
         if not cap['allowed']:
             raise RuntimeError(cap['error'])
@@ -155,6 +165,220 @@ public class __CLASS__ {
   md.ShowNamedView2("",7);md.ViewZoomtofit2();
   return Row("ok",true,"path",md.GetPathName(),"configuration",md.ConfigurationManager.ActiveConfiguration.Name,"changes",plan,"material",actual,"volume_mm3",volume*1e9,"mass_kg",massKg,"density_kg_m3",massKg/volume,"save_warnings",warnings);
  }
+ static double PartVolumeMm3(){
+  IMassProperty mass=(IMassProperty)md.Extension.CreateMassProperty();
+  if(mass==null)throw new Exception("Mass properties unavailable");
+  mass.UseSystemUnits=true;
+  // SW2025 SP5：先读 Mass 再读 Volume，否则密度按 1 缓存
+  double massKg=mass.Mass;double volume=mass.Volume;
+  if(Double.IsNaN(volume)||volume<=0)throw new Exception("Volume unavailable");
+  return volume*1e9;
+ }
+ static void RestorePartParameters(List<object> plan,IPartDoc part,bool materialChanged,
+    string previousDatabase,string previousMaterial,double beforeVolume){
+  foreach(Dictionary<string,object> change in plan){
+   IDimension dim=(IDimension)md.Parameter(S(change,"key"));
+   double value=Convert.ToDouble(change["before_mm"])/1000;
+   int code=dim.SetSystemValue3(value,(int)swSetValueInConfiguration_e.swSetValue_InThisConfiguration,null);
+   if(code!=0)throw new Exception("Restore rejected parameter: "+dim.FullName);
+  }
+  if(materialChanged){
+   part.SetMaterialPropertyName2("",previousDatabase,previousMaterial);
+   string database="";
+   if(part.GetMaterialPropertyName2("",out database)!=previousMaterial)
+    throw new Exception("Original material could not be restored");
+  }
+  if(!md.EditRebuild3())throw new Exception("Restore rebuild returned false");
+  foreach(Dictionary<string,object> change in plan){
+   IDimension dim=(IDimension)md.Parameter(S(change,"key"));
+   if(Math.Abs(dim.SystemValue*1000-Convert.ToDouble(change["before_mm"]))>1e-6)
+    throw new Exception("Restored dimension readback mismatch: "+dim.FullName);
+  }
+  double volume=PartVolumeMm3();
+  if(Math.Abs(volume-beforeVolume)>1e-3*beforeVolume)
+   throw new Exception("Restore volume mismatch: "+volume+" vs "+beforeVolume);
+ }
+ static object SetParams(Dictionary<string,object> cmd){
+  if(md.GetType()!=1)throw new Exception("Only part documents are supported");
+  bool allowUnsaved=cmd.ContainsKey("allow_unsaved")&&Convert.ToBoolean(cmd["allow_unsaved"]);
+  if(md.GetSaveFlag()&&!allowUnsaved)throw new Exception("Part has unsaved changes; save or close it first");
+  ListParameters();
+  var changes=(Dictionary<string,object>)cmd["parameters"];
+  if(changes==null||changes.Count==0)throw new Exception("Specify at least one exact parameter");
+  var plan=new List<object>();
+  foreach(var change in changes){
+   var matches=parameters.FindAll(x=>S((Dictionary<string,object>)x,"name")==change.Key||S((Dictionary<string,object>)x,"key")==change.Key);
+   if(matches.Count!=1)throw new Exception("Unknown or ambiguous exact parameter: "+change.Key);
+   var row=(Dictionary<string,object>)matches[0];
+   IDimension p=(IDimension)md.Parameter(S(row,"key"));
+   if(p==null)throw new Exception("Cannot resolve parameter: "+change.Key);
+   if(p.ReadOnly||S(row,"unit")!="mm")throw new Exception("Only writable linear parameters are supported: "+change.Key);
+   double value=Convert.ToDouble(change.Value);
+   if(Double.IsNaN(value)||Double.IsInfinity(value)||value<=0)throw new Exception("Parameter must be finite and positive");
+   plan.Add(Row("name",p.FullName,"key",S(row,"key"),"before_mm",p.SystemValue*1000,"after_mm",value));
+  }
+  double beforeVolume=PartVolumeMm3();
+  bool save=cmd.ContainsKey("save")&&Convert.ToBoolean(cmd["save"]);
+  bool restoreAfter=cmd.ContainsKey("restore_after")&&Convert.ToBoolean(cmd["restore_after"]);
+  if(save&&restoreAfter)throw new Exception("save and restore_after are mutually exclusive");
+  IPartDoc part=(IPartDoc)md;
+  string previousDatabase="";
+  string previousMaterial=part.GetMaterialPropertyName2("",out previousDatabase)??"";
+  bool materialChanged=false, saveAttempted=false;
+  double? afterVolume=null;
+  Dictionary<string,object> volumeCheck=null;
+  try{
+   foreach(Dictionary<string,object> change in plan){
+    IDimension p=(IDimension)md.Parameter(S(change,"key"));
+    int code=p.SetSystemValue3(Convert.ToDouble(change["after_mm"])/1000,(int)swSetValueInConfiguration_e.swSetValue_InThisConfiguration,null);
+    if(code!=0)throw new Exception("SetSystemValue3 rejected parameter: "+p.FullName+" code="+code);
+   }
+   if(!md.EditRebuild3())throw new Exception("Rebuild returned false");
+   foreach(Dictionary<string,object> change in plan){
+    IDimension p=(IDimension)md.Parameter(S(change,"key"));
+    double got=p.SystemValue*1000;
+    if(Math.Abs(got-Convert.ToDouble(change["after_mm"]))>1e-6)throw new Exception("Parameter readback mismatch: "+p.FullName);
+    change["readback_mm"]=got;
+   }
+   for(IFeature f=(IFeature)md.FirstFeature();f!=null;f=(IFeature)f.GetNextFeature()){
+    bool warning=false;int error=f.GetErrorCode2(out warning);
+    if(error!=0)throw new Exception("Feature rebuild error: "+f.Name+" code="+error);
+   }
+   string material=S(cmd,"material");
+   if(material!=""){
+    materialChanged=true;
+    part.SetMaterialPropertyName2("",S(cmd,"material_db"),material);
+    string database="";
+    if(part.GetMaterialPropertyName2("",out database)!=material)throw new Exception("Material readback mismatch");
+   }
+   afterVolume=PartVolumeMm3();
+   if(cmd.ContainsKey("expect_volume_mm3")&&cmd["expect_volume_mm3"]!=null){
+    double expected=Convert.ToDouble(cmd["expect_volume_mm3"]);
+    double tolerance=Convert.ToDouble(cmd["tolerance_pct"]);
+    double deviation=Math.Abs(afterVolume.Value-expected)/expected*100;
+    volumeCheck=Row("expected_mm3",Math.Round(expected,3),"measured_mm3",Math.Round(afterVolume.Value,3),
+                    "deviation_pct",Math.Round(deviation,4),"tolerance_pct",tolerance);
+    if(deviation>tolerance)
+     throw new Exception("Volume deviation "+deviation.ToString("F4")+"% exceeds "+tolerance+"% before save");
+   }
+   int errors=0,saveWarnings=0;
+   if(save){
+    saveAttempted=true;
+    if(!md.Save3(1,ref errors,ref saveWarnings)||errors!=0)throw new Exception("Save failed: "+errors);
+   }
+   if(restoreAfter)RestorePartParameters(plan,part,materialChanged,previousDatabase,previousMaterial,beforeVolume);
+   var success=Row("ok",true,"path",md.GetPathName(),"changes",plan,"volume_before_mm3",beforeVolume,
+     "volume_after_mm3",afterVolume,"saved",save,"save_warnings",saveWarnings,"restored",restoreAfter);
+   if(volumeCheck!=null)success["volume_check"]=volumeCheck;
+   return success;
+  }catch(Exception e){
+   string rollback;
+   try{
+    RestorePartParameters(plan,part,materialChanged,previousDatabase,previousMaterial,beforeVolume);
+    rollback="restored";
+   }catch(Exception re){rollback="failed: "+re.Message;}
+   var failure=Row("ok",false,"error",e.Message,"rolled_back",rollback,"changes",plan,
+     "volume_before_mm3",beforeVolume,"volume_after_mm3",afterVolume,
+     "saved",saveAttempted?(object)null:false,"restored",rollback=="restored");
+   if(volumeCheck!=null)failure["volume_check"]=volumeCheck;
+   if(saveAttempted||rollback!="restored")failure["mutation_state"]="unknown";
+   return failure;
+  }
+ }
+ static IComponent2 FindComponent(List<IComponent2> components,string name){
+  var exact=components.FindAll(c=>String.Equals(c.Name2,name,StringComparison.OrdinalIgnoreCase));
+  if(exact.Count==1)return exact[0];
+  var matches=exact.Count>0?exact:components.FindAll(c=>
+   String.Equals(Path.GetFileNameWithoutExtension(c.GetPathName()),name,StringComparison.OrdinalIgnoreCase));
+  if(matches.Count!=1)
+   throw new Exception(matches.Count==0?"Component not found: "+name:"Ambiguous component name: "+name+"; use exact instance name");
+  return matches[0];
+ }
+ static double[] PointsMm(object point){
+  double[] raw=point as double[];
+  if(raw==null||raw.Length<3)return null;
+  return new double[]{Math.Round(raw[0]*1000,4),Math.Round(raw[1]*1000,4),Math.Round(raw[2]*1000,4)};
+ }
+ static double BodyVolumeMm3(IBody2 body){
+  double[] mp=(double[])body.GetMassProperties(1.0);
+  return mp==null||mp.Length<4?0:mp[3]*1e9;
+ }
+ // 装配坐标系下的精确干涉体积：组件体在组件坐标系，必须 ApplyTransform(Transform2)
+ static double AssemblyOverlap(IComponent2 a,IComponent2 b,out int code,out string note){
+  code=0;note="";
+  object[] ba=(object[])a.GetBodies2((int)swBodyType_e.swSolidBody);
+  object[] bb=(object[])b.GetBodies2((int)swBodyType_e.swSolidBody);
+  if(ba==null||ba.Length==0||bb==null||bb.Length==0){note="no solid bodies";return 0;}
+  if(ba.Length*bb.Length>400)throw new Exception("Too many body pairs to intersect: "+ba.Length+"x"+bb.Length);
+  MathTransform xa=(MathTransform)a.Transform2,xb=(MathTransform)b.Transform2;
+  double total=0;
+  foreach(object oa in ba)foreach(object ob in bb){
+   IBody2 ta=(IBody2)((IBody2)oa).Copy2(true);
+   IBody2 tb=(IBody2)((IBody2)ob).Copy2(true);
+   if(xa!=null)ta.ApplyTransform(xa);
+   if(xb!=null)tb.ApplyTransform(xb);
+   int localCode=0;
+   object res=ta.Operations2(15901,tb,out localCode);
+   if(localCode!=0 && localCode!=(int)swBodyOperationError_e.swBodyOperationDisjointBodies &&
+      localCode!=(int)swBodyOperationError_e.swBodyOperationNoIntersect){
+    code=localCode;note="body boolean code "+localCode;
+   }
+   if(res==null)continue;
+   object[] items=res as object[];
+   if(items==null)items=new object[]{res};
+   foreach(object x in items)total+=BodyVolumeMm3((IBody2)x);
+  }
+  return total;
+ }
+ static object Clearance(Dictionary<string,object> cmd){
+  if(md.GetType()!=2)throw new Exception("Only assembly documents are supported");
+  IAssemblyDoc asm=(IAssemblyDoc)md;
+  double minimum=cmd.ContainsKey("minimum_mm")?Convert.ToDouble(cmd["minimum_mm"]):1.0;
+  if(Double.IsNaN(minimum)||Double.IsInfinity(minimum)||minimum<0)throw new Exception("minimum_mm must be finite and non-negative");
+  object[] comps=(object[])asm.GetComponents(false);
+  if(comps==null||comps.Length<2)throw new Exception("Assembly needs at least two components");
+  var available=new List<IComponent2>();
+  foreach(IComponent2 component in comps)if(!component.IsSuppressed())available.Add(component);
+  var selected=new List<IComponent2>();
+  if(cmd.ContainsKey("components")&&cmd["components"]!=null)
+   foreach(object name in (IEnumerable)cmd["components"])selected.Add(FindComponent(available,Convert.ToString(name)));
+  if(selected.Count>2)throw new Exception("At most two components can be named");
+  if(selected.Count==2 && String.Equals(selected[0].Name2,selected[1].Name2,StringComparison.OrdinalIgnoreCase))
+   throw new Exception("Specify two distinct component instances");
+  var picks=selected.Count==2?selected:available;
+  string anchor=selected.Count==1?selected[0].Name2:null;
+  var rows=new List<object>();
+  const double contactToleranceMm=1e-6;
+  const double overlapToleranceMm3=0.0005;
+  double minValue=Double.MaxValue;int interfering=0,touchingCount=0,inconclusive=0;
+  for(int i=0;i<picks.Count;i++)for(int j=i+1;j<picks.Count;j++){
+   IComponent2 a=picks[i];IComponent2 b=picks[j];
+   if(anchor!=null && a.Name2!=anchor && b.Name2!=anchor)continue;
+   object p1=null,p2=null;
+   double distanceMm=md.ClosestDistance(a,b,out p1,out p2)*1000.0;
+   if(Double.IsNaN(distanceMm)||Double.IsInfinity(distanceMm)||distanceMm<0||PointsMm(p1)==null||PointsMm(p2)==null)
+    throw new Exception("Closest distance unavailable for "+a.Name2+" / "+b.Name2);
+   bool touching=distanceMm<=contactToleranceMm;
+   double overlap=0;int code=0;string note="";
+   if(touching)overlap=AssemblyOverlap(a,b,out code,out note);
+   string verdict=code!=0||note!=""?"unknown":
+       (overlap>=overlapToleranceMm3?"interference":(touching?"touch":"clear"));
+   if(verdict=="unknown")inconclusive++;
+   if(verdict=="interference")interfering++;
+   if(verdict=="touch")touchingCount++;
+   if(distanceMm<minValue)minValue=distanceMm;
+   rows.Add(Row("components",new string[]{a.Name2,b.Name2},"clearance_mm",Math.Round(distanceMm,6),
+                "closest_point_a_mm",PointsMm(p1),"closest_point_b_mm",PointsMm(p2),
+                "touching",touching,"interference_volume_mm3",Math.Round(overlap,3,MidpointRounding.AwayFromZero),
+                "boolean_code",code,"boolean_note",note,"verdict",verdict,
+                "meets_minimum",verdict=="clear"&&distanceMm>=minimum));
+  }
+  if(rows.Count==0)throw new Exception("No eligible component pairs were measured");
+  return Row("ok",inconclusive==0,"path",md.GetPathName(),"minimum_mm",minimum,"checked_components",picks.Count,
+             "count",rows.Count,"pairs",rows,"min_clearance_mm",minValue==Double.MaxValue?null:(object)minValue,
+             "interfering_pairs",interfering,"touching_pairs",touchingCount,"inconclusive_pairs",inconclusive,
+             "method","ClosestDistance + assembly-space boolean intersection");
+ }
  static object CopyPart(Dictionary<string,object> cmd){
   if(md.GetType()!=1||md.GetSaveFlag())throw new Exception("Copy source must be a saved part without unsaved changes");
   string output=Path.GetFullPath(S(cmd,"out"));string original=md.GetPathName();
@@ -225,13 +449,13 @@ public class __CLASS__ {
  public static string Run(string path){
   try{
    var cmd=json.Deserialize<Dictionary<string,object>>(File.ReadAllText(path));
-   sw=(ISldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
+   sw=SwforgeConnection.Connect();
    if(sw.GetProcessID()!=Convert.ToInt32(cmd["process_id"]))throw new Exception("SolidWorks process changed");
    if(typeof(ISldWorks).Assembly.GetName().Version.Major!=Int32.Parse(sw.RevisionNumber().Split('.')[0]))throw new Exception("Interop major version differs from running SolidWorks");
    md=(IModelDoc2)sw.ActiveDoc;
    if(md==null||!String.Equals(Path.GetFullPath(md.GetPathName()),Path.GetFullPath(S(cmd,"path")),StringComparison.OrdinalIgnoreCase))throw new Exception("Active document changed");
    string mode=S(cmd,"mode");object result;
-   if(mode=="parameters")result=ListParameters();else if(mode=="copy")result=CopyPart(cmd);else if(mode=="edit")result=Edit(cmd);else if(mode=="drawing")result=Drawing();else throw new Exception("Unknown operation");
+   if(mode=="parameters")result=ListParameters();else if(mode=="copy")result=CopyPart(cmd);else if(mode=="edit")result=Edit(cmd);else if(mode=="drawing")result=Drawing();else if(mode=="setparams")result=SetParams(cmd);else if(mode=="clearance")result=Clearance(cmd);else throw new Exception("Unknown operation");
    return json.Serialize(result);
   }catch(Exception e){return json.Serialize(Row("ok",false,"error",e.ToString()));}
  }
